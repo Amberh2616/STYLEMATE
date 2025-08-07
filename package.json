@@ -1,0 +1,28 @@
+{
+  "name": "stylemate-image-processor",
+  "version": "1.0.0",
+  "description": "Image processing engine for STYLEMATE virtual try-on platform",
+  "main": "image-processor.js",
+  "scripts": {
+    "test": "jest",
+    "start": "node image-processor.js",
+    "demo": "node demo.js"
+  },
+  "keywords": [
+    "image-processing",
+    "virtual-try-on",
+    "fashion",
+    "computer-vision"
+  ],
+  "author": "STYLEMATE Team",
+  "license": "MIT",
+  "dependencies": {
+    "sharp": "^0.33.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
