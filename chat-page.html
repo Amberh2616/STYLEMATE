@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STYLEMATE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定義動畫 */
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% {
+                animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+                transform: translate3d(0,0,0);
+            }
+            40%, 43% {
+                animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+                transform: translate3d(0, -30px, 0);
+            }
+            70% {
+                animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+                transform: translate3d(0, -15px, 0);
+            }
+            90% {
+                transform: translate3d(0,-4px,0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+
+        @keyframes typing {
+            0%, 50%, 100% {
+                opacity: 1;
+            }
+            25%, 75% {
+                opacity: 0.5;
+            }
+        }
+
+        .animate-bounce {
+            animation: bounce 1s infinite;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .animate-typing {
+            animation: typing 1.5s infinite;
+        }
+
+        /* 自定義漸層 - 統一紫灰色調 */
+        .bg-gradient-chat {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+        }
+
+        .bg-gradient-border-top {
+            background: linear-gradient(90deg, #8b7cf6 0%, #6366f1 50%, #4f46e5 100%);
+            opacity: 0.3;
+        }
+
+        .bg-gradient-border-bottom {
+            background: linear-gradient(90deg, #4f46e5 0%, #6366f1 50%, #8b7cf6 100%);
+            opacity: 0.3;
+        }
+
+        .bg-gradient-border-left {
+            background: linear-gradient(180deg, #8b7cf6 0%, #6366f1 50%, #4f46e5 100%);
+            opacity: 0.3;
+        }
+
+        .bg-gradient-border-right {
+            background: linear-gradient(180deg, #4f46e5 0%, #6366f1 50%, #8b7cf6 100%);
+            opacity: 0.3;
+        }
+
+        .bg-gradient-assistant {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 2px solid #e2e8f0;
+        }
+
+        .bg-gradient-message-ai {
+            background: linear-gradient(90deg, #f1f5f9, #e2e8f0);
+        }
+
+        .bg-gradient-message-user {
+            background: linear-gradient(90deg, #6366f1, #8b7cf6);
+        }
+
+        .bg-gradient-button-like {
+            background: linear-gradient(90deg, #6366f1, #8b7cf6);
+        }
+
+        .bg-gradient-button-like:hover {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        }
+
+        .bg-gradient-button-send {
+            background: linear-gradient(90deg, #6366f1, #8b7cf6);
+        }
+
+        .bg-gradient-button-send:hover {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        }
+
+        /* 漸層文字 */
+        .text-gradient {
+            background: linear-gradient(90deg, #6366f1, #8b7cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 聊天氣泡三角形 */
+        .chat-bubble-tail::after {
+            content: '';
+            position: absolute;
+            right: -1px;
+            top: 50%;
+            transform: translateY(-50%) translateX(100%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid white;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+        }
+
+        /* 滑入動畫 */
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-chat">
+    <!-- 裝飾性邊框 -->
+    <div class="fixed inset-0 pointer-events-none">
+        <div class="absolute top-0 left-0 w-full h-8 bg-gradient-border-top"></div>
+        <div class="absolute bottom-0 left-0 w-full h-8 bg-gradient-border-bottom"></div>
+        <div class="absolute top-0 left-0 w-8 h-full bg-gradient-border-left"></div>
+        <div class="absolute top-0 right-0 w-8 h-full bg-gradient-border-right"></div>
+        
+        <!-- 角落裝飾 -->
+        <div class="absolute top-2 left-2 w-6 h-6 bg-slate-300 rounded-full opacity-80"></div>
+        <div class="absolute top-2 right-2 w-6 h-6 bg-indigo-300 rounded-full opacity-80"></div>
+        <div class="absolute bottom-2 left-2 w-6 h-6 bg-violet-300 rounded-full opacity-80"></div>
+        <div class="absolute bottom-2 right-2 w-6 h-6 bg-slate-300 rounded-full opacity-80"></div>
+    </div>
+
+    <!-- 小人頭助理 -->
+    <div class="fixed top-12 right-12 z-50">
+        <div class="relative">
+            <!-- 助理頭像 -->
+            <div class="w-16 h-16 bg-gradient-assistant rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                <span id="assistantEmoji" class="text-2xl text-white">👩‍💼</span>
+            </div>
+            
+            <!-- 說話氣泡 -->
+            <div id="speechBubble" class="absolute -left-32 top-1/2 transform -translate-y-1/2 bg-white rounded-lg px-3 py-2 shadow-lg border-2 border-slate-200 chat-bubble-tail">
+                <div id="bubbleText" class="text-sm text-gray-600">哈囉！我是你的時尚助理！</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要內容區域 -->
+    <div class="container mx-auto px-8 py-12 max-w-4xl relative z-10">
+        <!-- 標題區域 -->
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center space-x-3 mb-4">
+                <!-- Chat Icon -->
+                <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                
+                <h1 class="text-3xl font-bold text-gradient">STYLEMATE</h1>
+                
+                <!-- Sparkles Icon -->
+                <svg class="w-8 h-8 text-pink-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.5 2.5L16 4l2.5 2.5L16 9l-2.5-2.5L16 4l-2.5-2.5L16 9zm2.5 6L12 10.5 9.5 9 12 7.5 14.5 9 12 10.5z"></path>
+                </svg>
+            </div>
+            <p class="text-gray-600">讓我來幫你找到最完美的韓式穿搭！</p>
+        </div>
+
+        <!-- 主要內容區 - 左右分欄 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- 左側：聊天區域 -->
+            <div class="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-4 border-slate-200 p-6">
+            <!-- 聊天訊息區域 -->
+            <div id="chatMessages" class="space-y-4 mb-4 max-h-96 overflow-y-auto">
+                <!-- 歡迎訊息 -->
+                <div class="flex justify-start">
+                    <div class="max-w-md bg-gradient-message-ai text-gray-800 rounded-br-2xl rounded-tr-2xl rounded-tl-sm border-2 border-slate-200 px-4 py-3 shadow-md">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-lg">👩‍💼</span>
+                            <span class="text-xs font-semibold text-indigo-600">STYLEMATE 助理</span>
+                        </div>
+                        <p class="text-sm leading-relaxed">
+                            哈囉！我是 STYLEMATE 的時尚助理 ✨<br>
+                            告訴我你喜歡什麼樣的風格？或是有什麼特別的穿搭需求嗎？
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 打字指示器 -->
+            <div id="typingIndicator" class="hidden flex justify-start mb-4">
+                <div class="bg-gradient-message-ai text-gray-800 rounded-br-2xl rounded-tr-2xl rounded-tl-sm border-2 border-slate-200 px-4 py-3 shadow-md">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-lg">🤔</span>
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 bg-pink-400 rounded-full animate-typing"></div>
+                            <div class="w-2 h-2 bg-purple-400 rounded-full animate-typing" style="animation-delay: 0.2s;"></div>
+                            <div class="w-2 h-2 bg-pink-400 rounded-full animate-typing" style="animation-delay: 0.4s;"></div>
+                        </div>
+                        <span class="text-xs text-gray-500">正在思考中...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 輸入區域 -->
+            <div class="flex space-x-3">            
+                <input
+                    id="messageInput"
+                    type="text"
+                    placeholder="例如：我喜歡甜美風格、想要上班穿的衣服..."
+                    class="flex-1 px-4 py-3 bg-pink-50 border-2 border-slate-200 rounded-xl focus:border-purple-400 focus:outline-none transition-all"
+                    onkeypress="handleKeyPress(event)"
+                />
+                
+                <button onclick="sendMessage()" class="p-3 bg-gradient-button-send text-white rounded-xl hover:bg-gradient-button-send shadow-md transition-all">
+                    <span class="text-xl">✨</span>
+                </button>
+            </div>
+            </div>
+            
+            <!-- 右側：照片上傳區域 -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-4 border-slate-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">📷 照片上傳</h3>
+                
+                <div id="uploadArea" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center transition-all hover:border-indigo-400">
+                    <div class="text-gray-400 mb-4">
+                        <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-2">上傳你的全身照片</p>
+                    <p class="text-xs text-gray-400">支援 JPG, PNG 格式</p>
+                    <input type="file" id="photoInput" accept="image/*" class="hidden" />
+                    <button onclick="document.getElementById('photoInput').click()" class="mt-4 bg-gradient-button-send text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 transition-all">
+                        選擇照片
+                    </button>
+                </div>
+                
+                <!-- 照片預覽區域 -->
+                <div id="photoPreview" class="hidden mt-6">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">照片預覽</h4>
+                    <div class="bg-slate-50 rounded-lg p-4">
+                        <img id="previewImage" src="" alt="預覽圖片" class="w-full h-48 object-cover rounded-lg">
+                        <button onclick="startTryOn()" class="w-full mt-4 bg-gradient-button-like text-white py-2 px-4 rounded-lg text-sm hover:opacity-90 transition-all">
+                            開始生成試穿圖 →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 商品推薦區域 (初始隱藏) -->
+        <div id="productRecommendations" class="hidden">
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-4 border-slate-200 p-6 mb-6">
+                <h3 class="text-xl font-bold text-center mb-6 text-gradient">✨ AI 為你精選的商品 ✨</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 商品卡片會由 JavaScript 動態生成 -->
+                </div>
+                
+                <div class="text-center mt-6">
+                    <p class="text-sm text-gray-600 mb-4">選擇你喜歡的商品，我可以為你生成試穿效果哦！ 📸</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 返回按鈕 -->
+        <div class="text-center">
+            <a href="index.html" class="inline-flex items-center space-x-2 text-purple-600 hover:text-purple-700 font-medium">
+                <span>←</span>
+                <span>返回首頁</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let conversationStep = 0;
+        
+        const products = [
+            {
+                id: 'dress1',
+                name: '韓式甜美花朵印花洋裝',
+                price: '1,299',
+                emoji: '👗',
+                description: '甜美可愛的花朵印花洋裝，輕薄透氣的面料'
+            },
+            {
+                id: 'shirt1',
+                name: '優雅V領職場襯衫',
+                price: '899',
+                emoji: '👚',
+                description: '簡約優雅的V領襯衫，職場必備單品'
+            },
+            {
+                id: 'jacket1',
+                name: '街頭風格寬鬆牛仔外套',
+                price: '1,899',
+                emoji: '🧥',
+                description: '復古寬鬆版型牛仔外套，街頭風格首選'
+            },
+            {
+                id: 'skirt1',
+                name: '高腰A字短裙',
+                price: '699',
+                emoji: '👗',
+                description: '顯瘦高腰設計A字短裙，甜美可愛'
+            },
+            {
+                id: 'knit1',
+                name: '韓系簡約針織上衣',
+                price: '799',
+                emoji: '👕',
+                description: '柔軟舒適的針織上衣，簡約百搭'
+            },
+            {
+                id: 'jeans1',
+                name: '個性破洞牛仔褲',
+                price: '1,299',
+                emoji: '👖',
+                description: '時尚破洞設計牛仔褲，展現個性風格'
+            }
+        ];
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                // 顯示用戶訊息
+                addUserMessage(message);
+                input.value = '';
+                
+                // 顯示打字指示器
+                showTypingIndicator();
+                
+                // 更新助理表情
+                updateAssistant('🤔', '讓我想想...');
+                
+                // 模擬AI思考時間後回應
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    processUserMessage(message);
+                }, 1500);
+            }
+        }
+
+        function addUserMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex justify-end slide-in';
+            messageDiv.innerHTML = `
+                <div class="max-w-sm bg-gradient-message-user text-white rounded-bl-2xl rounded-tl-2xl rounded-tr-sm px-4 py-3 shadow-md">
+                    <p class="text-sm leading-relaxed">${message}</p>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addAIMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex justify-start slide-in';
+            messageDiv.innerHTML = `
+                <div class="max-w-md bg-gradient-message-ai text-gray-800 rounded-br-2xl rounded-tr-2xl rounded-tl-sm border-2 border-slate-200 px-4 py-3 shadow-md">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-lg">👩‍💼</span>
+                        <span class="text-xs font-semibold text-indigo-600">STYLEMATE 助理</span>
+                    </div>
+                    <p class="text-sm leading-relaxed">${message}</p>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function processUserMessage(message) {
+            conversationStep++;
+            
+            let aiResponse = '';
+            let shouldShowProducts = false;
+            
+            if (conversationStep === 1) {
+                // 第一次對話
+                aiResponse = `我了解你的喜好了！${message.includes('甜美') ? '甜美風格' : message.includes('職場') ? '職場風格' : message.includes('街頭') ? '街頭風格' : '你的風格'}真的很棒呢！<br><br>讓我為你推薦一些精選的商品，每一件都是我特別為你挑選的 ✨`;
+                shouldShowProducts = true;
+                updateAssistant('🤩', '找到完美商品了！');
+            } else {
+                // 後續對話
+                aiResponse = '謝謝你的回饋！我會根據你的喜好繼續為你推薦更合適的商品 💕';
+                updateAssistant('😊', '了解！');
+            }
+            
+            addAIMessage(aiResponse);
+            
+            if (shouldShowProducts) {
+                // 延遲顯示商品推薦
+                setTimeout(() => {
+                    showProductRecommendations();
+                }, 1000);
+            }
+        }
+
+        function showProductRecommendations() {
+            const recommendationsDiv = document.getElementById('productRecommendations');
+            const grid = recommendationsDiv.querySelector('.grid');
+            
+            // 清空現有內容
+            grid.innerHTML = '';
+            
+            // 隨機選擇3個商品
+            const shuffled = [...products].sort(() => 0.5 - Math.random());
+            const selectedProducts = shuffled.slice(0, 3);
+            
+            selectedProducts.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'bg-white rounded-xl p-6 shadow-md border border-pink-100 hover:shadow-lg transition-all hover:-translate-y-2';
+                productCard.innerHTML = `
+                    <div class="text-center mb-4">
+                        <div class="w-20 h-20 bg-gradient-to-br from-pink-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">${product.emoji}</span>
+                        </div>
+                        <h4 class="font-semibold text-gray-800 mb-2">${product.name}</h4>
+                        <p class="text-xs text-gray-600 mb-3">${product.description}</p>
+                        <div class="text-lg font-bold text-purple-600 mb-4">NT$ ${product.price}</div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <button onclick="likeProduct('${product.id}')" class="w-full bg-gradient-button-like text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-gradient-button-like transition-all flex items-center justify-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                            <span>我喜歡！生成試穿圖</span>
+                        </button>
+                        <button onclick="moreInfo('${product.id}')" class="w-full bg-gray-100 text-gray-600 py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-200 transition-all">
+                            了解更多詳情
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(productCard);
+            });
+            
+            // 顯示推薦區域
+            recommendationsDiv.classList.remove('hidden');
+            recommendationsDiv.classList.add('slide-in');
+            
+            // 滾動到商品區域
+            setTimeout(() => {
+                recommendationsDiv.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+            
+            updateAssistant('😊', '看看這些商品吧！');
+        }
+
+        function likeProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            
+            // 儲存選中的商品
+            window.selectedProduct = product;
+            
+            updateAssistant('👩‍💼', '需要你的照片！');
+            
+            addAIMessage(`太棒了！你選擇了「${product.name}」✨<br><br>現在請在右邊上傳你的全身照片，我就可以為你生成試穿效果圖了！📸`);
+        }
+
+        function moreInfo(productId) {
+            const product = products.find(p => p.id === productId);
+            addAIMessage(`關於「${product.name}」：<br><br>${product.description}，價格是 NT$ ${product.price}。這款商品很受歡迎哦！<br><br>想要試穿看看效果嗎？ ✨`);
+            updateAssistant('🤔', '讓我介紹一下...');
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').classList.remove('hidden');
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').classList.add('hidden');
+        }
+
+        function updateAssistant(emoji, bubbleText) {
+            document.getElementById('assistantEmoji').textContent = emoji;
+            document.getElementById('bubbleText').textContent = bubbleText;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // 照片上傳處理
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // 顯示預覽
+                    const previewImage = document.getElementById('previewImage');
+                    previewImage.src = e.target.result;
+                    document.getElementById('photoPreview').classList.remove('hidden');
+                    
+                    // 儲存照片
+                    window.uploadedPhoto = e.target.result;
+                    
+                    updateAssistant('👩‍💼', '照片很棒！');
+                    addAIMessage(`照片上傳成功！照片看起來很不錯呢 ✨<br><br>現在點擊「開始生成試穿圖」按鈕，我就可以幫你合成試穿效果了！`);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 開始試穿功能
+        function startTryOn() {
+            if (!window.selectedProduct || !window.uploadedPhoto) {
+                alert('請先選擇商品和上傳照片！');
+                return;
+            }
+            
+            updateAssistant('👩‍💼', '生成中...');
+            addAIMessage(`正在生成你穿著「${window.selectedProduct.name}」的試穿效果圖...<br><br>請稍等一下，馬上就好了！ ⏳`);
+            
+            // 模擬處理時間後跳轉
+            setTimeout(() => {
+                updateAssistant('👩‍💼', '完成了！');
+                addAIMessage(`試穿圖生成完成！你穿這件${window.selectedProduct.name}真的超美的 ✨<br><br>即將為你展示結果...`);
+                
+                // 跳轉到結果頁面
+                setTimeout(() => {
+                    window.location.href = 'tryon-result.html';
+                }, 1500);
+            }, 3000);
+        }
+
+        // 頁面載入時的歡迎動畫
+        window.addEventListener('load', () => {
+            const assistant = document.querySelector('.bg-gradient-assistant');
+            assistant.style.animation = 'bounce 1s infinite';
+            
+            // 5秒後停止彈跳
+            setTimeout(() => {
+                assistant.style.animation = '';
+            }, 5000);
+            
+            // 5秒後更新氣泡文字
+            setTimeout(() => {
+                updateAssistant('👩‍💼', '開始聊聊吧！');
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

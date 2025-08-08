@@ -5,24 +5,10 @@ import { ChevronDownIcon, FunnelIcon, HeartIcon, StarIcon } from '@heroicons/rea
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 import Image from 'next/image'
 import Link from 'next/link'
-
-interface Product {
-  id: string
-  name: string
-  price: number
-  originalPrice?: number
-  image: string
-  category: string
-  style: string
-  description: string
-  rating: number
-  reviews: number
-  isNew?: boolean
-  isSale?: boolean
-}
+import { products, Product } from '@/lib/products'
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([])
+  const [productList, setProductList] = useState<Product[]>(products)
   const [loading, setLoading] = useState(true)
   const [favorites, setFavorites] = useState<string[]>([])
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -37,84 +23,9 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     setLoading(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
-      const mockProducts: Product[] = [
-        {
-          id: '1',
-          name: '韓式甜美花朵印花洋裝',
-          price: 1299,
-          originalPrice: 1699,
-          image: '/images/dress-1.jpg',
-          category: 'dress',
-          style: 'sweet',
-          description: '甜美可愛的花朵印花洋裝，輕薄透氣的面料，適合春夏穿搭',
-          rating: 4.8,
-          reviews: 124,
-          isNew: true,
-          isSale: true
-        },
-        {
-          id: '2',
-          name: '優雅V領職場襯衫',
-          price: 899,
-          image: '/images/shirt-1.jpg',
-          category: 'top',
-          style: 'elegant',
-          description: '簡約優雅的V領襯衫，職場必備單品',
-          rating: 4.6,
-          reviews: 89
-        },
-        {
-          id: '3',
-          name: '街頭風格寬鬆牛仔外套',
-          price: 1899,
-          image: '/images/jacket-1.jpg',
-          category: 'outer',
-          style: 'street',
-          description: '復古寬鬆版型牛仔外套，街頭風格首選',
-          rating: 4.7,
-          reviews: 156,
-          isNew: true
-        },
-        {
-          id: '4',
-          name: '高腰A字短裙',
-          price: 699,
-          originalPrice: 899,
-          image: '/images/skirt-1.jpg',
-          category: 'bottom',
-          style: 'sweet',
-          description: '顯瘦高腰設計A字短裙，甜美可愛',
-          rating: 4.5,
-          reviews: 67,
-          isSale: true
-        },
-        {
-          id: '5',
-          name: '韓系簡約針織上衣',
-          price: 799,
-          image: '/images/knit-1.jpg',
-          category: 'top',
-          style: 'elegant',
-          description: '柔軟舒適的針織上衣，簡約百搭',
-          rating: 4.9,
-          reviews: 203
-        },
-        {
-          id: '6',
-          name: '個性破洞牛仔褲',
-          price: 1299,
-          image: '/images/jeans-1.jpg',
-          category: 'bottom',
-          style: 'street',
-          description: '時尚破洞設計牛仔褲，展現個性風格',
-          rating: 4.4,
-          reviews: 92
-        }
-      ]
-      
-      setProducts(mockProducts)
+      // Simulate loading time
+      await new Promise(resolve => setTimeout(resolve, 500))
+      setProductList(products)
     } catch (error) {
       console.error('Fetch products error:', error)
     } finally {
@@ -130,18 +41,18 @@ export default function ProductsPage() {
     )
   }
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = productList.filter(product => {
     if (selectedCategory !== 'all' && product.category !== selectedCategory) return false
     if (selectedStyle !== 'all' && product.style !== selectedStyle) return false
     return true
   })
 
   const categories = [
-    { value: 'all', label: '全部商品', count: products.length },
-    { value: 'dress', label: '洋裝', count: products.filter(p => p.category === 'dress').length },
-    { value: 'top', label: '上衣', count: products.filter(p => p.category === 'top').length },
-    { value: 'bottom', label: '下身', count: products.filter(p => p.category === 'bottom').length },
-    { value: 'outer', label: '外套', count: products.filter(p => p.category === 'outer').length }
+    { value: 'all', label: '全部商品', count: productList.length },
+    { value: 'dress', label: '洋裝', count: productList.filter(p => p.category === 'dress').length },
+    { value: 'top', label: '上衣', count: productList.filter(p => p.category === 'top').length },
+    { value: 'bottom', label: '下身', count: productList.filter(p => p.category === 'bottom').length },
+    { value: 'outer', label: '外套', count: productList.filter(p => p.category === 'outer').length }
   ]
 
   const styles = [
@@ -288,11 +199,12 @@ export default function ProductsPage() {
                           )}
                         </button>
 
-                        {/* Quick View Button */}
+                        {/* Try On Button */}
                         <div className="absolute inset-x-3 bottom-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
                           <Link href={`/tryon?product=${product.id}`}>
-                            <button className="w-full bg-primary-500 text-white py-2 rounded-lg font-medium hover:bg-primary-600 transition-colors">
-                              虛擬試穿
+                            <button className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white py-2.5 rounded-lg font-medium hover:from-primary-600 hover:to-primary-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center space-x-2">
+                              <span>👗</span>
+                              <span>立即試穿</span>
                             </button>
                           </Link>
                         </div>
@@ -324,7 +236,7 @@ export default function ProductsPage() {
                       </div>
 
                       {/* Price */}
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <span className="text-lg font-bold text-primary-600">
                             NT$ {product.price.toLocaleString()}
@@ -335,6 +247,26 @@ export default function ProductsPage() {
                             </span>
                           )}
                         </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2">
+                        <Link href={`/tryon?product=${product.id}`} className="flex-1">
+                          <button className="w-full bg-primary-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center justify-center space-x-1">
+                            <span>👗</span>
+                            <span>試穿</span>
+                          </button>
+                        </Link>
+                        <button 
+                          onClick={() => toggleFavorite(product.id)}
+                          className="px-3 py-2 rounded-lg border border-neutral-light hover:border-primary-300 hover:bg-primary-50 transition-colors"
+                        >
+                          {favorites.includes(product.id) ? (
+                            <HeartSolidIcon className="w-4 h-4 text-error" />
+                          ) : (
+                            <HeartIcon className="w-4 h-4 text-neutral-medium" />
+                          )}
+                        </button>
                       </div>
                     </div>
                   </div>
