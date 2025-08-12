@@ -75,6 +75,9 @@ export default function HomePage() {
             <Link href="/products" className="text-neutral-dark hover:text-primary-600 transition-colors font-medium">
               商品專區
             </Link>
+            <Link href="/chat" className="text-neutral-dark hover:text-primary-600 transition-colors font-medium">
+              AI顧問
+            </Link>
             <Link href="/auth" className="bg-gradient-to-r from-primary-500 to-primary-600 text-white px-4 py-2 rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all font-medium">
               登入/註冊
             </Link>
