@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   CheckCircleIcon,
@@ -13,19 +13,105 @@ import {
   ArrowPathIcon
 } from '@heroicons/react/24/outline'
 
+interface TryOnResult {
+  resultImage: string
+  productName: string
+  originalPhoto: string
+}
+
 export default function TryOnResultPage() {
   const [currentQuantity, setCurrentQuantity] = useState(1)
+  const [tryonResult, setTryonResult] = useState<TryOnResult | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const changeQuantity = (delta: number) => {
     setCurrentQuantity(Math.max(1, currentQuantity + delta))
   }
 
-  // 模擬商品資訊 (實際應該從 URL 參數或狀態管理獲取)
+  useEffect(() => {
+    // 從 localStorage 讀取試穿結果
+    const storedResult = localStorage.getItem('tryonResult')
+    if (storedResult) {
+      try {
+        const result = JSON.parse(storedResult)
+        setTryonResult(result)
+      } catch (error) {
+        console.error('解析試穿結果錯誤:', error)
+      }
+    }
+    setIsLoading(false)
+  }, [])
+
+  const downloadImage = () => {
+    if (tryonResult) {
+      const link = document.createElement('a')
+      link.href = tryonResult.resultImage
+      link.download = `${tryonResult.productName}_試穿圖.png`
+      link.click()
+    }
+  }
+
+  const shareImage = async () => {
+    if (navigator.share && tryonResult) {
+      try {
+        // 將 base64 轉換為 blob
+        const response = await fetch(tryonResult.resultImage)
+        const blob = await response.blob()
+        const file = new File([blob], '試穿圖.png', { type: 'image/png' })
+
+        await navigator.share({
+          title: `我的 ${tryonResult.productName} 試穿效果`,
+          text: '看看我在 STYLEMATE 的虛擬試穿效果！',
+          files: [file]
+        })
+      } catch (error) {
+        console.log('分享失敗:', error)
+        // 備用方案：複製連結
+        navigator.clipboard.writeText(window.location.href)
+        alert('連結已複製到剪貼板！')
+      }
+    } else {
+      // 備用分享方案
+      navigator.clipboard.writeText(window.location.href)
+      alert('連結已複製到剪貼板！')
+    }
+  }
+
+  // 模擬商品資訊 (實際應該從產品數據庫獲取)
   const productInfo = {
     emoji: '👗',
-    name: '韓式甜美花朵印花洋裝',
-    description: '甜美可愛的花朵印花洋裝，輕薄透氣的面料',
+    name: tryonResult?.productName || '韓式甜美花朵印花洋裝',
+    description: '甜美可愛的韓式設計，輕薄透氣的面料',
     price: '1,299'
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">載入試穿結果中...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!tryonResult) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 flex items-center justify-center">
+        <div className="text-center bg-white rounded-xl shadow-lg p-8 max-w-md">
+          <div className="text-6xl mb-4">🤔</div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">沒有找到試穿結果</h2>
+          <p className="text-gray-600 mb-6">請先在聊天頁面選擇商品並上傳照片</p>
+          <Link 
+            href="/chat"
+            className="inline-flex items-center bg-gradient-to-r from-indigo-500 to-violet-600 text-white py-3 px-6 rounded-lg text-lg font-medium hover:from-indigo-600 hover:to-violet-700 transition-all"
+          >
+            開始試穿體驗 →
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -67,13 +153,30 @@ export default function TryOnResultPage() {
             
             {/* 試穿圖片區域 */}
             <div className="bg-slate-50 rounded-xl p-4 mb-6">
-              <div className="aspect-[3/4] bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center relative overflow-hidden">
-                {/* 模擬試穿合成圖 */}
-                <div className="absolute inset-4 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-lg flex flex-col items-center justify-center">
-                  <div className="text-6xl mb-4">👤</div>
-                  <div className="text-4xl mb-2">{productInfo.emoji}</div>
-                  <p className="text-sm text-slate-600 text-center">試穿合成圖<br/>(用戶照片 + 選中商品)</p>
-                </div>
+              <div className="aspect-[3/4] bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg relative overflow-hidden">
+                {tryonResult ? (
+                  <>
+                    {/* 真實的試穿合成圖 */}
+                    <img 
+                      src={tryonResult.resultImage} 
+                      alt={`${productInfo.name} 試穿效果`}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                    
+                    {/* 成功標記 */}
+                    <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
+                      <CheckCircleIcon className="w-4 h-4" />
+                      <span>AI 合成完成</span>
+                    </div>
+                  </>
+                ) : (
+                  /* 備用顯示 */
+                  <div className="absolute inset-4 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-lg flex flex-col items-center justify-center">
+                    <div className="text-6xl mb-4">👤</div>
+                    <div className="text-4xl mb-2">{productInfo.emoji}</div>
+                    <p className="text-sm text-slate-600 text-center">試穿合成圖<br/>(用戶照片 + 選中商品)</p>
+                  </div>
+                )}
                 
                 {/* 裝飾邊框 */}
                 <div className="absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 border-indigo-400"></div>
@@ -85,12 +188,18 @@ export default function TryOnResultPage() {
 
             {/* 圖片操作按鈕 */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button className="flex-1 bg-gradient-to-r from-indigo-500 to-violet-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-600 hover:to-violet-700 transition-all flex items-center justify-center space-x-2">
+              <button 
+                onClick={downloadImage}
+                className="flex-1 bg-gradient-to-r from-indigo-500 to-violet-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-600 hover:to-violet-700 transition-all flex items-center justify-center space-x-2"
+              >
                 <ArrowDownTrayIcon className="w-5 h-5" />
                 <span>下載圖片</span>
               </button>
               
-              <button className="flex-1 bg-gradient-to-r from-slate-500 to-slate-600 text-white py-3 px-4 rounded-lg font-medium hover:from-slate-600 hover:to-slate-700 transition-all flex items-center justify-center space-x-2">
+              <button 
+                onClick={shareImage}
+                className="flex-1 bg-gradient-to-r from-slate-500 to-slate-600 text-white py-3 px-4 rounded-lg font-medium hover:from-slate-600 hover:to-slate-700 transition-all flex items-center justify-center space-x-2"
+              >
                 <ShareIcon className="w-5 h-5" />
                 <span>分享</span>
               </button>

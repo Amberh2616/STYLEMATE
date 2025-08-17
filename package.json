@@ -1,28 +1,51 @@
 {
-  "name": "stylemate-image-processor",
-  "version": "1.0.0",
-  "description": "Image processing engine for STYLEMATE virtual try-on platform",
-  "main": "image-processor.js",
+  "name": "stylemate-websearch",
+  "version": "0.2.0",
+  "type": "module",
+  "private": true,
+  "description": "STYLEMATE with integrated WebSearch and Prompt system",
   "scripts": {
+    "dev": "tsx backend/server.ts",
+    "search": "tsx backend/server.ts",
     "test": "jest",
-    "start": "node image-processor.js",
-    "demo": "node demo.js"
+    "test:prompts": "jest backend/prompts/__tests__",
+    "build": "tsc",
+    "start": "node dist/backend/server.js"
   },
   "keywords": [
-    "image-processing",
-    "virtual-try-on",
-    "fashion",
-    "computer-vision"
+    "fashion-search",
+    "web-search",
+    "prompts",
+    "ai-fashion",
+    "stylemate"
   ],
   "author": "STYLEMATE Team",
   "license": "MIT",
   "dependencies": {
+    "@mozilla/readability": "^0.5.0",
+    "cheerio": "^1.1.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsdom": "^24.0.0",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.67.1",
+    "pg": "^8.13.0",
+    "rss-parser": "^3.13.0",
     "sharp": "^0.33.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.16.5",
+    "@types/pg": "^8.11.8",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "tsx": "^4.20.4",
+    "typescript": "^5.5.4"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   }
 }

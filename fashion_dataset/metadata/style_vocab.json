@@ -1,0 +1,35 @@
+{
+  "style_keywords": [
+    "清新韓系 (Fresh Korean)",
+    "法式優雅 (French Chic)",
+    "極簡 (Minimalist)",
+    "甜美少女 (Sweet / Girly)",
+    "街頭風 (Streetwear)",
+    "都會通勤 (Urban Office)",
+    "美式休閒 (American Casual)",
+    "復古懷舊 (Retro / Vintage)",
+    "機能運動 (Athleisure)",
+    "摩登華麗 (Glamorous)"
+  ],
+  "occasion_whitelist": [
+    "通勤",
+    "正式",
+    "休閒",
+    "約會",
+    "旅遊",
+    "商務簡報",
+    "派對"
+  ],
+  "length_options": {
+    "top_length": ["短版", "及腰", "過臀"],
+    "skirt_length": ["迷你", "及膝", "過膝", "長裙"],
+    "pant_length": ["短褲", "九分", "全長"]
+  },
+  "fit_options": {
+    "fit_preference": ["寬鬆", "標準", "合身"],
+    "fit_avoid": ["太貼臀", "太緊身", "落肩過度", "超短版", "低腰"],
+    "exposure_avoid": ["露胸", "露背", "露腰", "透膚"]
+  },
+  "categories": ["上衣", "下身", "洋裝", "外套", "鞋", "配件"],
+  "price_tiers": ["低", "中", "高"]
+}

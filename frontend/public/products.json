@@ -1,0 +1,114 @@
+{
+  "products": [
+    {
+      "id": "top001",
+      "name": "韓式白色基本T恤",
+      "category": "top",
+      "style": ["casual", "basic"],
+      "occasion": ["daily", "weekend"],
+      "price": 599,
+      "image": "/products/top001.png",
+      "shoulderPx": 140,
+      "stripeLink": "https://buy.stripe.com/test_example1"
+    },
+    {
+      "id": "top002", 
+      "name": "甜美碎花襯衫",
+      "category": "top",
+      "style": ["sweet", "romantic"],
+      "occasion": ["date", "casual"],
+      "price": 899,
+      "image": "/products/top002.png",
+      "shoulderPx": 145,
+      "stripeLink": "https://buy.stripe.com/test_example2"
+    },
+    {
+      "id": "top003",
+      "name": "職業白襯衫",
+      "category": "top", 
+      "style": ["formal", "elegant"],
+      "occasion": ["work", "formal"],
+      "price": 1299,
+      "image": "/products/top003.png",
+      "shoulderPx": 138,
+      "stripeLink": "https://buy.stripe.com/test_example3"
+    },
+    {
+      "id": "top004",
+      "name": "韓系寬鬆毛衣",
+      "category": "top",
+      "style": ["cozy", "casual"],
+      "occasion": ["winter", "casual"],
+      "price": 1199,
+      "image": "/products/top004.png",
+      "shoulderPx": 155,
+      "stripeLink": "https://buy.stripe.com/test_example4"
+    },
+    {
+      "id": "top005",
+      "name": "性感露肩上衣",
+      "category": "top",
+      "style": ["sexy", "party"],
+      "occasion": ["party", "date"],
+      "price": 799,
+      "image": "/products/top005.png", 
+      "shoulderPx": 135,
+      "stripeLink": "https://buy.stripe.com/test_example5"
+    },
+    {
+      "id": "dress001",
+      "name": "韓式連身裙",
+      "category": "dress",
+      "style": ["elegant", "sweet"],
+      "occasion": ["date", "party"],
+      "price": 1599,
+      "image": "/products/dress001.png",
+      "shoulderPx": 142,
+      "stripeLink": "https://buy.stripe.com/test_example6"
+    },
+    {
+      "id": "dress002",
+      "name": "小黑裙",
+      "category": "dress",
+      "style": ["elegant", "formal"],
+      "occasion": ["formal", "party"],
+      "price": 1799,
+      "image": "/products/dress002.png",
+      "shoulderPx": 140,
+      "stripeLink": "https://buy.stripe.com/test_example7"
+    },
+    {
+      "id": "dress003",
+      "name": "碎花洋裝",
+      "category": "dress",
+      "style": ["sweet", "romantic"], 
+      "occasion": ["date", "casual"],
+      "price": 1299,
+      "image": "/products/dress003.png",
+      "shoulderPx": 144,
+      "stripeLink": "https://buy.stripe.com/test_example8"
+    },
+    {
+      "id": "outer001",
+      "name": "韓系外套",
+      "category": "outer",
+      "style": ["casual", "street"],
+      "occasion": ["daily", "autumn"],
+      "price": 1999,
+      "image": "/products/outer001.png",
+      "shoulderPx": 150,
+      "stripeLink": "https://buy.stripe.com/test_example9"
+    },
+    {
+      "id": "outer002",
+      "name": "西裝外套",
+      "category": "outer",
+      "style": ["formal", "elegant"],
+      "occasion": ["work", "formal"],
+      "price": 2999,
+      "image": "/products/outer002.png",
+      "shoulderPx": 145,
+      "stripeLink": "https://buy.stripe.com/test_example10"
+    }
+  ]
+}

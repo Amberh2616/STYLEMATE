@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/analyze_and_recommend_v1_1.schema.json",
+  "title": "AnalyzeAndRecommend v1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mode", "schema_version", "analysis", "outfit_suggestions", "product_query", "rerank_request"],
+  "properties": {
+    "mode": { "type": "string", "const": "analyze_and_recommend" },
+    "schema_version": { "type": "string", "const": "1.1" },
+
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["body_shape", "proportion_notes", "color_tone", "style_keywords", "occasions", "length_preference", "fit_preference", "fit_avoid", "exposure_avoid"],
+      "properties": {
+        "body_shape": { "type": "string", "enum": ["倒三角","梨形","矩形","沙漏","不確定"] },
+        "proportion_notes": { "type": "array", "items": { "type": "string" } },
+        "color_tone": { "type": "string", "enum": ["冷","暖","中性","不確定"] },
+
+        "style_keywords": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "清新韓系 (Fresh Korean)",
+              "法式優雅 (French Chic)",
+              "極簡 (Minimalist)",
+              "甜美少女 (Sweet / Girly)",
+              "街頭風 (Streetwear)",
+              "都會通勤 (Urban Office)",
+              "美式休閒 (American Casual)",
+              "復古懷舊 (Retro / Vintage)",
+              "機能運動 (Athleisure)",
+              "摩登華麗 (Glamorous)"
+            ]
+          }
+        },
+
+        "occasions": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["通勤","正式","休閒","約會","旅遊","商務簡報","派對"] }
+        },
+
+        "length_preference": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["top_length","skirt_length","pant_length"],
+          "properties": {
+            "top_length": { "type": "array", "items": { "type": "string", "enum": ["短版","及腰","過臀"] } },
+            "skirt_length": { "type": "array", "items": { "type": "string", "enum": ["迷你","及膝","過膝","長裙"] } },
+            "pant_length": { "type": "array", "items": { "type": "string", "enum": ["短褲","九分","全長"] } }
+          }
+        },
+
+        "fit_preference": { "type": "array", "items": { "type": "string", "enum": ["寬鬆","標準","合身"] } },
+        "fit_avoid": { "type": "array", "items": { "type": "string", "enum": ["太貼臀","太緊身","落肩過度","超短版","低腰"] } },
+        "exposure_avoid": { "type": "array", "items": { "type": "string", "enum": ["露胸","露背","露腰","透膚"] } }
+      }
+    },
+
+    "outfit_suggestions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "items", "reasons"],
+        "properties": {
+          "title": { "type": "string" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["category","style"],
+              "properties": {
+                "category": { "type": "string", "enum": ["上衣","下身","鞋","外套","配件","洋裝"] },
+                "style": { "type": "string" },
+                "fit": { "type": "string", "enum": ["寬鬆","標準","合身"] },
+                "color": { "type": "string" },
+                "optional": { "type": "boolean" }
+              }
+            }
+          },
+          "reasons": { "type": "array", "items": { "type": "string" } },
+          "weather_tips": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+
+    "product_query": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["category","style_tags","fit","color","price_range","occasion"],
+        "properties": {
+          "category": { "type": "string" },
+          "style_tags": { "type": "array", "items": { "type": "string" } },
+          "fit": { "type": "array", "items": { "type": "string", "enum": ["寬鬆","標準","合身"] } },
+          "color": { "type": "array", "items": { "type": "string" } },
+          "material": { "type": "array", "items": { "type": "string" } },
+          "price_range": { "type": "string", "enum": ["低","中","高","不確定"] },
+          "occasion": { "type": "array", "items": { "type": "string", "enum": ["通勤","正式","休閒","約會","旅遊","商務簡報","派對"] } }
+        }
+      }
+    },
+
+    "rerank_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy"],
+      "properties": {
+        "policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["priority","notes"],
+          "properties": {
+            "priority": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["silhouette_fit","category_style","color","material_texture"] }
+            },
+            "notes": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+
+    "reranked_products": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sku","score"],
+        "properties": {
+          "sku": { "type": "string" },
+          "score": { "type": "number" },
+          "match_reasons": { "type": "array", "items": { "type": "string" } },
+          "conflicts": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

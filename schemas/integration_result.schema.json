@@ -1,0 +1,381 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/integration_result.schema.json",
+  "title": "IntegrationResult v2.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["meta", "intent", "product_retrieval", "rerank", "output", "audit"],
+  "properties": {
+    "meta": { "$ref": "#/$defs/Meta" },
+    "intent": { "$ref": "#/$defs/IntentSummary" },
+    "user_profile": { "$ref": "#/$defs/UserProfile" },
+    "weather_context": { "$ref": "#/$defs/WeatherContext" },
+    "expert_rag": { "$ref": "#/$defs/ExpertRag" },
+    "product_retrieval": { "$ref": "#/$defs/ProductRetrieval" },
+    "rerank": { "$ref": "#/$defs/RerankBlock" },
+    "output": { "$ref": "#/$defs/OutputBlock" },
+    "audit": { "$ref": "#/$defs/Audit" }
+  },
+  "$defs": {
+    "Occasion": {
+      "type": "string",
+      "enum": ["通勤","正式","休閒","約會","旅遊","商務簡報","派對"]
+    },
+    "StyleKeyword": {
+      "type": "string",
+      "enum": [
+        "清新韓系 (Fresh Korean)","法式優雅 (French Chic)","極簡 (Minimalist)",
+        "甜美少女 (Sweet / Girly)","街頭風 (Streetwear)","都會通勤 (Urban Office)",
+        "美式休閒 (American Casual)","復古懷舊 (Retro / Vintage)",
+        "機能運動 (Athleisure)","摩登華麗 (Glamorous)"
+      ]
+    },
+    "SourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title","origin"],
+      "properties": {
+        "title": { "type": "string" },
+        "origin": { "type": "string" },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "WeatherContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "temperature": { "type": "number" },
+        "condition": { "type": "string" },
+        "humidity": { "type": "number" },
+        "wind_speed": { "type": "number" },
+        "uv_index": { "type": "number" },
+        "rain_probability": { "type": "number" }
+      }
+    },
+    "UserProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "style_whitelist": { "type": "array", "items": { "$ref": "#/$defs/StyleKeyword" } },
+        "fit_preference": { "type": "array", "items": { "type": "string", "enum": ["寬鬆","標準","合身"] } },
+        "fit_avoid": { "type": "array", "items": { "type": "string" } },
+        "exposure_avoid": { "type": "array", "items": { "type": "string" } },
+        "size_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "top": { "type": "string" },
+            "bottom": { "type": "string" },
+            "height_cm": { "type": "number" }
+          }
+        },
+        "color_palette": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "IntentSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["analyze_and_recommend","trend_summary","travel_plan","rerank"] },
+        "text_query": { "type": "string" },
+        "has_image": { "type": "boolean" },
+        "needs_weather": { "type": "boolean" },
+        "needs_rag": { "type": "boolean" },
+        "destinations": { "type": "array", "items": { "type": "string" } },
+        "date_range": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["start","end"],
+          "properties": {
+            "start": { "type": "string" },
+            "end": { "type": "string" }
+          }
+        },
+        "occasions": { "type": "array", "items": { "$ref": "#/$defs/Occasion" } }
+      }
+    },
+    "RagChunk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id","title","source","span","score"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "source": { "type": "string" },
+        "span": { "type": "string" },
+        "score": { "type": "number" },
+        "url": { "type": "string", "format": "uri" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "RagRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key","description","weight","origin_chunk_id","category"],
+      "properties": {
+        "key": { "type": "string" },
+        "description": { "type": "string" },
+        "weight": { "type": "number" },
+        "origin_chunk_id": { "type": "string" },
+        "category": { "type": "string", "enum": ["positive","negative","etiquette","size_fit"] }
+      }
+    },
+    "ExpertRag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query_text","retriever","topk_chunks","normalized_guidance","provenance"],
+      "properties": {
+        "query_text": { "type": "string" },
+        "retriever": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["embedding_model","method","top_k"],
+          "properties": {
+            "embedding_model": { "type": "string" },
+            "method": { "type": "string", "enum": ["hybrid","vector","bm25"] },
+            "top_k": { "type": "number" }
+          }
+        },
+        "topk_chunks": { "type": "array", "items": { "$ref": "#/$defs/RagChunk" } },
+        "normalized_guidance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["positive_rules","negative_rules"],
+          "properties": {
+            "positive_rules": { "type": "array", "items": { "$ref": "#/$defs/RagRule" } },
+            "negative_rules": { "type": "array", "items": { "$ref": "#/$defs/RagRule" } },
+            "etiquette": { "type": "array", "items": { "$ref": "#/$defs/RagRule" } },
+            "size_fit_hints": { "type": "array", "items": { "$ref": "#/$defs/RagRule" } }
+          }
+        },
+        "provenance": { "type": "array", "items": { "$ref": "#/$defs/SourceRef" } }
+      }
+    },
+    "ProductQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "category": { "type": "string" },
+        "style_tags": { "type": "array", "items": { "type": "string" } },
+        "fit": { "type": "array", "items": { "type": "string", "enum": ["寬鬆","標準","合身"] } },
+        "color": { "type": "array", "items": { "type": "string" } },
+        "material": { "type": "array", "items": { "type": "string" } },
+        "price_range": { "type": "string", "enum": ["低","中","高","不確定"] },
+        "occasion": { "type": "array", "items": { "$ref": "#/$defs/Occasion" } }
+      }
+    },
+    "Candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sku","title","image","recall_from"],
+      "properties": {
+        "sku": { "type": "string" },
+        "title": { "type": "string" },
+        "image": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "style": { "type": "array", "items": { "type": "string" } },
+            "color": { "type": "array", "items": { "type": "string" } },
+            "material": { "type": "array", "items": { "type": "string" } },
+            "silhouette": { "type": "string" },
+            "occasion": { "type": "array", "items": { "$ref": "#/$defs/Occasion" } },
+            "price_band": { "type": "string", "enum": ["低","中","高","不確定"] },
+            "clo": { "type": "number" },
+            "layer_type": { "type": "string", "enum": ["base","mid","shell"] }
+          }
+        },
+        "recall_from": { "type": "string", "enum": ["clip","keyword","catalog_boost","fallback_popular"] },
+        "recall_score": { "type": "number" }
+      }
+    },
+    "ProductRetrieval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product_query","recall_sets","merged_candidates_count"],
+      "properties": {
+        "product_query": { "type": "array", "items": { "$ref": "#/$defs/ProductQuery" } },
+        "expansions": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "trends": { "type": "array", "items": { "type": "string" } },
+            "colors": { "type": "array", "items": { "type": "string" } },
+            "items": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "recall_sets": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "clip": { "type": "array", "items": { "$ref": "#/$defs/Candidate" } },
+            "keyword": { "type": "array", "items": { "$ref": "#/$defs/Candidate" } },
+            "catalog_boost": { "type": "array", "items": { "$ref": "#/$defs/Candidate" } },
+            "fallback_popular": { "type": "array", "items": { "$ref": "#/$defs/Candidate" } }
+          }
+        },
+        "merged_candidates_count": { "type": "number" },
+        "index_info": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "version": { "type": "string" },
+            "ts": { "type": "string" }
+          }
+        }
+      }
+    },
+    "SubScores": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clip": { "type": "number" },
+        "attr": { "type": "number" },
+        "style": { "type": "number" },
+        "occasion": { "type": "number" },
+        "weather": { "type": "number" },
+        "kb": { "type": "number" },
+        "penalties": { "type": "number" }
+      }
+    },
+    "RerankRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sku","final_score","rank","subscores"],
+      "properties": {
+        "sku": { "type": "string" },
+        "final_score": { "type": "number" },
+        "rank": { "type": "integer", "minimum": 1 },
+        "subscores": { "$ref": "#/$defs/SubScores" },
+        "hits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kb_rules": { "type": "array", "items": { "type": "string" } },
+            "weather_rules": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "conflicts": { "type": "array", "items": { "type": "string" } },
+        "reasons": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "RerankBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weights","algorithm","rows"],
+      "properties": {
+        "weights": {
+          "allOf": [
+            { "$ref": "#/$defs/SubScores" },
+            { "required": ["clip","attr","style","occasion","weather","kb","penalties"] }
+          ]
+        },
+        "algorithm": { "type": "string", "enum": ["linear","l2r","llm-judge"] },
+        "rows": { "type": "array", "items": { "$ref": "#/$defs/RerankRow" } },
+        "threshold": { "type": "number" },
+        "fallback_used": { "type": "boolean" }
+      }
+    },
+    "OutputBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product_query"],
+      "properties": {
+        "outfit_suggestions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["title","items","reasons"],
+            "properties": {
+              "title": { "type": "string" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["category","style"],
+                  "properties": {
+                    "category": { "type": "string" },
+                    "style": { "type": "string" },
+                    "fit": { "type": "string" },
+                    "color": { "type": "string" },
+                    "optional": { "type": "boolean" }
+                  }
+                }
+              },
+              "reasons": { "type": "array", "items": { "type": "string" } },
+              "weather_tips": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "product_suggestions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sku","title","image","score","rank"],
+            "properties": {
+              "sku": { "type": "string" },
+              "title": { "type": "string" },
+              "image": { "type": "string" },
+              "url": { "type": "string", "format": "uri" },
+              "score": { "type": "number" },
+              "rank": { "type": "integer" },
+              "match_reasons": { "type": "array", "items": { "type": "string" } },
+              "conflicts": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "product_query": { "type": "array", "items": { "$ref": "#/$defs/ProductQuery" } },
+        "sources": { "type": "array", "items": { "$ref": "#/$defs/SourceRef" } }
+      }
+    },
+    "Meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version","request_id"],
+      "properties": {
+        "schema_version": { "type": "string", "const": "2.0" },
+        "request_id": { "type": "string" },
+        "locale": { "type": "string" },
+        "currency": { "type": "string" },
+        "ab_test": { "type": "string" }
+      }
+    },
+    "Audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timings_ms": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "intent": { "type": "number" },
+            "weather": { "type": "number" },
+            "rag": { "type": "number" },
+            "retrieval": { "type": "number" },
+            "rerank": { "type": "number" },
+            "llm": { "type": "number" },
+            "total": { "type": "number" }
+          }
+        },
+        "cache_hits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "weather": { "type": "boolean" },
+            "trends": { "type": "boolean" },
+            "rag": { "type": "boolean" },
+            "clip": { "type": "boolean" }
+          }
+        },
+        "errors": { "type": "array", "items": { "type": "string" } },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

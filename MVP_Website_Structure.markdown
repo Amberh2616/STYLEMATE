@@ -1,4 +1,4 @@
-```mermaid
+ㄇㄠㄇㄠㄍㄧㄠ
 graph TD
   subgraph 前端_Nextjs_Tailwind
     A[首頁_表單輸入] -->|照片上傳| C[試穿畫布_2D]
@@ -10,7 +10,7 @@ graph TD
     A -->|REST| RECO[推薦服務]
     C -->|REST| VTO[虛擬試穿API_2D]
     D -->|REST| CATALOG[商品目錄服務]
-    E -->|REST| CHECK[結帳服務]
+    E -->|REST| CHECK[結帳服ㄍㄧㄍㄧㄠ務]
     RECO --> MODEL[AI模型]
     VTO --> ASSET[圖片儲存]
     CATALOG --> DB[資料庫]

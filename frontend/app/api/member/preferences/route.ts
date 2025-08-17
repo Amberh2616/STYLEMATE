@@ -123,6 +123,12 @@ export async function POST(request: NextRequest) {
     // 儲存到模擬資料庫
     preferencesDatabase[email] = preferencesData
     
+    // 同時儲存到全域變數供其他API使用
+    if (!global.preferencesDatabase) {
+      global.preferencesDatabase = {}
+    }
+    global.preferencesDatabase[email] = preferencesData
+    
     console.log('問卷偏好已儲存:', {
       email,
       questionsAnswered: Object.keys(preferences).length,
@@ -191,8 +197,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// 根據問卷結果推薦商品
-export async function POST_RECOMMENDATIONS(request: NextRequest) {
+// 根據問卷結果推薦商品的輔助函數
+async function generateRecommendations(request: NextRequest) {
   try {
     const { email } = await request.json()
     

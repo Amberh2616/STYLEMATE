@@ -37,9 +37,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased bg-neutral-cream text-neutral-dark min-h-screen">
-        <div className="flex flex-col min-h-screen">
-          <main className="flex-1">
+      <body className="antialiased bg-neutral-cream text-neutral-dark">
+        <div className="w-full" style={{ minHeight: '100vh' }}>
+          <main className="w-full">
             {children}
           </main>
         </div>

@@ -1,0 +1,11 @@
+sku,name,category,style_tags,color,price_tier,occasion,fit,length,image_path,description
+S1001,落肩襯衫,上衣,"落肩;極簡;無口袋",奶油白,中,"通勤;休閒",寬鬆,及腰,catalog/images/tops/S1001.jpg,經典落肩設計襯衫
+P2011,高腰直筒西裝褲,下身,"高腰;直筒;正式",炭灰,中,"通勤;正式",標準,全長,catalog/images/bottoms/P2011.jpg,職場必備西裝褲
+D3001,韓系甜美洋裝,洋裝,"甜美;韓系;碎花",粉紅,中,"約會;休閒",標準,及膝,catalog/images/dress/D3001.jpg,清新甜美碎花洋裝
+J4001,牛仔外套,外套,"休閒;街頭;牛仔",深藍,中,"休閒;街頭",標準,及腰,catalog/images/outerwear/J4001.jpg,經典牛仔外套
+SH5001,小牛皮樂福鞋,鞋,"樂福;經典;通勤",黑,中,"通勤;正式",標準,,catalog/images/shoes/SH5001.jpg,舒適通勤樂福鞋
+S1002,基本款T恤,上衣,"基本款;休閒;純色",白,低,"休閒;旅遊",標準,及腰,catalog/images/tops/S1002.jpg,百搭基本白T
+P2012,A字短裙,下身,"A字;甜美;高腰",米白,中,"約會;休閒",標準,迷你,catalog/images/bottoms/P2012.jpg,顯瘦A字設計
+D3002,法式優雅洋裝,洋裝,"法式;優雅;簡約",海軍藍,高,"正式;商務簡報",合身,及膝,catalog/images/dress/D3002.jpg,優雅知性洋裝
+J4002,針織開衫,外套,"針織;溫柔;韓系",杏色,中,"休閒;約會",寬鬆,過臀,catalog/images/outerwear/J4002.jpg,溫柔針織開衫
+SH5002,小白鞋,鞋,"運動;休閒;百搭",白,中,"休閒;旅遊",標準,,catalog/images/shoes/SH5002.jpg,百搭小白鞋

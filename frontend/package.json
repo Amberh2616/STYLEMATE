@@ -12,18 +12,31 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@gradio/client": "^1.17.0",
     "@headlessui/react": "^1.7.0",
     "@heroicons/react": "^2.0.18",
     "@hookform/resolvers": "^3.3.0",
+    "@langchain/openai": "^0.6.7",
+    "@mediapipe/tasks-vision": "^0.10.22-rc.20250304",
+    "@pinecone-database/pinecone": "^6.1.2",
+    "@types/pg": "^8.15.5",
     "axios": "^1.6.0",
     "fabric": "^5.3.0",
+    "langchain": "^0.3.30",
     "lucide-react": "^0.292.0",
     "next": "^14.0.0",
+    "openai": "^5.12.2",
+    "pdf-parse": "^1.1.1",
+    "pg": "^8.16.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.47.0",
+    "replicate": "^1.0.1",
+    "sharp": "^0.34.3",
     "zod": "^3.22.0",
-    "zustand": "^4.4.0"
+    "zustand": "^4.4.0",
+    "@huggingface/inference": "^2.8.1",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.0",

@@ -1,0 +1,11 @@
+image_path,split
+images/FreshKorean/sample.jpg,train
+images/FrenchChic/sample.jpg,train
+images/Minimalist/sample.jpg,val
+images/SweetGirly/sample.jpg,train
+images/Streetwear/sample.jpg,test
+images/UrbanOffice/sample.jpg,train
+images/AmericanCasual/sample.jpg,val
+images/RetroVintage/sample.jpg,train
+images/Athleisure/sample.jpg,test
+images/Glamorous/sample.jpg,train

@@ -1,0 +1,21 @@
+image_path,style_keyword,occasion,top_length,skirt_length,pant_length,fit_preference,fit_avoid,exposure_avoid,notes
+# 實際練習圖片 - 風格分類範例
+picture/韓系01.jpg,"清新韓系 (Fresh Korean)","休閒;約會","及腰","","九分","標準","","露胸;透膚","溫柔韓系穿搭"
+picture/韓系02.jpg,"清新韓系 (Fresh Korean)","休閒","","及膝","","標準","太緊身","","甜美韓系洋裝"
+picture/法式01.jpg,"法式優雅 (French Chic)","通勤;正式","過臀","","全長","合身","","","經典法式優雅"
+picture/法式03.jpg,"法式優雅 (French Chic)","通勤;約會","","及膝","","合身","低腰","","知性優雅風"
+picture/法式04.jpg,"法式優雅 (French Chic)","正式;商務簡報","及腰","","九分","標準","","","職場法式穿搭"
+picture/極簡01.jpg,"極簡 (Minimalist)","通勤;休閒","及腰","","全長","標準","","","黑白灰極簡色調"
+picture/甜美01.jpg,"甜美少女 (Sweet / Girly)","約會;休閒","短版","迷你","","寬鬆","","露背","粉色系甜美風"
+picture/甜美02.jpg,"甜美少女 (Sweet / Girly)","約會;休閒","","及膝","","標準","太貼臀","","碎花甜美洋裝"
+picture/甜美03.jpg,"甜美少女 (Sweet / Girly)","休閒;派對","短版","","短褲","標準","","","甜美休閒搭配"
+picture/甜美04.jpg,"甜美少女 (Sweet / Girly)","約會","","過膝","","寬鬆","","","溫柔甜美長裙"
+picture/街頭01.jpg,"街頭風 (Streetwear)","休閒","過臀","","短褲","寬鬆","","","oversized街頭風"
+picture/華麗01.jpg,"摩登華麗 (Glamorous)","派對;正式","","長裙","","合身","","","晚宴華麗風格"
+picture/華麗02.jpg,"摩登華麗 (Glamorous)","派對","短版","","九分","合身","太緊身","","奢華質感穿搭"
+# 商品分類練習
+picture/DRESS/LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_1.jpg,"清新韓系 (Fresh Korean)","約會;休閒","","及膝","","標準","","","韓系甜美洋裝"
+picture/DRESS/LINE_ALBUM_🪸七月 · 各種裙子、洋裝🪸_250807_1.jpg,"法式優雅 (French Chic)","正式;通勤","","及膝","","合身","低腰","","優雅職場洋裝"
+picture/TOP/LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_1.jpg,"極簡 (Minimalist)","通勤;休閒","及腰","","","標準","","","基本款極簡上衣"
+picture/PANTS/LINE_ALBUM_🪸七月 · 各種褲子、褲裙🪸_250808_108.jpg,"都會通勤 (Urban Office)","通勤;商務簡報","及腰","","全長","標準","","","職場西裝褲"
+picture/PANTS/短褲/LINE_ALBUM_🪸七月 · 各種褲子、褲裙🪸_250808_32.jpg,"美式休閒 (American Casual)","休閒;旅遊","","","短褲","寬鬆","","","休閒短褲穿搭"

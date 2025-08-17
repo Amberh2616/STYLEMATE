@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["frontend/*"],
+      "@/lib/*": ["frontend/lib/*"],
+      "@/components/*": ["frontend/components/*"]
+    },
+    "types": ["node", "jest"],
+    "lib": ["ES2022", "DOM"],
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": [
+    "backend/**/*.ts", 
+    "frontend/**/*.ts",
+    "frontend/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next",
+    "coverage"
+  ]
+}

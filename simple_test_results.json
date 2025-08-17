@@ -1,0 +1,69 @@
+{
+  "LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_1.jpg": {
+    "name": "無袖白色洋裝",
+    "category": "dress",
+    "colors": [
+      "白色"
+    ],
+    "style": [
+      "簡約",
+      "優雅"
+    ],
+    "occasion": [
+      "日常",
+      "休閒",
+      "夏季外出"
+    ],
+    "description": "這是一款無袖V領白色長洋裝，搭配簡約腰帶，適合日常和休閒穿著。"
+  },
+  "LINE_ALBUM__250808_78.jpg": {
+    "name": "Road Damascusy 圖案T恤",
+    "category": "top",
+    "colors": [
+      "白色",
+      "灰色",
+      "深灰色"
+    ],
+    "style": [
+      "休閒",
+      "街頭"
+    ],
+    "occasion": [
+      "日常",
+      "休閒"
+    ],
+    "description": "簡約印花圖案T恤，適合日常休閒穿著，共有白色、灰色和深灰色選擇。"
+  },
+  "ui layout 2.jpg": {
+    "name": "釦明鈕扣開衫",
+    "category": "outer",
+    "colors": [
+      "粉紅色"
+    ],
+    "style": [
+      "休閒",
+      "可愛"
+    ],
+    "occasion": [
+      "日常",
+      "休閒"
+    ],
+    "description": "這是一款韓國製造的釦明鈕扣開衫，適合日常穿著，具備可愛且休閒的風格。"
+  },
+  "LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_10.jpg": {
+    "name": "長裙",
+    "category": "bottom",
+    "colors": [
+      "黑色"
+    ],
+    "style": [
+      "休閒",
+      "簡約"
+    ],
+    "occasion": [
+      "日常",
+      "逛街"
+    ],
+    "description": "這是一條黑色高腰長裙，採用簡約的設計，適合日常休閒和外出場合。"
+  }
+}

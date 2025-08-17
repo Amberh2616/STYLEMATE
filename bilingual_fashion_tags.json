@@ -1,0 +1,637 @@
+{
+  "total_images": 20,
+  "processed_count": 10,
+  "success_count": 10,
+  "failed_count": 0,
+  "bilingual_tags": {
+    "DRESS\\LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_1.jpg": {
+      "tags": {
+        "name_en": "Elegant White Maxi Dress",
+        "category_en": "dress",
+        "colors_en": [
+          "white"
+        ],
+        "style_tags_en": [
+          "korean",
+          "elegant",
+          "minimalist"
+        ],
+        "occasion_en": [
+          "daily",
+          "date",
+          "work"
+        ],
+        "season_en": [
+          "spring",
+          "summer"
+        ],
+        "fit_en": "regular",
+        "features_en": [
+          "comfortable",
+          "versatile",
+          "flowy"
+        ],
+        "description_en": "A chic white maxi dress with a minimalist design, perfect for elegant daily wear.",
+        "name_zh": "優雅 White Maxi 洋裝",
+        "category_zh": "洋裝",
+        "colors_zh": [
+          "白色"
+        ],
+        "style_tags_zh": [
+          "韓系",
+          "優雅",
+          "簡約"
+        ],
+        "occasion_zh": [
+          "日常",
+          "約會",
+          "上班"
+        ],
+        "season_zh": [
+          "春季",
+          "夏季"
+        ],
+        "fit_zh": "合身",
+        "features_zh": [
+          "舒適",
+          "百搭",
+          "flowy"
+        ],
+        "material_guess": "cotton",
+        "price_tier": "mid",
+        "description_zh": "韓系、優雅風格的白色洋裝，適合日常、約會穿著，展現韓式時尚魅力。",
+        "ai_confidence": "high",
+        "processed_at": "2025-08-11 21:46:21"
+      },
+      "category_hint": "DRESS",
+      "file_size": 100672
+    },
+    "DRESS\\LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_12.jpg": {
+      "tags": {
+        "name_en": "Sleeveless Summer Dress",
+        "category_en": "dress",
+        "colors_en": [
+          "white"
+        ],
+        "style_tags_en": [
+          "korean",
+          "elegant",
+          "minimalist"
+        ],
+        "occasion_en": [
+          "daily",
+          "date"
+        ],
+        "season_en": [
+          "spring",
+          "summer"
+        ],
+        "fit_en": "regular",
+        "features_en": [
+          "comfortable",
+          "versatile",
+          "breathable"
+        ],
+        "description_en": "Elegant sleeveless white dress with a tie waist, perfect for warm weather outings.",
+        "name_zh": "Sleeveless Summer 洋裝",
+        "category_zh": "洋裝",
+        "colors_zh": [
+          "白色"
+        ],
+        "style_tags_zh": [
+          "韓系",
+          "優雅",
+          "簡約"
+        ],
+        "occasion_zh": [
+          "日常",
+          "約會"
+        ],
+        "season_zh": [
+          "春季",
+          "夏季"
+        ],
+        "fit_zh": "合身",
+        "features_zh": [
+          "舒適",
+          "百搭",
+          "透氣"
+        ],
+        "material_guess": "cotton blend",
+        "price_tier": "mid",
+        "description_zh": "韓系、優雅風格的白色洋裝，適合日常、約會穿著，展現韓式時尚魅力。",
+        "ai_confidence": "high",
+        "processed_at": "2025-08-11 21:46:32"
+      },
+      "category_hint": "DRESS",
+      "file_size": 121531
+    },
+    "DRESS\\LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_13.jpg": {
+      "tags": {
+        "name_en": "Sleeveless Black Midi Dress",
+        "category_en": "dress",
+        "colors_en": [
+          "black"
+        ],
+        "style_tags_en": [
+          "korean",
+          "minimalist",
+          "elegant"
+        ],
+        "occasion_en": [
+          "daily",
+          "date",
+          "casual"
+        ],
+        "season_en": [
+          "spring",
+          "summer"
+        ],
+        "fit_en": "regular",
+        "features_en": [
+          "comfortable",
+          "versatile",
+          "chic"
+        ],
+        "description_en": "Elegant black midi dress with a minimalist design, perfect for casual outings and dates.",
+        "name_zh": "Sleeveless Black Midi 洋裝",
+        "category_zh": "洋裝",
+        "colors_zh": [
+          "黑色"
+        ],
+        "style_tags_zh": [
+          "韓系",
+          "簡約",
+          "優雅"
+        ],
+        "occasion_zh": [
+          "日常",
+          "約會",
+          "休閒"
+        ],
+        "season_zh": [
+          "春季",
+          "夏季"
+        ],
+        "fit_zh": "合身",
+        "features_zh": [
+          "舒適",
+          "百搭",
+          "chic"
+        ],
+        "material_guess": "cotton blend",
+        "price_tier": "mid",
+        "description_zh": "韓系、簡約風格的黑色洋裝，適合日常、約會穿著，展現韓式時尚魅力。",
+        "ai_confidence": "high",
+        "processed_at": "2025-08-11 21:46:42"
+      },
+      "category_hint": "DRESS",
+      "file_size": 92565
+    },
+    "DRESS\\LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_2.jpg": {
+      "tags": {
+        "name_en": "Elegant Black Maxi Dress",
+        "category_en": "dress",
+        "colors_en": [
+          "black"
+        ],
+        "style_tags_en": [
+          "korean",
+          "elegant",
+          "minimalist"
+        ],
+        "occasion_en": [
+          "date",
+          "work",
+          "formal"
+        ],
+        "season_en": [
+          "spring",
+          "autumn"
+        ],
+        "fit_en": "regular",
+        "features_en": [
+          "versatile",
+          "comfortable",
+          "timeless"
+        ],
+        "description_en": "A chic black maxi dress with a minimalist design, perfect for elegant occasions.",
+        "name_zh": "優雅 Black Maxi 洋裝",
+        "category_zh": "洋裝",
+        "colors_zh": [
+          "黑色"
+        ],
+        "style_tags_zh": [
+          "韓系",
+          "優雅",
+          "簡約"
+        ],
+        "occasion_zh": [
+          "約會",
+          "上班",
+          "正式"
+        ],
+        "season_zh": [
+          "春季",
+          "秋季"
+        ],
+        "fit_zh": "合身",
+        "features_zh": [
+          "百搭",
+          "舒適",
+          "timeless"
+        ],
+        "material_guess": "cotton blend",
+        "price_tier": "mid",
+        "description_zh": "韓系、優雅風格的黑色洋裝，適合約會、上班穿著，展現韓式時尚魅力。",
+        "ai_confidence": "high",
+        "processed_at": "2025-08-11 21:46:51"
+      },
+      "category_hint": "DRESS",
+      "file_size": 95769
+    },
+    "DRESS\\LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_3.jpg": {
+      "tags": {
+        "name_en": "Sleeveless Midi Dress",
+        "category_en": "dress",
+        "colors_en": [
+          "white",
+          "black"
+        ],
+        "style_tags_en": [
+          "korean",
+          "minimalist",
+          "elegant"
+        ],
+        "occasion_en": [
+          "daily",
+          "work",
+          "date"
+        ],
+        "season_en": [
+          "spring",
+          "summer"
+        ],
+        "fit_en": "regular",
+        "features_en": [
+          "comfortable",
+          "versatile",
+          "classic"
+        ],
+        "description_en": "A minimalist sleeveless midi dress perfect for casual and formal occasions.",
+        "name_zh": "Sleeveless Midi 洋裝",
+        "category_zh": "洋裝",
+        "colors_zh": [
+          "白色",
+          "黑色"
+        ],
+        "style_tags_zh": [
+          "韓系",
+          "簡約",
+          "優雅"
+        ],
+        "occasion_zh": [
+          "日常",
+          "上班",
+          "約會"
+        ],
+        "season_zh": [
+          "春季",
+          "夏季"
+        ],
+        "fit_zh": "合身",
+        "features_zh": [
+          "舒適",
+          "百搭",
+          "classic"
+        ],
+        "material_guess": "cotton blend",
+        "price_tier": "mid",
+        "description_zh": "韓系、簡約風格的白色、黑色洋裝，適合日常、上班穿著，展現韓式時尚魅力。",
+        "ai_confidence": "high",
+        "processed_at": "2025-08-11 21:47:02"
+      },
+      "category_hint": "DRESS",
+      "file_size": 72960
+    },
+    "TOP\\LINE_ALBUM__250808_78.jpg": {
+      "tags": {
+        "name_en": "Graphic Print T-Shirt",
+        "category_en": "top",
+        "colors_en": [
+          "white",
+          "light gray",
+          "dark gray"
+        ],
+        "style_tags_en": [
+          "korean",
+          "casual",
+          "streetwear"
+        ],
+        "occasion_en": [
+          "daily",
+          "casual outing"
+        ],
+        "season_en": [
+          "spring",
+          "summer"
+        ],
+        "fit_en": "regular",
+        "features_en": [
+          "comfortable",
+          "versatile",
+          "graphic print"
+        ],
+        "description_en": "Casual graphic print T-shirt with a regular fit, perfect for everyday wear.",
+        "name_zh": "Graphic Print T-襯衫",
+        "category_zh": "上衣",
+        "colors_zh": [
+          "白色",
+          "light gray",
+          "dark gray"
+        ],
+        "style_tags_zh": [
+          "韓系",
+          "休閒",
+          "streetwear"
+        ],
+        "occasion_zh": [
+          "日常",
+          "casual outing"
+        ],
+        "season_zh": [
+          "春季",
+          "夏季"
+        ],
+        "fit_zh": "合身",
+        "features_zh": [
+          "舒適",
+          "百搭",
+          "graphic print"
+        ],
+        "material_guess": "cotton",
+        "price_tier": "budget",
+        "description_zh": "韓系、休閒風格的白色、light gray上衣，適合日常、casual outing穿著，展現韓式時尚魅力。",
+        "ai_confidence": "high",
+        "processed_at": "2025-08-11 21:47:11"
+      },
+      "category_hint": "TOP",
+      "file_size": 75732
+    },
+    "TOP\\LINE_ALBUM__250808_79.jpg": {
+      "tags": {
+        "name_en": "Elegant Black Ruffle Top",
+        "category_en": "top",
+        "colors_en": [
+          "black"
+        ],
+        "style_tags_en": [
+          "korean",
+          "elegant",
+          "chic"
+        ],
+        "occasion_en": [
+          "daily",
+          "work",
+          "date"
+        ],
+        "season_en": [
+          "spring",
+          "summer"
+        ],
+        "fit_en": "loose",
+        "features_en": [
+          "comfortable",
+          "versatile",
+          "flowy"
+        ],
+        "description_en": "A chic black top with ruffle details, perfect for a stylish and comfortable look.",
+        "name_zh": "優雅 Black Ruffle 上衣",
+        "category_zh": "上衣",
+        "colors_zh": [
+          "黑色"
+        ],
+        "style_tags_zh": [
+          "韓系",
+          "優雅",
+          "時尚"
+        ],
+        "occasion_zh": [
+          "日常",
+          "上班",
+          "約會"
+        ],
+        "season_zh": [
+          "春季",
+          "夏季"
+        ],
+        "fit_zh": "寬鬆",
+        "features_zh": [
+          "舒適",
+          "百搭",
+          "flowy"
+        ],
+        "material_guess": "cotton blend",
+        "price_tier": "mid",
+        "description_zh": "韓系、優雅風格的黑色上衣，適合日常、上班穿著，展現韓式時尚魅力。",
+        "ai_confidence": "high",
+        "processed_at": "2025-08-11 21:47:20"
+      },
+      "category_hint": "TOP",
+      "file_size": 84602
+    },
+    "TOP\\LINE_ALBUM__250808_80.jpg": {
+      "tags": {
+        "name_en": "White Split Hem T-Shirt",
+        "category_en": "top",
+        "colors_en": [
+          "white"
+        ],
+        "style_tags_en": [
+          "korean",
+          "minimalist",
+          "casual",
+          "chic"
+        ],
+        "occasion_en": [
+          "daily",
+          "work",
+          "casual outing"
+        ],
+        "season_en": [
+          "spring",
+          "summer"
+        ],
+        "fit_en": "regular",
+        "features_en": [
+          "comfortable",
+          "versatile",
+          "minimalist"
+        ],
+        "description_en": "A chic white t-shirt with a split hem, perfect for casual and work settings.",
+        "name_zh": "White Split Hem T-襯衫",
+        "category_zh": "上衣",
+        "colors_zh": [
+          "白色"
+        ],
+        "style_tags_zh": [
+          "韓系",
+          "簡約",
+          "休閒",
+          "時尚"
+        ],
+        "occasion_zh": [
+          "日常",
+          "上班",
+          "casual outing"
+        ],
+        "season_zh": [
+          "春季",
+          "夏季"
+        ],
+        "fit_zh": "合身",
+        "features_zh": [
+          "舒適",
+          "百搭",
+          "minimalist"
+        ],
+        "material_guess": "cotton",
+        "price_tier": "mid",
+        "description_zh": "韓系、簡約風格的白色上衣，適合日常、上班穿著，展現韓式時尚魅力。",
+        "ai_confidence": "high",
+        "processed_at": "2025-08-11 21:47:32"
+      },
+      "category_hint": "TOP",
+      "file_size": 74740
+    },
+    "TOP\\LINE_ALBUM__250808_81.jpg": {
+      "tags": {
+        "name_en": "Basic Ruched Sleeve Top",
+        "category_en": "top",
+        "colors_en": [
+          "white",
+          "pink",
+          "light blue",
+          "black"
+        ],
+        "style_tags_en": [
+          "korean",
+          "casual",
+          "minimalist"
+        ],
+        "occasion_en": [
+          "daily",
+          "work",
+          "casual outings"
+        ],
+        "season_en": [
+          "spring",
+          "summer"
+        ],
+        "fit_en": "regular",
+        "features_en": [
+          "comfortable",
+          "versatile",
+          "minimalist"
+        ],
+        "description_en": "A versatile top with ruched sleeves, perfect for casual and work settings.",
+        "name_zh": "Basic Ruched Sleeve 上衣",
+        "category_zh": "上衣",
+        "colors_zh": [
+          "白色",
+          "粉色",
+          "light blue",
+          "黑色"
+        ],
+        "style_tags_zh": [
+          "韓系",
+          "休閒",
+          "簡約"
+        ],
+        "occasion_zh": [
+          "日常",
+          "上班",
+          "casual outings"
+        ],
+        "season_zh": [
+          "春季",
+          "夏季"
+        ],
+        "fit_zh": "合身",
+        "features_zh": [
+          "舒適",
+          "百搭",
+          "minimalist"
+        ],
+        "material_guess": "cotton blend",
+        "price_tier": "mid",
+        "description_zh": "韓系、休閒風格的白色、粉色上衣，適合日常、上班穿著，展現韓式時尚魅力。",
+        "ai_confidence": "high",
+        "processed_at": "2025-08-11 21:47:40"
+      },
+      "category_hint": "TOP",
+      "file_size": 57046
+    },
+    "TOP\\LINE_ALBUM__250808_82.jpg": {
+      "tags": {
+        "name_en": "Sleeveless Ribbed Knit Top",
+        "category_en": "top",
+        "colors_en": [
+          "beige"
+        ],
+        "style_tags_en": [
+          "korean",
+          "minimalist",
+          "casual"
+        ],
+        "occasion_en": [
+          "daily",
+          "casual outing"
+        ],
+        "season_en": [
+          "spring",
+          "summer"
+        ],
+        "fit_en": "regular",
+        "features_en": [
+          "comfortable",
+          "versatile",
+          "breathable"
+        ],
+        "description_en": "A beige sleeveless ribbed knit top perfect for casual outings in warmer seasons.",
+        "name_zh": "Sleeveless Ribbed Knit 上衣",
+        "category_zh": "上衣",
+        "colors_zh": [
+          "米色"
+        ],
+        "style_tags_zh": [
+          "韓系",
+          "簡約",
+          "休閒"
+        ],
+        "occasion_zh": [
+          "日常",
+          "casual outing"
+        ],
+        "season_zh": [
+          "春季",
+          "夏季"
+        ],
+        "fit_zh": "合身",
+        "features_zh": [
+          "舒適",
+          "百搭",
+          "透氣"
+        ],
+        "material_guess": "knit",
+        "price_tier": "mid",
+        "description_zh": "韓系、簡約風格的米色上衣，適合日常、casual outing穿著，展現韓式時尚魅力。",
+        "ai_confidence": "high",
+        "processed_at": "2025-08-11 21:47:51"
+      },
+      "category_hint": "TOP",
+      "file_size": 122762
+    }
+  },
+  "processing_time": 0
+}

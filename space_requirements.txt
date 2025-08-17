@@ -1,0 +1,12 @@
+gradio>=4.0.0
+gradio-client>=0.7.0
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.30.0
+diffusers>=0.20.0
+accelerate>=0.20.0
+pillow>=9.0.0
+numpy>=1.21.0
+requests>=2.25.0
+opencv-python>=4.5.0
+huggingface-hub>=0.15.0

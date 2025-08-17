@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <title>STYLEMATE WebSearch Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      margin: 2rem;
+      background: #f8f9fa;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .search-form {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    #q {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e1e8ed;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    #q:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    button:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+    }
+    .examples {
+      margin-bottom: 1.5rem;
+    }
+    .example-btn {
+      display: inline-block;
+      margin: 0.25rem;
+      padding: 0.4rem 0.8rem;
+      background: #ecf0f1;
+      color: #2c3e50;
+      border: 1px solid #bdc3c7;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .example-btn:hover {
+      background: #d5dbdb;
+    }
+    .loading {
+      text-align: center;
+      color: #7f8c8d;
+      padding: 2rem;
+    }
+    .results {
+      margin-top: 2rem;
+    }
+    .query-info {
+      background: #e8f6f3;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .metadata {
+      background: #fdf2e9;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-size: 14px;
+    }
+    .metadata h4 {
+      margin: 0 0 0.5rem 0;
+      color: #d68910;
+    }
+    .evidence-item {
+      background: #fdfdfe;
+      border: 1px solid #e1e8ed;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: box-shadow 0.2s;
+    }
+    .evidence-item:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .evidence-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+    }
+    .evidence-title a {
+      color: #3498db;
+      text-decoration: none;
+    }
+    .evidence-title a:hover {
+      text-decoration: underline;
+    }
+    .evidence-meta {
+      font-size: 12px;
+      color: #7f8c8d;
+      margin-bottom: 1rem;
+    }
+    .evidence-excerpt {
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .evidence-quotes {
+      background: #f8f9fa;
+      border-left: 4px solid #3498db;
+      padding: 0.75rem;
+      margin-top: 1rem;
+    }
+    .quote {
+      font-style: italic;
+      color: #555;
+      margin: 0.25rem 0;
+    }
+    .score-badge {
+      display: inline-block;
+      background: #27ae60;
+      color: white;
+      padding: 0.2rem 0.5rem;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .fashion-keywords {
+      margin-top: 1rem;
+    }
+    .keyword-tag {
+      display: inline-block;
+      background: #e74c3c;
+      color: white;
+      padding: 0.2rem 0.5rem;
+      border-radius: 10px;
+      font-size: 11px;
+      margin: 0.2rem;
+    }
+    .error {
+      background: #fee;
+      border: 1px solid #fcc;
+      color: #c00;
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 STYLEMATE WebSearch Demo</h1>
+    
+    <form id="searchForm" class="search-form">
+      <input id="q" placeholder="例：2025 春夏 韓國 時尚趨勢" />
+      <button type="submit">Search</button>
+    </form>
+
+    <div class="examples">
+      <strong>快速測試：</strong>
+      <span class="example-btn" onclick="setQuery('2025 春夏 韓國 時尚趨勢')">韓國春夏趨勢</span>
+      <span class="example-btn" onclick="setQuery('日本極簡風格 流行')">日本極簡風</span>
+      <span class="example-btn" onclick="setQuery('歐美街頭穿搭 最新')">歐美街頭</span>
+      <span class="example-btn" onclick="setQuery('sustainable fashion 2025')">永續時尚</span>
+    </div>
+
+    <div id="output"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('searchForm');
+    const input = document.getElementById('q');
+    const output = document.getElementById('output');
+
+    function setQuery(query) {
+      input.value = query;
+      handleSearch(query);
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const query = input.value.trim();
+      if (query) {
+        handleSearch(query);
+      }
+    });
+
+    async function handleSearch(query) {
+      output.innerHTML = '<div class="loading">🔍 搜尋中...</div>';
+      
+      try {
+        const startTime = Date.now();
+        const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        const searchTime = Date.now() - startTime;
+
+        if (data.error) {
+          output.innerHTML = `<div class="error">❌ 搜尋失敗: ${JSON.stringify(data, null, 2)}</div>`;
+          return;
+        }
+
+        renderResults(data, searchTime);
+      } catch (error) {
+        output.innerHTML = `<div class="error">❌ 網路錯誤: ${error.message}</div>`;
+      }
+    }
+
+    function renderResults(data, searchTime) {
+      const { query, evidences, sources, metadata } = data;
+      
+      let html = `
+        <div class="query-info">
+          <h3>🎯 搜尋查詢: "${query}"</h3>
+          <p>找到 ${evidences.length} 個相關證據，共 ${sources.length} 個來源</p>
+        </div>
+
+        <div class="metadata">
+          <h4>📊 搜尋統計</h4>
+          <p>
+            <strong>搜尋供應商:</strong> ${metadata.search_provider} | 
+            <strong>處理時間:</strong> ${metadata.processing_time_ms}ms (前端: ${searchTime}ms) | 
+            <strong>爬取成功:</strong> ${metadata.successful_extractions}/${metadata.crawled_pages}
+          </p>
+          ${metadata.fashion_keywords?.length > 0 ? `
+            <div class="fashion-keywords">
+              <strong>時尚關鍵詞:</strong>
+              ${metadata.fashion_keywords.map(kw => `<span class="keyword-tag">${kw}</span>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="results">
+          <h3>📚 搜尋證據</h3>
+          ${evidences.map(renderEvidence).join('')}
+        </div>
+      `;
+
+      output.innerHTML = html;
+    }
+
+    function renderEvidence(evidence, index) {
+      return `
+        <div class="evidence-item">
+          <div class="evidence-title">
+            <a href="${evidence.url}" target="_blank">${evidence.title}</a>
+            ${evidence.score ? `<span class="score-badge">相關度: ${Math.round(evidence.score * 100)}%</span>` : ''}
+          </div>
+          
+          <div class="evidence-meta">
+            ${evidence.site || ''} ${evidence.published_at ? '• ' + new Date(evidence.published_at).toLocaleDateString('zh-TW') : ''}
+            ${evidence.byline ? '• ' + evidence.byline : ''}
+          </div>
+
+          ${evidence.excerpt ? `<div class="evidence-excerpt"><strong>摘要:</strong> ${evidence.excerpt}</div>` : ''}
+
+          <div class="evidence-excerpt">
+            ${evidence.text.substring(0, 300)}${evidence.text.length > 300 ? '...' : ''}
+          </div>
+
+          ${evidence.quotes?.length > 0 ? `
+            <div class="evidence-quotes">
+              <strong>關鍵引用:</strong>
+              ${evidence.quotes.map(quote => `<div class="quote">"${quote}"</div>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
