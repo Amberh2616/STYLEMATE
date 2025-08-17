@@ -1,5 +1,5 @@
 // frontend/lib/core/intentParser.ts
-import { MODE_KEYWORDS, OCCASION_HINTS, NEEDS_RAG_HINTS, CITY_WHITELIST } from "./intentRules";
+import { MODE_KEYWORDS, OCCASION_HINTS, NEEDS_RAG_HINTS, CITY_WHITELIST, COUNTRY_TO_CITY } from "./intentRules";
 
 export type Occasion = "通勤"|"正式"|"休閒"|"約會"|"旅遊"|"商務簡報"|"派對";
 
@@ -42,7 +42,7 @@ function isActualTravelQuery(text: string): boolean {
   const isFashionContext = /時裝周|fashion week|服裝周|流行|趨勢|時尚周/i.test(text);
   if (isFashionContext) return false;
   
-  // 強旅行信號 - 明確的旅行動詞
+  // 強旅行信號 - 明確的旅行動詞，即使有穿搭詞彙也算旅行
   const strongTravelSignals = /旅行|旅遊|出差|行程|幫我查天氣|天氣預報/i;
   if (strongTravelSignals.test(text)) return true;
   
@@ -51,10 +51,14 @@ function isActualTravelQuery(text: string): boolean {
   const hasLocation = extractDestination(text);
   const isClothingQuery = /穿|搭配|服裝|衣服|what.*wear/i.test(text);
   
-  // 地點+時間 但如果是穿搭查詢，不算純旅行
+  // 地點+時間+穿搭 = 旅行穿搭查詢，應該要天氣
+  if (hasDuration && hasLocation && isClothingQuery) {
+    return true;
+  }
+  
+  // 只有地點+時間但沒穿搭詞彙的，也可能是旅行
   if (hasDuration && hasLocation) {
-    // 如果有穿搭相關詞彙，不算純旅行查詢
-    return !isClothingQuery;
+    return true;
   }
   
   return false;
@@ -69,6 +73,17 @@ function extractOccasions(text: string): Occasion[] {
 // 極簡地點/日期解析：先吃 preset，再做白名單 Fuzzy（可換成 NER/Geo API）
 function extractDestination(text: string, preset?: string[]): string[] | undefined {
   if (preset && preset.length) return preset;
+  
+  // 1. 先檢查國家名稱對應
+  const countryMatches = [];
+  for (const [country, city] of Object.entries(COUNTRY_TO_CITY)) {
+    if (new RegExp(country, "i").test(text)) {
+      countryMatches.push(city);
+    }
+  }
+  if (countryMatches.length) return countryMatches;
+  
+  // 2. 再檢查城市白名單
   const hits = CITY_WHITELIST.filter(c => {
     const [city] = c.split(", ");
     const alias = city.replace(/[ -]/g, "");

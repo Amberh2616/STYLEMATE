@@ -3,3 +3,8 @@ frontend/out/
 frontend/.env.local
 frontend/.next/
 *.log
+debug-*.js
+test-*.mjs
+uploads/
+knowledge/
+fashion_dataset/

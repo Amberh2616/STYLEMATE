@@ -58,6 +58,9 @@ export async function POST(request: NextRequest) {
     // 🧠 使用 Intent Parser 進行智能分析
     const intentAnalysis = analyzeIntent({ text: message })
     console.log('🧠 Intent 分析結果:', intentAnalysis)
+    console.log('🔍 Debug - Mode:', intentAnalysis.mode)
+    console.log('🔍 Debug - Needs Weather:', intentAnalysis.needs_weather)
+    console.log('🔍 Debug - Destinations:', intentAnalysis.destinations)
     
     let trendContext = ''
     let weatherContext = ''
@@ -73,12 +76,36 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // 根據 Intent 決定是否查詢天氣
-    if (intentAnalysis.needs_weather && intentAnalysis.destinations) {
+    // 根據 Intent 決定是否查詢天氣 - 強制測試
+    console.log('🔍 天氣檢查條件:')
+    console.log('  - needs_weather:', intentAnalysis.needs_weather)
+    console.log('  - destinations:', intentAnalysis.destinations)
+    console.log('  - 條件滿足:', intentAnalysis.needs_weather && intentAnalysis.destinations)
+    
+    // 強制為旅行查詢添加天氣資訊
+    if ((intentAnalysis.needs_weather && intentAnalysis.destinations) || 
+        (intentAnalysis.mode === 'travel_plan' || message.includes('旅行') || message.includes('出差'))) {
       console.log('🌤️ 檢測到天氣需求，查詢天氣資訊...')
       try {
-        // 這裡可以整合天氣服務
-        weatherContext = `\n\n**🌤️ 天氣資訊：**\n目的地：${intentAnalysis.destinations.join('、')}\n建議根據當地天氣選擇合適服裝。\n`
+        // 提供詳細的旅行穿搭建議
+        const destinations = intentAnalysis.destinations ? intentAnalysis.destinations.join('、') : '目的地'
+        const duration = intentAnalysis.date_range ? `${intentAnalysis.date_range.end.replace('+', '')}` : '多天'
+        
+        weatherContext = `\n\n**🌤️ 旅行穿搭建議：**
+目的地：${destinations}
+行程：${duration}
+
+**建議穿搭策略：**
+• **多層次搭配**：準備可拆卸外套，應對溫差變化
+• **舒適優先**：選擇透氣材質，長時間穿著不疲累  
+• **場合彈性**：商務正式+休閒觀光兩用單品
+• **行李精簡**：選擇好搭配、多用途的基本款
+
+**必備單品**：
+- 薄外套或針織衫（調節溫度）
+- 舒適平底鞋或低跟鞋（長時間行走）
+- 純色上衣（容易搭配）
+- 深色褲裝（實用耐髒）\n`
       } catch (weatherError) {
         console.log('⚠️ 天氣查詢失敗:', weatherError.message)
       }
@@ -200,6 +227,15 @@ export async function POST(request: NextRequest) {
         paramCount++
         searchConditions.push(`occasion_zh::text LIKE $${paramCount}`)
         params.push('%約會%')
+      }
+      
+      // 旅行/出差查詢 - 推薦通勤和休閒混搭
+      if (userMessage.includes('旅行') || userMessage.includes('旅遊') || userMessage.includes('出差') || userMessage.includes('出國')) {
+        paramCount++
+        searchConditions.push(`(occasion_zh::text LIKE $${paramCount} OR occasion_zh::text LIKE $${paramCount + 1})`)
+        params.push('%通勤%')
+        paramCount++
+        params.push('%日常%')
       }
 
       // 構建查詢
