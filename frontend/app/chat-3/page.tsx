@@ -8,7 +8,7 @@ import {
   SparklesIcon,
   PhotoIcon
 } from '@heroicons/react/24/outline'
-import { TravelWeatherAnalyzer, type TravelContext, type WeatherData } from '../../lib/travelWeatherAnalyzer'
+import { analyzeIntent } from '@/lib/core/intentParser'
 
 export default function Chat3Page() {
   const router = useRouter()
@@ -130,124 +130,71 @@ export default function Chat3Page() {
     try {
       setBubbleText('🤖 AI 分析中...')
       
-      // 🧠 Step 1: 智能分析（靜默處理）
-      const travelContext = TravelWeatherAnalyzer.analyzeUserInput(userMessage)
-      let weatherData = null
-      let analysisReport = ''
+      // 🧠 Step 1: 使用新的 Intent Parser
+      const intentAnalysis = analyzeIntent({ text: userMessage })
+      console.log('🧠 Intent 分析結果:', intentAnalysis)
 
-      // Step 2: 如果需要天氣，靜默獲取（不分段顯示）
-      if (travelContext.needsWeather && travelContext.cityQuery) {
-        try {
-          const WEATHER_API_KEY = '455876f28d25097e3b726ee5ccaca15a'
+      // Step 2: 根據 Intent 類型處理
+      if (intentAnalysis.mode === 'trend_summary') {
+        console.log('🔥 檢測到流行趨勢查詢，直接調用 API...')
+        setBubbleText('🔥 獲取最新時尚趨勢中...')
+        
+        // 直接調用 API，讓後端處理 WebSearch
+        const response = await fetch('/api/chat/recommend', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json; charset=utf-8'
+          },
+          body: JSON.stringify({
+            message: userMessage,
+            conversationHistory: messages
+          }),
+        })
+        
+        const result = await response.json()
+        
+        if (result.success) {
+          setMessages(prev => [...prev, { type: 'ai', content: result.response }])
           
-          // 🔧 檢測多日旅行，使用5天預報
-          const isMultiDay = detectMultiDayTravel(userMessage)
-          console.log('🧭 多日旅行檢測:', { userMessage, isMultiDay, location: travelContext.location })
-          
-          if (isMultiDay) {
-            const forecasts = await TravelWeatherAnalyzer.fetch5DayForecast(travelContext.cityQuery, WEATHER_API_KEY)
-            if (forecasts.length > 0) {
-              // 生成5天穿搭計劃
-              const multiDayPlan = TravelWeatherAnalyzer.generate5DayOutfitPlan(forecasts, travelContext)
-              
-              setBubbleText('🤖 獲取旅行商品推薦中...')
-              
-              // 🔧 調用GPT獲取5天旅行的商品推薦
-              console.log('🛍️ 開始獲取5天旅行商品推薦...')
-              try {
-                const minTemp = Math.min(...forecasts.map(f => f.temperature))
-                const maxTemp = Math.max(...forecasts.map(f => f.temperature))
-                const avgTemp = Math.round(forecasts.reduce((sum, f) => sum + f.temperature, 0) / forecasts.length)
-                
-                const enhancedMessage = `${userMessage}\n\n【🧠 5天旅行分析結果】\n📍 目的地：${travelContext.location}\n🌤️ 溫度範圍：${minTemp}°C - ${maxTemp}°C (平均 ${avgTemp}°C)\n🌦️ 天氣狀況：${forecasts.map((f, i) => `Day${i+1}: ${f.temperature}°C ${f.description}`).join(', ')}\n\n請針對${travelContext.location}這個具體目的地，推薦適合的韓式時尚服裝。考慮當地氣候特點和文化背景。`
-                
-                const response = await fetch('/api/chat/recommend', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    message: enhancedMessage,
-                    conversationHistory: messages,
-                    travelContext: travelContext,
-                    weatherData: forecasts[0] // 使用第一天的天氣作為代表
-                  }),
-                })
-                
-                const result = await response.json()
-                
-                if (result.success) {
-                  // 合併天氣計劃和商品推薦
-                  const completePlanWithProducts = buildCompleteMultiDayResponse(travelContext, forecasts, multiDayPlan) + 
-                    '<br/><br/>🛍️ **為您推薦的旅行服裝：**<br/>' + result.response
-                  
-                  setMessages(prev => [...prev, { type: 'ai', content: completePlanWithProducts }])
-                  
-                  // 處理商品推薦
-                  if (result.recommendedProducts?.length > 0) {
-                    const recommendedItems = fashionItems.filter(item => 
-                      result.recommendedProducts.includes(item.id.toString())
-                    )
-                    setRecommendedItems(recommendedItems.length > 0 ? recommendedItems : fashionItems.slice(0, 3))
-                  } else {
-                    setRecommendedItems(fashionItems.slice(0, 3))
-                  }
-                  setTimeout(() => setShowProducts(true), 1000)
-                } else {
-                  // 如果GPT調用失敗，只顯示天氣計劃
-                  const completePlan = buildCompleteMultiDayResponse(travelContext, forecasts, multiDayPlan)
-                  setMessages(prev => [...prev, { type: 'ai', content: completePlan }])
-                }
-              } catch (gptError) {
-                console.log('多日旅行GPT推薦失敗:', gptError)
-                // 回退：只顯示天氣計劃
-                const completePlan = buildCompleteMultiDayResponse(travelContext, forecasts, multiDayPlan)
-                setMessages(prev => [...prev, { type: 'ai', content: completePlan }])
-              }
-              
-              setBubbleText('AI 助理已就緒！')
-              setInputValue('')
-              return // 完成多日旅行處理
-            }
+          if (result.recommendedProducts?.length > 0) {
+            const recommendedItems = fashionItems.filter(item => 
+              result.recommendedProducts.includes(item.id.toString())
+            )
+            setRecommendedItems(recommendedItems.length > 0 ? recommendedItems : fashionItems.slice(0, 3))
           } else {
-            // 單日天氣
-            weatherData = await TravelWeatherAnalyzer.fetchWeatherData(travelContext.cityQuery, WEATHER_API_KEY)
+            setRecommendedItems(fashionItems.slice(0, 3))
           }
-        } catch (weatherError) {
-          console.log('天氣 API 暫時無法使用，使用回退數據:', weatherError)
-          if (travelContext.location) {
-            weatherData = TravelWeatherAnalyzer.getFallbackWeatherData(travelContext.cityQuery!)
-          }
+          setTimeout(() => setShowProducts(true), 1000)
+        } else {
+          setMessages(prev => [...prev, { 
+            type: 'ai', 
+            content: '抱歉，趨勢查詢遇到問題，請稍後再試。' 
+          }])
         }
+        
+        setBubbleText('AI 助理已就緒！')
+        setInputValue('')
+        return
       }
 
-      // Step 3: 準備完整的分析報告（但不立即顯示）
-      if (travelContext.needsWeather && weatherData) {
-        analysisReport = TravelWeatherAnalyzer.generateAnalysisReport(travelContext, weatherData)
-      }
-
-      // Step 4: 準備發送給 GPT 的增強訊息
-      const enhancedMessage = buildEnhancedMessage(userMessage, travelContext, weatherData)
-
+      // Step 3: 其他類型查詢（一般穿搭建議）
       setBubbleText('🤖 生成穿搭建議中...')
 
-      // Step 5: 一次性調用 GPT 並獲取完整結果
       const response = await fetch('/api/chat/recommend', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json; charset=utf-8'
+        },
         body: JSON.stringify({
-          message: enhancedMessage,
-          conversationHistory: messages,
-          travelContext: travelContext.needsWeather ? travelContext : undefined,
-          weatherData: weatherData || undefined
+          message: userMessage,
+          conversationHistory: messages
         }),
       })
       
       const result = await response.json()
       
       if (result.success) {
-        // 🔧 關鍵：構建完整回復（包含分析+建議）
-        const completeResponse = buildCompleteResponse(travelContext, weatherData, analysisReport, result.response)
-        
-        setMessages(prev => [...prev, { type: 'ai', content: completeResponse }])
+        setMessages(prev => [...prev, { type: 'ai', content: result.response }])
         
         // 處理商品推薦
         if (result.recommendedProducts?.length > 0) {
@@ -277,59 +224,6 @@ export default function Chat3Page() {
     setInputValue('')
   }
 
-  // 🔧 輔助函數：檢測多日旅行
-  const detectMultiDayTravel = (input: string): boolean => {
-    const multiDayKeywords = ['5天', '一週', '幾天', '多天', '行程', '天', '日', '5 days', 'week', 'days']
-    return multiDayKeywords.some(keyword => input.includes(keyword))
-  }
-
-  // 🔧 輔助函數：建構增強訊息
-  const buildEnhancedMessage = (userMessage: string, context: any, weather: any): string => {
-    let enhanced = userMessage
-    
-    if (context.needsWeather) {
-      enhanced += `\n\n【🧠 智能分析結果】\n`
-      if (context.location) enhanced += `📍 目的地：${context.location}\n`
-      if (context.timeContext) enhanced += `⏰ 時間：${context.timeContext}\n`
-      if (context.travelScenario?.length > 0) enhanced += `🎯 場景：${context.travelScenario.join('、')}\n`
-      if (weather) {
-        enhanced += `🌤️ 天氣：${weather.temperature}°C, ${weather.description}\n`
-        enhanced += `💧 濕度：${weather.humidity}%，💨 風速：${weather.wind_speed}km/h\n`
-      }
-      enhanced += `\n請根據以上分析結果，提供精準的韓式時尚穿搭建議。`
-    }
-    
-    return enhanced
-  }
-
-  // 🔧 輔助函數：建構完整回復
-  const buildCompleteResponse = (context: any, weather: any, analysisReport: string, gptResponse: string): string => {
-    let response = ""
-    
-    // 如果有智能分析結果，先顯示
-    if (context.needsWeather && analysisReport) {
-      response += `🤖 **智能旅遊分析完成！**<br/><br/>${analysisReport}<br/><br/>`
-    }
-    
-    // 然後顯示GPT建議
-    response += gptResponse
-    
-    return response
-  }
-
-  // 🔧 輔助函數：建構多日旅行回復
-  const buildCompleteMultiDayResponse = (context: any, forecasts: any[], plan: string): string => {
-    let response = `🤖 **5天旅行智能分析完成！**<br/><br/>`
-    
-    if (context.location) {
-      response += `📍 **目的地：** ${context.location}<br/>`
-    }
-    
-    response += `🌤️ **天氣概況：** 已獲取${forecasts.length}天預報<br/><br/>`
-    response += plan
-    
-    return response
-  }
 
   // GPT-4o 圖片分析
   const analyzeImageWithText = async () => {
@@ -354,7 +248,9 @@ export default function Chat3Page() {
       
       const response = await fetch('/api/chat/recommend', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json; charset=utf-8'
+        },
         body: JSON.stringify({
           message: userMessage,
           image: base64Image,

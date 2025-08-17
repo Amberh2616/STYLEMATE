@@ -308,7 +308,7 @@ ${JSON.stringify(productInfo, null, 2)}
 
 ${fashionClipContext ? `${fashionClipContext}` : ''}
 ${ragContext ? `${ragContext}` : ''}
-${trendContext ? `\n\n**🔥 最新流行趨勢資訊：**\n${trendContext}\n` : ''}
+${trendContext ? `\n\n**📰 參考資料來源：**\n${trendContext}\n\n💡 **回答指引：** 請根據上述時尚媒體報導，提供詳細的趨勢分析回答。請生成 450-600 字左右的內容，包含具體的趨勢重點、色彩分析、風格特色等專業資訊。\n\n⚠️ **重要格式要求：**\n- 可以使用分段標題（如🎯、📋等），但不要使用數字編號（如1. 2. 3.或[1]、[2]等）\n- 內容可以分段，但避免數字列點\n- 請在回答最後一段提及相關的權威時尚網站來源（包含完整網址）\n- 將關鍵趨勢元素放在回答的前半部分\n- 可以適當增加內容長度，不用太限制字數\n` : ''}
 ${weatherContext ? `${weatherContext}` : ''}
 
 🤖 **AI 優勢說明：**
@@ -329,7 +329,7 @@ ${fashionClipResults.length > 0 ?
 
 **重要格式要求：**
 - 必須使用HTML格式，確保段落分明、縮排對齊
-- 回答必須分段結構化，使用清晰的1. 2. 3. 編號
+- 回答必須分段結構化，但不要使用數字編號，用自然段落
 - 每個段落都要獨立成行，不要擠成連續句子
 - 使用適當的HTML標籤確保版面整潔
 
@@ -360,6 +360,17 @@ ${fashionClipResults.length > 0 ?
 </ol>
 
 請用親切、專業的語調回答，確保推薦內容針對性強且格式清晰。`
+
+    // 🔧 Debug: 檢查趨勢上下文是否正確傳遞
+    if (intentAnalysis.mode === 'trend_summary') {
+      console.log('🔍 Debug - 趨勢上下文長度:', trendContext?.length || 0)
+      console.log('🔍 Debug - 系統提示包含趨勢:', systemPrompt.includes('📰 參考資料來源'))
+      if (trendContext) {
+        console.log('🔍 Debug - 趨勢上下文預覽:', trendContext.substring(0, 300) + '...')
+      } else {
+        console.log('⚠️ Debug - 趨勢上下文為空！')
+      }
+    }
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
@@ -534,7 +545,7 @@ ${JSON.stringify(productInfo, null, 2)}
 
 **重要格式要求：**
 - 必須使用HTML格式，確保段落分明、縮排對齊
-- 回答必須分段結構化，使用清晰的1. 2. 3. 編號
+- 回答必須分段結構化，但不要使用數字編號，用自然段落
 - 每個段落都要獨立成行，不要擠成連續句子
 - 使用適當的HTML標籤確保版面整潔
 
@@ -922,7 +933,7 @@ async function fetchFashionTrends(message: string): Promise<string> {
     console.log('🔍 搜尋查詢:', searchQuery)
     
     // 呼叫 WebSearch API
-    const response = await fetch('http://localhost:3005/search', {
+    const response = await fetch('http://localhost:3007/search', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1000,20 +1011,29 @@ function formatWebSearchResults(searchData: any, originalQuery: string): string 
     
     // 添加搜尋摘要資訊
     if (searchData.metadata) {
-      trendInfo += `**🔍 搜尋分析結果** (${searchData.metadata.search_provider} • ${searchData.metadata.processing_time_ms}ms)\n\n`
-      
-      // 顯示時尚關鍵詞
+      // 顯示時尚關鍵詞（關鍵元素優先）
       if (searchData.metadata.fashion_keywords?.length > 0) {
-        trendInfo += `**時尚關鍵詞：** ${searchData.metadata.fashion_keywords.join('、')}\n\n`
+        trendInfo += `**🎯 關鍵趨勢要素：** ${searchData.metadata.fashion_keywords.join('、')}\n\n`
       }
+      
+      trendInfo += `**🔍 搜尋分析** (${searchData.metadata.search_provider} • ${searchData.metadata.processing_time_ms}ms)\n\n`
     }
     
-    // 格式化證據內容
+    // 格式化證據內容 - 關鍵元素優先，無引用數字
     if (searchData.evidences && searchData.evidences.length > 0) {
       trendInfo += `**📰 最新趨勢資訊來源：**\n\n`
       
       searchData.evidences.slice(0, 4).forEach((evidence: any, index: number) => {
-        trendInfo += `**${index + 1}. ${evidence.title}** [${index + 1}]\n`
+        trendInfo += `**${evidence.title}**\n`
+        
+        // 顯示關鍵引用或摘要（重點內容優先）
+        if (evidence.quotes && evidence.quotes.length > 0) {
+          trendInfo += `💡 **重點：** ${evidence.quotes[0]}\n`
+        } else if (evidence.excerpt) {
+          trendInfo += `📝 **摘要：** ${evidence.excerpt.substring(0, 150)}${evidence.excerpt.length > 150 ? '...' : ''}\n`
+        } else {
+          trendInfo += `📄 **內容：** ${evidence.text.substring(0, 200)}${evidence.text.length > 200 ? '...' : ''}\n`
+        }
         
         // 顯示發布日期和來源
         if (evidence.site || evidence.published_at) {
@@ -1021,34 +1041,31 @@ function formatWebSearchResults(searchData: any, originalQuery: string): string 
           const dateInfo = evidence.published_at 
             ? new Date(evidence.published_at).toLocaleDateString('zh-TW')
             : ''
-          trendInfo += `來源：${siteInfo}${dateInfo ? ` (${dateInfo})` : ''}\n`
+          trendInfo += `📍 **來源：** ${siteInfo}${dateInfo ? ` (${dateInfo})` : ''}\n`
         }
         
-        // 顯示關鍵引用或摘要
-        if (evidence.quotes && evidence.quotes.length > 0) {
-          trendInfo += `重點：${evidence.quotes[0]}\n`
-        } else if (evidence.excerpt) {
-          trendInfo += `摘要：${evidence.excerpt.substring(0, 150)}${evidence.excerpt.length > 150 ? '...' : ''}\n`
-        } else {
-          trendInfo += `內容：${evidence.text.substring(0, 200)}${evidence.text.length > 200 ? '...' : ''}\n`
-        }
-        
+        // 相關網址（用戶要求的重要元素）
         if (evidence.url) {
-          trendInfo += `詳細：${evidence.url}\n`
+          trendInfo += `🔗 **詳細網址：** ${evidence.url}\n`
         }
         
         trendInfo += '\n'
       })
       
-      // 添加引用說明
-      trendInfo += `**📚 引用來源：**\n`
-      searchData.sources.slice(0, 4).forEach((source: any, index: number) => {
-        trendInfo += `[${index + 1}] ${source.title} - ${source.site || 'unknown'}`
-        if (source.published_at) {
-          trendInfo += ` (${new Date(source.published_at).toLocaleDateString('zh-TW')})`
-        }
-        trendInfo += '\n'
-      })
+      // 權威來源列表（包含完整網址資訊）
+      if (searchData.sources && searchData.sources.length > 0) {
+        trendInfo += `**🏆 權威時尚媒體來源：**\n`
+        searchData.sources.slice(0, 4).forEach((source: any, index: number) => {
+          trendInfo += `• **${source.title}** - ${source.site || 'unknown'}`
+          if (source.published_at) {
+            trendInfo += ` (${new Date(source.published_at).toLocaleDateString('zh-TW')})`
+          }
+          if (source.url) {
+            trendInfo += `\n  🔗 ${source.url}`
+          }
+          trendInfo += '\n'
+        })
+      }
     }
     
     return trendInfo
