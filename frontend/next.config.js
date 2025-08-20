@@ -1,14 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  trailingSlash: true,
-  skipTrailingSlashRedirect: true,
-  distDir: 'out',
+  // 開發環境不使用靜態導出
+  ...(process.env.NODE_ENV === 'production' ? {
+    output: 'export',
+    trailingSlash: true,
+    skipTrailingSlashRedirect: true,
+    distDir: 'out',
+    assetPrefix: '/STYLEMATE',
+    basePath: '/STYLEMATE',
+  } : {}),
   images: {
     unoptimized: true,
   },
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/STYLEMATE' : '',
-  basePath: process.env.NODE_ENV === 'production' ? '/STYLEMATE' : '',
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },

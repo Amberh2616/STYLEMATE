@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -6,11 +6,6 @@ export const metadata: Metadata = {
   description: '透過 AI 推薦與 2D 虛擬試穿技術，讓你輕鬆找到最適合的韓式穿搭風格',
   keywords: ['韓國服裝', '虛擬試穿', 'K-pop', '韓式風格', '線上購物', 'AI推薦'],
   authors: [{ name: 'STYLEMATE Team' }],
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
   robots: {
     index: true,
     follow: true,
@@ -22,6 +17,12 @@ export const metadata: Metadata = {
     locale: 'zh_TW',
     siteName: 'STYLEMATE',
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 }
 
 export default function RootLayout({
