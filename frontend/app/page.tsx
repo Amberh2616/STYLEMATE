@@ -75,8 +75,11 @@ export default function HomePage() {
             <Link href="/products" className="text-neutral-dark hover:text-primary-600 transition-colors font-medium">
               商品專區
             </Link>
-            <Link href="/chat" className="text-neutral-dark hover:text-primary-600 transition-colors font-medium">
-              AI顧問
+            <Link href="/member" className="text-neutral-dark hover:text-primary-600 transition-colors font-medium">
+              會員中心
+            </Link>
+            <Link href="/admin/rag" className="text-neutral-dark hover:text-primary-600 transition-colors font-medium text-sm">
+              RAG 管理
             </Link>
             <Link href="/auth" className="bg-gradient-to-r from-primary-500 to-primary-600 text-white px-4 py-2 rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all font-medium">
               登入/註冊
@@ -102,13 +105,22 @@ export default function HomePage() {
             </p>
             
             {/* CTA Button */}
-            <Link href="/chat">
-              <button className="bg-gradient-to-r from-primary-500 to-primary-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:from-primary-600 hover:to-primary-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex items-center mx-auto space-x-3">
-                <SparklesIcon className="w-6 h-6" />
-                <span>開始 AI 風格諮詢</span>
-                <ArrowRightIcon className="w-5 h-5" />
-              </button>
-            </Link>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+              <Link href="/chat">
+                <button className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white px-8 py-4 rounded-full font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 flex items-center justify-center space-x-3">
+                  <span>🔥</span>
+                  <span>進入 AI 時尚助理</span>
+                  <ArrowRightIcon className="w-5 h-5" />
+                </button>
+              </Link>
+              <Link href="/products">
+                <button className="w-full bg-white/70 backdrop-blur-sm border border-white/60 text-neutral-dark px-8 py-4 rounded-full font-semibold hover:bg-white/90 transition-all duration-300 flex items-center justify-center space-x-3">
+                  <ShoppingBagIcon className="w-5 h-5" />
+                  <span>瀏覽商品專區</span>
+                  <ArrowRightIcon className="w-5 h-5" />
+                </button>
+              </Link>
+            </div>
           </div>
 
           {/* Process Steps */}
@@ -158,7 +170,7 @@ export default function HomePage() {
           </div>
 
           {/* Final CTA */}
-          <div className="bg-gradient-to-r from-primary-500/10 via-secondary-500/10 to-accent/10 backdrop-blur-sm rounded-2xl p-8 md:p-12 border border-white/30">
+          <div className="bg-gradient-to-r from-primary-500/10 via-secondary-500/10 to-accent/10 backdrop-blur-sm rounded-2xl p-8 md:p-12 border border-white/30 mb-16">
             <div className="flex items-center justify-center mb-6">
               <UserGroupIcon className="w-8 h-8 text-primary-600 mr-3" />
               <span className="text-primary-600 font-medium">已有 10,000+ 用戶體驗</span>

@@ -1,79 +1,172 @@
-# CLAUDE.md
+# Claude Code 專案記憶
 
-## 【角色】
+此檔案儲存 Claude Code 的專案相關資訊和設定。
 
-你是AI開發團隊的協調者，負責整體產品經理、UI/UX設計師、前端開發工程師、後端開發工程師四個專業Agent的協作流程。你的核心職責是確保產品的需求順利落地，從無到有協助完成對應產品專案的完整落地。
+## 專案概述
+**STYLEMATE** - 韓式時尚平台，具備 AI 虛擬試穿功能
+- Next.js 14.2.31 + TypeScript
+- OpenAI GPT-4 整合
+- RAG 知識庫系統
+- 虛擬試穿技術
+- WebSearch 時尚趨勢分析系統
+- Intent Parser 智能查詢識別
+- 天氣資訊整合
+- 9 個商品展示 + 標籤系統
 
-## 【任務】
+## 技術棧
+### 前端 (Frontend)
+- **框架**: Next.js 14.0.0
+- **語言**: TypeScript 5.9.2
+- **樣式**: TailwindCSS 3.3.0
+- **UI 庫**: HeadlessUI, Heroicons
+- **表單**: React Hook Form + Zod 驗證
+- **狀態管理**: Zustand 4.4.0
+- **虛擬試穿**: Fabric.js + MediaPipe
+- **AI 整合**: OpenAI GPT-4, Langchain
+- **圖像處理**: Sharp, Replicate
 
-協調四個專業Agent的工作流程，確保產品需求→設計規格→前端實現→後端實現的完整鏈條順利運行，為用戶提供快捷高效且高品質的一站式全端開發體驗。
+### 後端 (Backend)
+- **運行時**: Node.js 18+
+- **框架**: Express.js 4.19.2
+- **語言**: TypeScript (ESM)
+- **資料庫**: PostgreSQL + pgVector
+- **AI 服務**: OpenAI API, Hugging Face
+- **網頁爬取**: Cheerio, Readability
+- **測試**: Jest + ts-jest
 
-## 【技能】
+### 開發工具
+- **建構工具**: Next.js, TSC
+- **代碼品質**: ESLint, Prettier
+- **包管理器**: npm
+- **開發伺服器**: tsx (TypeScript execution)
 
-🔧 **掌握團隊提示語**：根據指令切換對應的Agent並調取對應文件中指示性工作框架
-🧠 **掌握提示語規格**：準確定位並提取prompts目錄下的專業Agent提示語文件
-🧩 **熟悉開發流程**：管理Agent之間的工作交接和文件傳遞
-📚 **具備教學意識**：對用戶提出的指令能做正確理解和使用指導
+## 常用指令
+```bash
+# 啟動開發伺服器
+cd frontend && npm run dev
 
-## 【總體規劃】
+# 啟動 WebSearch 趨勢分析服務
+npm run search
 
-📎 一條線貫穿產品需求分析 → UI/UX設計 → 前端開發 → 後端開發 的標準流程
-📎 協同Agent之間依據需求文件準備流程文件（PRD.md、DESIGN_SPEC.md、API_SPEC.md → 最終代碼）
-📎 根據用戶指令準確切換對應的專業Agent並執行相對應的提示流程
-📎 每個專業Agent下提示語文件需自帶進行一步指引
-📎 與使用者保持中文⇄多步互動
+# 測試 OpenAI 連接
+curl -X POST http://localhost:3002/api/test-ai -H "Content-Type: application/json" -d "{}"
 
-## 【功能引導】
+# 檢查構建與代碼品質
+npm run build
+npm run lint
+npm run type-check  # 前端
+npm run test        # 後端測試
+```
 
-### 🧭【團隊介紹】
+## 專案結構
+### 核心目錄
+```
+STYLEMATE/
+├── frontend/              # Next.js 前端應用
+│   ├── app/              # App Router 結構
+│   │   ├── api/          # API 路由
+│   │   ├── chat/         # 聊天頁面 (主推薦)
+│   │   ├── chat-3/       # 趨勢分析聊天
+│   │   ├── tryon/        # 虛擬試穿
+│   │   ├── admin/        # 管理後台
+│   │   └── member/       # 用戶中心
+│   ├── components/       # React 組件
+│   ├── lib/              # 工具函數與核心邏輯
+│   └── public/           # 靜態資源
+├── backend/              # Express.js 後端服務
+│   ├── services/         # 業務邏輯服務
+│   ├── prompts/          # AI 提示語系統
+│   └── llm/              # LLM 相關工具
+├── fashion_dataset/      # 時尚數據集
+└── docs/                 # 項目文檔
+```
 
-👋 歡迎來到AI開發團隊！我是團隊協調者，為您介紹我們的專業團隊：
+## 重要檔案路徑
+### 前端核心文件
+- **主聊天頁面**: `/frontend/app/chat/page.tsx`
+- **趨勢聊天頁面**: `/frontend/app/chat-3/page.tsx`
+- **商品數據**: `/frontend/lib/products.ts`
+- **OpenAI API**: `/frontend/app/api/chat/recommend/route.ts`
+- **Intent Parser**: `/frontend/lib/core/intentParser.ts`
+- **Intent Rules**: `/frontend/lib/core/intentRules.ts`
+- **天氣分析器**: `/frontend/lib/travelWeatherAnalyzer.ts`
 
-🎯 **產品經理Agent** — 負責與您理解需求的簡報，輸出詳細的PRD文檔
-🎨 **設計師Agent** — 負責設計UI/UX視覺稿與設計規格
-💻 **前端工程師Agent** — 負責前端代碼實現與視覺還原
-⚙️ **後端工程師Agent** — 負責API設計、資料庫設計與後端服務實現
-🏗️ **AI助手前端架構Agent** — 負責前端架構設計與技術選型專業諮詢
-📋 **模組流程說明Agent** — 負責系統模組流程解釋與架構分析
-📚 **開發文檔Agent** — 負責開發文檔撰寫與技術規範制定
+### 後端核心文件
+- **主服務器**: `/backend/server.ts`
+- **WebSearch 服務**: `/backend/services/search/`
+- **提示語系統**: `/backend/prompts/`
+- **天氣服務**: `/backend/services/weather/`
 
-**⏮ 工作流程為：**
-用戶需求 → 產品需求分析(PRD.md) + UI/UX設計(DESIGN_SPEC.md) + API設計(API_SPEC.md) → 前端開發 + 後端開發（完整全端專案）
+### API 端點
+#### 前端 API 路由 (`/frontend/app/api/`)
+- `GET/POST /api/chat/recommend` - 主推薦聊天 API
+- `GET/POST /api/rag/search` - RAG 知識庫搜尋
+- `POST /api/rag/upload-pdf` - PDF 上傳
+- `POST /api/tryon/route` - 虛擬試穿
+- `GET/POST /api/fashion/search` - 時尚商品搜尋
+- `GET/POST /api/member/profile` - 用戶資料
+- `POST /api/test-ai` - OpenAI 連接測試
 
-**⏯ 下指令方式為：**
-– 請輸入產品需求，我會啟動需求分析
-– 或直接指定您想啟動的流程，我會為您召喚對應的專業Agent
+#### 後端 WebSearch 服務 (端口 3001)
+- `POST /search` - 時尚趨勢搜尋
+- `GET /health` - 健康檢查
 
-讓我們開始協助您啟動您的產品吧！✨
+## 環境設定
+### 必要環境變數 (`/frontend/.env.local`)
+```env
+OPENAI_API_KEY=sk-xxx           # OpenAI API 密鑰
+NEXT_PUBLIC_API_URL=http://localhost:3002  # 前端 API URL
+WEBSEARCH_URL=http://localhost:3001        # WebSearch 服務 URL
+POSTGRES_URL=xxx                # PostgreSQL 連接字符串
+PINECONE_API_KEY=xxx            # Pinecone API 密鑰
+```
 
-## 【Agent切換】
+## 開發流程
+1. **啟動服務**：`npm run search` + `cd frontend && npm run dev`
+2. **測試功能**：
+   - 主聊天功能：http://localhost:3002/chat
+   - 趨勢分析：http://localhost:3002/chat-3
+   - RAG 管理：http://localhost:3002/admin/rag
+   - 虛擬試穿：http://localhost:3002/tryon
+3. **代碼品質檢查**：運行 `npm run lint` 和 `npm run type-check`
+4. **測試**：後端 `npm run test`，前端無獨立測試套件
 
-當用戶明確召喚某角色時，執行對應的Agent切換：
+## 功能狀態
+### ✅ 已完成功能
+- **WebSearch 趨勢分析** - 完全運作，支援專業時尚媒體爬取
+- **Intent Parser 系統** - 智能識別趨勢查詢 vs 商品推薦
+- **商品推薦系統** - 9 個商品展示 + 標籤系統
+- **RAG 知識庫** - PDF 上傳與搜尋功能
+- **虛擬試穿** - 基礎功能實現
+- **用戶系統** - 20 個問題的用戶偏好設定
 
-📌 **//產品經理** 指令執行：
-「正在召喚產品經理Agent…」
-→ 讀取 `.claude/prompts/product_manager.md` 文件內容，按照其中的提示語規定開始執行初始化流程
+### ❌ 待修復問題
+- **天氣資訊顯示** - 旅行查詢無法顯示天氣建議區塊
+  - Intent Parser 正確識別旅行模式
+  - 商品推薦正常運作
+  - 但 weatherContext 未出現在回應中
+  - 可能原因：調試日誌未出現，懷疑請求未到達後端或編譯問題
 
-📌 **//設計** 指令執行：
-「正在召喚設計師Agent…」
-→ 讀取 `.claude/prompts/designer.md` 文件內容，按照其中的提示語規定開始執行初始化流程
+## WebSearch 趨勢分析功能
+- **功能狀態**: ✅ 完全運作
+- **支援媒體**: Fashionista, ELLE, GQ, Hypebeast, Vogue 等專業時尚媒體
+- **支援查詢**: 時裝周、流行趨勢、色彩分析、街頭潮流、設計師品牌
+- **回應格式**: 450-600字、分段標題、無數字編號、包含來源網址
+- **測試地址**: http://localhost:3002/chat-3
+- **技術實現**: Cheerio 爬取 + Readability 內容提取 + OpenAI 分析
 
-📌 **//前端** 指令執行：
-「正在召喚前端工程師Agent…」
-→ 讀取 `.claude/prompts/frontend_developer.md` 文件內容，按照其中的提示語規定開始執行初始化流程
+## 注意事項
+- **伺服器端口**: 前端 3002，WebSearch 後端 3001
+- **圖片路徑**: 使用 `/images/products/` 開頭的相對路徑
+- **OpenAI API**: 已設定並測試通過
+- **RAG 功能**: 需要先上傳 PDF 才能使用知識庫搜尋
+- **代碼規範**: 使用 ESLint + Prettier，TypeScript 嚴格模式
+- **測試覆蓋**: 後端有 Jest 測試，前端主要靠手動測試
 
-📌 **//後端** 指令執行：
-「正在召喚後端工程師Agent…」
-→ 讀取 `.claude/prompts/backend_developer.md` 文件內容，按照其中的提示語規定開始執行初始化流程
-
-📌 **//AI助手前端架構** 指令執行：
-「正在召喚AI助手前端架構Agent…」
-→ 讀取 `.claude/prompts/ai_frontend_architect.md` 文件內容，按照其中的提示語規定開始執行初始化流程
-
-📌 **//模組流程說明** 指令執行：
-「正在召喚模組流程說明Agent…」
-→ 讀取 `.claude/prompts/module_flow_expert.md` 文件內容，按照其中的提示語規定開始執行初始化流程
-
-📌 **//開發文檔** 指令執行：
-「正在召喚開發文檔Agent…」
-→ 讀取 `.claude/prompts/dev_documentation.md` 文件內容，按照其中的提示語規定開始執行初始化流程
+## 開發備註
+- Next.js 使用 App Router 架構 (非 Pages Router)
+- 後端使用 ES Modules (type: "module")
+- 所有 TypeScript 配置都已優化
+- 使用 Zustand 進行前端狀態管理
+- PostgreSQL 需要 pgVector 擴展支援向量搜尋
+- Sharp 用於圖像處理，需要原生編譯支援

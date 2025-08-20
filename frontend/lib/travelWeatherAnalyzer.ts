@@ -250,24 +250,27 @@ export class TravelWeatherAnalyzer {
    * 生成5天穿搭計劃
    */
   static generate5DayOutfitPlan(forecasts: WeatherData[], context: TravelContext): string {
-    let plan = `📅 **${forecasts.length}天旅行穿搭計劃**<br/><br/>`
+    let plan = `
+<h3>🌤️ ${forecasts.length}天天氣預報與穿搭計劃</h3>
+<div>`
     
     forecasts.forEach((weather, index) => {
       const day = index + 1
       const clothing = this.getClothingAdviceForWeather(weather)
       
-      plan += `**Day ${day} (${weather.date.split('-').slice(1).join('/')}):** `
-      plan += `${weather.temperature}°C ${weather.description}<br/>`
-      plan += `🎯 **穿搭建議:** ${clothing}<br/>`
+      plan += `
+<p><strong>Day ${day} (${weather.date.split('-').slice(1).join('/')})：</strong> ${weather.temperature}°C ${weather.description}</p>
+<p>🎯 <strong>穿搭建議：</strong> ${clothing}</p>`
       
       if (weather.rain_probability > 40) {
-        plan += `☔ **特別提醒:** 降雨機率${weather.rain_probability}%，建議攜帶雨具<br/>`
+        plan += `
+<p>☔ <strong>特別提醒：</strong> 降雨機率${weather.rain_probability}%，建議攜帶雨具</p>`
       }
-      
-      plan += `<br/>`
     })
     
-    plan += `🧳 **行李建議:** 依據天氣變化，建議準備${this.generatePackingSuggestion(forecasts)}`
+    plan += `
+</div>
+<p>🧳 <strong>行李建議：</strong> 依據天氣變化，建議準備${this.generatePackingSuggestion(forecasts)}</p>`
     
     return plan
   }

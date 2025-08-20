@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
 import OpenAI from 'openai'
 import { analyzeIntent } from '@/lib/core/intentParser'
+import { TravelWeatherAnalyzer } from '@/lib/travelWeatherAnalyzer'
 
 // 回到可靠的 OpenAI 方案
 const openai = new OpenAI({
-  apiKey: process.env.OPEN_AI_API_KEY,
+  apiKey: process.env.OPENAI_KEY,
 })
 
 // 資料庫連接池
@@ -19,8 +20,29 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
 })
 
+// 簡單的請求頻率限制（防止API濫用）
+const requestCounts = new Map()
+const RATE_LIMIT = 20 // 每分鐘最多20次請求
+const RATE_WINDOW = 60000 // 1分鐘
+
 export async function POST(request: NextRequest) {
   try {
+    // 基本請求頻率限制
+    const clientIP = request.headers.get('x-forwarded-for') || 'unknown'
+    const now = Date.now()
+    const userRequests = requestCounts.get(clientIP) || []
+    const recentRequests = userRequests.filter((time: number) => now - time < RATE_WINDOW)
+    
+    if (recentRequests.length >= RATE_LIMIT) {
+      return NextResponse.json(
+        { success: false, response: "請求過於頻繁，請稍後再試。" },
+        { status: 429 }
+      )
+    }
+    
+    recentRequests.push(now)
+    requestCounts.set(clientIP, recentRequests)
+    
     const { message, conversationHistory, image, analysis_type = 'auto', userEmail } = await request.json()
 
     console.log('🎯 Chat 推薦請求:', { 
@@ -82,15 +104,53 @@ export async function POST(request: NextRequest) {
     console.log('  - destinations:', intentAnalysis.destinations)
     console.log('  - 條件滿足:', intentAnalysis.needs_weather && intentAnalysis.destinations)
     
-    // 強制為旅行查詢添加天氣資訊
+    // 強制為旅行查詢添加真實天氣預報
     if ((intentAnalysis.needs_weather && intentAnalysis.destinations) || 
         (intentAnalysis.mode === 'travel_plan' || message.includes('旅行') || message.includes('出差'))) {
-      console.log('🌤️ 檢測到天氣需求，查詢天氣資訊...')
+      console.log('🌤️ 檢測到天氣需求，啟動智能天氣分析...')
       try {
-        // 提供詳細的旅行穿搭建議
+        // 使用 TravelWeatherAnalyzer 進行智能分析
+        const travelContext = TravelWeatherAnalyzer.analyzeUserInput(message)
+        console.log('🧠 旅遊語境分析:', travelContext)
+        
+        if (travelContext.cityQuery && travelContext.needsWeather) {
+          const apiKey = process.env.OPENWEATHER_API_KEY
+          if (apiKey) {
+            console.log('🌐 調用5天天氣預報 API...')
+            const forecasts = await TravelWeatherAnalyzer.fetch5DayForecast(travelContext.cityQuery, apiKey)
+            
+            if (forecasts.length > 0) {
+              console.log('✅ 獲取5天天氣預報成功，天數:', forecasts.length)
+              weatherContext = TravelWeatherAnalyzer.generate5DayOutfitPlan(forecasts, travelContext)
+              console.log('🔍 5天穿搭計劃生成，長度:', weatherContext.length)
+            } else {
+              throw new Error('天氣預報數據為空')
+            }
+          } else {
+            throw new Error('OpenWeather API Key 未設定')
+          }
+        } else {
+          // 沒有明確地點的通用旅行建議
+          const destinations = intentAnalysis.destinations ? intentAnalysis.destinations.join('、') : travelContext.location || '目的地'
+          const duration = intentAnalysis.date_range ? `${intentAnalysis.date_range.end.replace('+', '')}` : '多天'
+          weatherContext = `\n\n**🌤️ 旅行穿搭建議：**
+目的地：${destinations}
+行程：${duration}
+
+**建議穿搭策略：**
+• **多層次搭配**：準備可拆卸外套，應對溫差變化
+• **舒適優先**：選擇透氣材質，長時間穿著不疲累  
+• **場合彈性**：商務正式+休閒觀光兩用單品
+• **行李精簡**：選擇好搭配、多用途的基本款\n`
+        }
+        
+        console.log('✅ 天氣分析完成，長度:', weatherContext.length)
+        console.log('🔍 天氣內容預覽:', weatherContext.substring(0, 150) + '...')
+      } catch (weatherError) {
+        console.log('⚠️ 天氣分析失敗，使用備用建議:', weatherError.message)
+        // 備用通用建議
         const destinations = intentAnalysis.destinations ? intentAnalysis.destinations.join('、') : '目的地'
         const duration = intentAnalysis.date_range ? `${intentAnalysis.date_range.end.replace('+', '')}` : '多天'
-        
         weatherContext = `\n\n**🌤️ 旅行穿搭建議：**
 目的地：${destinations}
 行程：${duration}
@@ -99,15 +159,7 @@ export async function POST(request: NextRequest) {
 • **多層次搭配**：準備可拆卸外套，應對溫差變化
 • **舒適優先**：選擇透氣材質，長時間穿著不疲累  
 • **場合彈性**：商務正式+休閒觀光兩用單品
-• **行李精簡**：選擇好搭配、多用途的基本款
-
-**必備單品**：
-- 薄外套或針織衫（調節溫度）
-- 舒適平底鞋或低跟鞋（長時間行走）
-- 純色上衣（容易搭配）
-- 深色褲裝（實用耐髒）\n`
-      } catch (weatherError) {
-        console.log('⚠️ 天氣查詢失敗:', weatherError.message)
+• **行李精簡**：選擇好搭配、多用途的基本款\n`
       }
     }
 
@@ -284,35 +336,9 @@ export async function POST(request: NextRequest) {
       description: item.description_zh || item.description_en
     }))
 
-    const systemPrompt = `你是 STYLEMATE 的專業韓式時尚顧問助理，擁有 Fashion-CLIP AI 語義理解能力和身形分析專業知識。
+    const systemPrompt = `你是STYLEMATE韓式時尚顧問，擁有Fashion-CLIP AI語義分析能力。
 
-## 🎯 推薦策略（優先級順序）：
-**1. 主要依據（用戶當下需求）**：分析身形、場合、具體需求
-**2. 輔助參考（問卷資料）**：風格偏好、顏色喜好、預算考量
-
-## 📏 身形分析與修飾邏輯：
-
-### 體重管理穿搭原則：
-- **修飾身材**：選擇合適版型和剪裁
-- **顯瘦策略**：深色系、垂直線條、腰線強調
-- **比例優化**：拉長身形、平衡上下半身
-
-### 身形特徵推薦：
-- **160cm + 80kg女性**：
-  - A字裙型：修飾下半身
-  - 腰線設計：創造沙漏曲線
-  - V領深V：拉長頸部線條
-  - 膝上長度：顯腿長
-  - 深色系優先：黑、深藍、酒紅顯瘦
-
-### 特殊需求處理：
-- **露背洋裝**：考慮內衣搭配、場合適宜性
-- **正式場合**：建議搭配外套或披肩
-- **休閒約會**：強調女性魅力同時保持優雅
-
-⚠️ **固定詞彙域**：
-
-### 風格分類：
+## 風格分類（7種）：
 1. "清新韓系" - 溫柔色調、層次穿搭
 2. "法式優雅" - 簡約高級、知性氣質  
 3. "極簡" - 純色基調、俐落剪裁
@@ -320,102 +346,86 @@ export async function POST(request: NextRequest) {
 5. "街頭風" - 寬鬆版型、潮流元素
 6. "都會通勤" - 職場專業、正式場合
 7. "美式休閒" - 牛仔單品、舒適實穿
-8. "復古懷舊" - 復古印花、經典剪裁
-9. "機能運動" - 運動元素、舒適機能
-10. "摩登華麗" - 奢華質感、晚宴風格
 
-### 場合：["通勤","正式","休閒","約會","旅遊","商務簡報","派對"]
+## 場合：通勤/正式/休閒/約會/旅遊/商務/派對
 
-${memberPreferences ? `
-## 📋 用戶問卷資料（輔助參考）：
-- **風格檔案**：${memberPreferences.styleProfile}
-- **顏色偏好**：${memberPreferences.colorProfile}  
-- **場合需求**：${memberPreferences.occasionProfile}
-- **購物習慣**：${memberPreferences.shoppingProfile}
-- **推薦標籤**：${memberPreferences.recommendations?.join('、') || '無'}
+## 修飾原則：
+- 深色顯瘦、A字修身、腰線強調、垂直拉長
+- 160cm+80kg：A字裙、腰線設計、V領、膝上長度、深色系
 
-⚠️ **重要**：問卷資料僅作為輔助參考，請優先根據用戶當下的具體需求進行推薦！
-` : '## 📋 用戶問卷資料：無（將純粹基於當下需求分析）'}
+商品清單：${JSON.stringify(productInfo, null, 2)}
 
-根據用戶的身形特徵和具體需求，從以下商品中推薦最適合的產品：
+${fashionClipContext || ''}${ragContext || ''}${trendContext || ''}${weatherContext || ''}
 
-商品清單：
-${JSON.stringify(productInfo, null, 2)}
+**重要規則：**
+1. **必須嚴格遵循HTML格式，確保段落分明！**
+2. **如果提供了趨勢資訊，必須基於真實數據回答，禁止編造內容！**
+3. **引用具體的媒體來源、設計師名稱、品牌資訊**
+4. **使用提供的實際引文和摘要**
 
-${fashionClipContext ? `${fashionClipContext}` : ''}
-${ragContext ? `${ragContext}` : ''}
-${trendContext ? `\n\n**📰 參考資料來源：**\n${trendContext}\n\n💡 **回答指引：** 請根據上述時尚媒體報導，提供詳細的趨勢分析回答。請生成 450-600 字左右的內容，包含具體的趨勢重點、色彩分析、風格特色等專業資訊。\n\n⚠️ **重要格式要求：**\n- 可以使用分段標題（如🎯、📋等），但不要使用數字編號（如1. 2. 3.或[1]、[2]等）\n- 內容可以分段，但避免數字列點\n- 請在回答最後一段提及相關的權威時尚網站來源（包含完整網址）\n- 將關鍵趨勢元素放在回答的前半部分\n- 可以適當增加內容長度，不用太限制字數\n` : ''}
-${weatherContext ? `${weatherContext}` : ''}
-
-🤖 **AI 優勢說明：**
-${fashionClipResults.length > 0 ? 
-  `我使用了 Fashion-CLIP AI 語義分析技術，能夠深度理解你的需求並找到最相關的商品。以上推薦是基於 AI 語義相似度分析得出的結果。` : 
-  `我使用了傳統關鍵字搜尋為你找到相關商品。建議你使用更具體的描述詞彙，我的 AI 語義分析能力會為你提供更精準的推薦。`
-}
-
-請根據用戶的輸入：
-1. 使用上述標準化風格詞彙分析用戶偏好
-2. 從場合白名單中選擇適合場合
-3. 從商品清單中選擇 2-3 個最適合的商品
-4. 用溫暖、專業的語調推薦
-5. 說明推薦理由（必須引用標準風格詞彙）
-6. 用繁體中文回答
-
-回答格式要包含推薦的商品 ID，這樣可以後續顯示商品。
-
-**重要格式要求：**
-- 必須使用HTML格式，確保段落分明、縮排對齊
-- 回答必須分段結構化，但不要使用數字編號，用自然段落
-- 每個段落都要獨立成行，不要擠成連續句子
-- 使用適當的HTML標籤確保版面整潔
-
-**標準回答格式：**
+回答格式：
 <h3>🎯 分析結果</h3>
-<p>簡短總結用戶需求和分析重點</p>
+<p>基於提供的資料總結用戶需求</p>
+
+${trendContext ? `
+<h3>🔥 最新時尚趨勢（基於專業媒體報導）</h3>
+` : ''}
+
+${weatherContext ? `
+<h3>🌤️ 天氣預報與每日穿搭建議</h3>
+<p><strong>重要：請完整顯示以下天氣預報內容，不要省略任何一天：</strong></p>
+${weatherContext}
+` : ''}
 
 <h3>📋 推薦方案</h3>
 <ol>
-<li><strong>商品類型一：</strong><br/>
-    <strong>[商品ID] 商品名稱</strong><br/>
-    推薦理由：具體說明適合的原因和特點。</li>
-
-<li><strong>商品類型二：</strong><br/>
-    <strong>[商品ID] 商品名稱</strong><br/>
-    推薦理由：具體說明適合的原因和特點。</li>
-
-<li><strong>商品類型三：</strong><br/>
-    <strong>[商品ID] 商品名稱</strong><br/>
-    推薦理由：具體說明適合的原因和特點。</li>
+<li><strong>[商品ID] 商品名稱</strong><br/>
+推薦理由：詳細說明</li>
+<li><strong>[商品ID] 商品名稱</strong><br/>
+推薦理由：詳細說明</li>
 </ol>
 
 <h3>💡 搭配建議</h3>
 <ol>
-<li>搭配要點一：具體建議內容</li>
-<li>搭配要點二：具體建議內容</li>
-<li>搭配要點三：具體建議內容</li>
-</ol>
+<li>搭配要點一</li>
+<li>搭配要點二</li>
+<li>搭配要點三</li>
+</ol>`
 
-請用親切、專業的語調回答，確保推薦內容針對性強且格式清晰。`
-
-    // 🔧 Debug: 檢查趨勢上下文是否正確傳遞
+    // 🔧 Debug: 檢查趨勢和天氣上下文是否正確傳遞
     if (intentAnalysis.mode === 'trend_summary') {
       console.log('🔍 Debug - 趨勢上下文長度:', trendContext?.length || 0)
-      console.log('🔍 Debug - 系統提示包含趨勢:', systemPrompt.includes('📰 參考資料來源'))
+      console.log('🔍 Debug - 系統提示包含趨勢:', systemPrompt.includes('📰 最新趨勢資訊來源') || systemPrompt.includes('🔍 搜尋分析'))
       if (trendContext) {
         console.log('🔍 Debug - 趨勢上下文預覽:', trendContext.substring(0, 300) + '...')
       } else {
         console.log('⚠️ Debug - 趨勢上下文為空！')
       }
     }
+    
+    // 🔧 Debug: 檢查天氣上下文和系統提示
+    if (intentAnalysis.mode === 'travel_plan' || intentAnalysis.needs_weather) {
+      console.log('🔍 Debug - 天氣上下文長度:', weatherContext?.length || 0)
+      console.log('🔍 Debug - 系統提示包含天氣:', systemPrompt.includes('📅') || systemPrompt.includes('🌤️'))
+      console.log('🔍 Debug - 系統提示長度:', systemPrompt.length)
+      console.log('🔍 Debug - 系統提示末尾100字:', systemPrompt.substring(systemPrompt.length - 100))
+      if (weatherContext) {
+        console.log('🔍 Debug - 天氣上下文預覽:', weatherContext.substring(0, 100) + '...')
+      } else {
+        console.log('⚠️ Debug - 天氣上下文為空！')
+      }
+    }
 
+    // 統一使用 GPT-4o mini 優化成本和性能
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
           content: systemPrompt
         },
-        ...(conversationHistory || []).map((msg: any) => ({
+        // 限制對話歷史，只保留最近3輪減少token使用
+        ...(conversationHistory || []).slice(-6).map((msg: any) => ({
           role: msg.type === 'user' ? 'user' : 'assistant',
           content: msg.content
         })),
@@ -612,9 +622,9 @@ ${JSON.stringify(productInfo, null, 2)}
 
 範例開頭：「我看到這件服裝是...風格，適合...場合」`
 
-    // 3. 調用 OpenAI GPT-4o 進行圖片分析和推薦
+    // 3. 調用 OpenAI GPT-4o-mini 進行圖片分析和推薦（成本優化）
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -636,12 +646,12 @@ ${JSON.stringify(productInfo, null, 2)}
           ]
         }
       ],
-      max_tokens: 1500,
+      max_tokens: 1200,
       temperature: 0.7,
     })
 
     const aiResponse = completion.choices[0]?.message?.content || ''
-    console.log('✅ AI 整合式圖片分析完成')
+    console.log('✅ AI 整合式圖片分析完成 (GPT-4o-mini)')
 
     // 4. 解析商品ID
     const recommendedProductIds = []
@@ -769,7 +779,7 @@ async function analyzeImageWithGPT4V(imageBase64: string, userMessage: string) {
 }`
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
@@ -791,7 +801,7 @@ async function analyzeImageWithGPT4V(imageBase64: string, userMessage: string) {
         ]
       }
     ],
-    max_tokens: 2000,
+    max_tokens: 1500,
     temperature: 0.3
   })
 
@@ -968,14 +978,22 @@ async function fetchFashionTrends(message: string): Promise<string> {
     const searchQuery = buildTrendSearchQuery(message)
     console.log('🔍 搜尋查詢:', searchQuery)
     
-    // 呼叫 WebSearch API
+    // 呼叫 WebSearch API - 增加請求快取減少重複調用
+    const cacheKey = `websearch_${searchQuery.replace(/\s+/g, '_')}`
+    
+    // 簡單記憶體快取（實際應用建議用 Redis）
+    if (global.webSearchCache && global.webSearchCache[cacheKey]) {
+      console.log('✅ 使用快取的 WebSearch 結果')
+      return global.webSearchCache[cacheKey]
+    }
+    
     const response = await fetch('http://localhost:3007/search', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ q: searchQuery }),
-      timeout: 15000 // 15秒超時
+      timeout: 10000 // 減少超時時間到10秒
     })
 
     if (!response.ok) {
@@ -986,7 +1004,14 @@ async function fetchFashionTrends(message: string): Promise<string> {
     
     if (searchData.evidences && searchData.evidences.length > 0) {
       console.log(`✅ WebSearch 找到 ${searchData.evidences.length} 個相關證據`)
-      return formatWebSearchResults(searchData, message)
+      const result = formatWebSearchResults(searchData, message)
+      
+      // 快取結果（5分鐘有效期）
+      if (!global.webSearchCache) global.webSearchCache = {}
+      global.webSearchCache[cacheKey] = result
+      setTimeout(() => delete global.webSearchCache[cacheKey], 300000)
+      
+      return result
     } else {
       console.log('⚠️ WebSearch 無結果，使用備用資訊')
       return getFallbackTrendInfo(message)

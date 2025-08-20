@@ -1,36 +1,36 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { 
   ChatBubbleLeftRightIcon,
   SparklesIcon,
-  HeartIcon,
-  XMarkIcon
+  PhotoIcon
 } from '@heroicons/react/24/outline'
-// import { productFilter } from '@/lib/productFilter'
-// import AlignableCanvasTryOn from '@/components/canvas/AlignableCanvasTryOn'
-// import { products } from '@/lib/products'
+import { analyzeIntent } from '@/lib/core/intentParser'
 
-export default function ChatPage() {
+export default function Chat3Page() {
   const router = useRouter()
-  const [conversationStep, setConversationStep] = useState(0)
-  const [showProducts, setShowProducts] = useState(false)
-  const [assistantEmoji, setAssistantEmoji] = useState('👩‍💼')
-  const [bubbleText, setBubbleText] = useState('哈囉！我是你的時尚助理！')
   const [messages, setMessages] = useState<Array<{type: 'user' | 'ai', content: string}>>([])
   const [inputValue, setInputValue] = useState('')
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null)
-  const [selectedProduct, setSelectedProduct] = useState<any>(null)
+  const [photoNaturalSize, setPhotoNaturalSize] = useState({ w: 0, h: 0 })
   const [fashionItems, setFashionItems] = useState<any[]>([])
   const [recommendedItems, setRecommendedItems] = useState<any[]>([])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [imageAnalysis, setImageAnalysis] = useState<any>(null)
-  const [pendingMessage, setPendingMessage] = useState<string>('')
-  const [pendingTimeout, setPendingTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [showProducts, setShowProducts] = useState(false)
+  const [bubbleText, setBubbleText] = useState('AI 助理準備中...')
+  const [hasLoadedWelcome, setHasLoadedWelcome] = useState(false)
 
-  // 載入資料庫中的韓國服裝
+  // 動態計算容器比例
+  const isPhotoReady = photoNaturalSize.w > 0 && photoNaturalSize.h > 0
+  const photoAspectRatio = useMemo(() => 
+    isPhotoReady ? `${photoNaturalSize.w} / ${photoNaturalSize.h}` : "4 / 5", 
+    [isPhotoReady, photoNaturalSize]
+  )
+
+  // 載入商品數據
   useEffect(() => {
     const loadFashionItems = async () => {
       try {
@@ -43,388 +43,150 @@ export default function ChatPage() {
         console.error('載入服裝資料失敗:', error)
       }
     }
-    loadFashionItems()
-  }, [])
 
-  // 快速本地回應函數
-  const getQuickResponse = (message: string, hasImage: boolean = false) => {
-    const lowerMsg = message.toLowerCase()
-    
-    if (hasImage) {
-      return `🖼️ **圖片風格分析**\n\n根據您上傳的圖片，我分析出以下風格特點：\n\n• **風格分類**：清新韓系 - 溫柔色調、層次穿搭\n• **適合場合**：休閒約會\n• **推薦搭配**：\n  1. 搭配高腰牛仔褲營造輕鬆感\n  2. 加上薄針織外套增加層次\n  3. 配白色小白鞋完成清新造型\n\n這種風格很適合日常穿搭，既舒適又有時尚感！ ✨`
-    }
-    
-    if (lowerMsg.includes('推薦') || lowerMsg.includes('搭配') || lowerMsg.includes('穿搭')) {
-      return `👗 **個人化穿搭推薦**\n\n根據您的需求，我為您推薦以下風格：\n\n• **法式優雅**風格：簡約高級、知性氣質\n  - 建議：白色襯衫 + 黑色西裝褲 + 經典包款\n\n• **清新韓系**風格：溫柔色調、層次穿搭\n  - 建議：米色毛衣 + 牛仔裙 + 帆布鞋\n\n需要更具體的建議嗎？請告訴我您的身形或想要的場合！ 💫`
-    }
-    
-    if (lowerMsg.includes('身形') || lowerMsg.includes('160') || lowerMsg.includes('80kg')) {
-      return `📏 **身形修飾建議**\n\n針對您的身形特徵，我推薦：\n\n• **顯瘦策略**：\n  - 選擇深色系：黑、深藍、酒紅\n  - 強調腰線設計，創造沙漏曲線\n  - V領設計拉長頸部線條\n\n• **推薦單品**：\n  - A字裙型修飾下半身\n  - 膝上長度顯腿長\n  - 垂直線條拉長身形\n\n這些搭配能完美展現您的優點！ 🌟`
-    }
-    
-    return `👋 **您好！**
-
-我是 STYLEMATE 的專業韓式時尚顧問助理，擁有 Fashion-CLIP AI 語義理解能力和身形分析專業知識。
-
-## 我的專業能力
-
-• **🖼️ GPT-4o 多模態圖片風格分析**  
-  深度分析服裝圖片，識別風格特徵與搭配潛力
-
-• **👗 個人化韓式穿搭建議**  
-  基於 10 種標準風格分類提供專業建議
-
-• **📏 身形修飾與比例優化**  
-  針對不同體型提供量身定制的穿搭方案
-
-• **🔍 Fashion-CLIP AI 語義商品搜尋**  
-  智能理解需求，精準匹配商品
-
-## 分析流程
-
-1. **A. 視覺分析** → 身形特徵、風格傾向識別
-2. **B. 穿搭建議** → 3套具體搭配方案
-3. **C. 商品檢索** → 結構化商品查詢條件
-4. **D. 智能重排** → 版型優先的推薦排序
-
----
-
-請告訴我您的穿搭需求，或上傳服裝圖片讓我進行專業分析！ ✨`
-  }
-
-  // 純文字處理函數 - 使用完整的後端AI聊天推薦
-  const handleTextOnlyInput = async (message: string) => {
-    console.log('💬 處理純文字輸入:', message)
-    
-    // 添加用戶消息
-    setMessages(prev => [...prev, { type: 'user', content: message }])
-    setBubbleText('AI 分析中...')
-    
-    try {
-      // 調用後端聊天推薦API
-      const response = await fetch('/api/chat/recommend', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: message,
-          conversationHistory: messages,
-          userEmail: null // 可選：如果有用戶登入可傳入email
-        })
-      })
-      
-      const result = await response.json()
-      
-      if (result.success) {
-        setBubbleText('分析完成！')
-        setMessages(prev => [...prev, { type: 'ai', content: result.response }])
-        
-        // 如果有推薦商品，設置推薦項目
-        if (result.recommendedProducts && result.recommendedProducts.length > 0) {
-          const recommended = fashionItems.filter(item => 
-            result.recommendedProducts.includes(item.id.toString())
-          )
-          setRecommendedItems(recommended)
-          setTimeout(() => setShowProducts(true), 500)
-        }
-        
-        setConversationStep(prev => prev + 1)
-      } else {
-        // 失敗時使用本地快速回應作為備用
-        const fallbackResponse = getQuickResponse(message)
-        setBubbleText('已為您提供基本建議')
-        setMessages(prev => [...prev, { type: 'ai', content: fallbackResponse }])
-        setRecommendedItems(fashionItems.slice(0, 3))
-        setTimeout(() => setShowProducts(true), 500)
-      }
-    } catch (error) {
-      console.error('聊天API調用失敗:', error)
-      // 錯誤時使用本地快速回應作為備用
-      const fallbackResponse = getQuickResponse(message)
-      setBubbleText('已為您提供基本建議')
-      setMessages(prev => [...prev, { type: 'ai', content: fallbackResponse }])
-      setRecommendedItems(fashionItems.slice(0, 3))
-      setTimeout(() => setShowProducts(true), 500)
-    }
-  }
-
-  const sendMessage = async () => {
-    if (!inputValue.trim()) return
-    
-    // 保存當前輸入值
-    const currentInput = inputValue
-    setInputValue('')
-    
-    // 情況3: 純文字輸入（沒有圖片）
-    if (!uploadedPhoto) {
-      await handleTextOnlyInput(currentInput)
-    } else {
-      // 情況1或2: 有圖片的情況，保存文字等待「分析照片」按鈕
-      setPendingMessage(currentInput)
-      
-      const newMessage = { 
-        type: 'user' as const, 
-        content: currentInput 
-      }
-      setMessages(prev => [...prev, newMessage])
-      
-      setBubbleText('已收到您的需求！現在點擊「🎯 開始圖片風格分析」按鈕進行分析')
-    }
-  }
-
-  const likeProduct = async (productId: string) => {
-    const product = recommendedItems.find(p => p.id.toString() === productId) || 
-                   fashionItems.find(p => p.id.toString() === productId)
-    if (product) {
-      setSelectedProduct(product)
-      
-      // 開始 AI 分析
-      setBubbleText('AI 分析中...')
-      const analysisMessage = { 
-        type: 'ai' as const, 
-        content: `太棒了！你選擇了「${product.name.zh}」✨<br/><br/>讓我用 AI 來分析這件商品適合你的程度...` 
-      }
-      setMessages(prev => [...prev, analysisMessage])
+    const loadAIWelcome = async () => {
+      if (hasLoadedWelcome) return // 防止重複載入
       
       try {
-        // 調用 AI 分析 API（加入錯誤處理）
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒超時
-        
-        const response = await fetch('/api/ai/analyze-product', {
+        const response = await fetch('/api/chat/recommend', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            productId: productId,
-            userPreferences: {
-              preferred_styles: ['韓系', '甜美', '優雅'],
-              occasions: ['casual', 'date'],
-              measurements: { bust: 85, waist: 68, height: 165 }
-            },
-            context: 'casual'
+            message: '你好！請簡短介紹你的專業能力。',
+            conversationHistory: []
           }),
-          signal: controller.signal
         })
         
-        clearTimeout(timeoutId)
+        const result = await response.json()
         
-        const aiResult = await response.json()
-        
-        if (aiResult.success) {
-          const { analysis } = aiResult.data
-          setBubbleText('AI 分析完成！')
-          
-          const aiAnalysisMessage = { 
-            type: 'ai' as const, 
-            content: `🤖 <strong>AI 分析結果</strong><br/><br/>
-            
-            <strong>🎯 適配度：${analysis.compatibility}%</strong><br/><br/>
-            
-            <strong>💡 推薦理由：</strong><br/>
-            ${analysis.recommendations.map((reason: string) => `• ${reason}`).join('<br/>')}<br/><br/>
-            
-            <strong>👗 穿搭建議：</strong><br/>
-            ${analysis.styling_tips.map((tip: string) => `• ${tip}`).join('<br/>')}<br/><br/>
-            
-            <strong>📏 尺寸建議：${analysis.size_recommendation.size}</strong><br/>
-            ${analysis.size_recommendation.reason}<br/><br/>
-            
-            ${analysis.ai_insights ? `<strong>🎯 AI 專業洞察：</strong><br/>
-            ${analysis.ai_insights}<br/><br/>` : ''}
-            
-            現在請上傳你的全身照片，我就可以為你生成試穿效果圖了！📸` 
-          }
-          setMessages(prev => [...prev, aiAnalysisMessage])
-          
+        if (result.success) {
+          const aiMessage = { type: 'ai' as const, content: result.response }
+          setMessages([aiMessage])
+          setBubbleText('AI 助理已就緒！')
+          setHasLoadedWelcome(true)
         } else {
-          setBubbleText('分析完成！')
           const fallbackMessage = { 
             type: 'ai' as const, 
-            content: `根據商品標籤分析：<br/>
-            • 分類：${product.category.zh}<br/>
-            • 風格：${product.styleTags.zh.join('、')}<br/>
-            • 適合場合：${product.occasion.zh.join('、')}<br/>
-            • 顏色：${product.colors.zh.join('、')}<br/><br/>
-            現在請上傳你的全身照片，我就可以為你生成試穿效果圖了！📸` 
+            content: '👋 您好！我是 STYLEMATE 的專業韓式時尚顧問助理。請輸入您的需求或上傳照片開始諮詢！ ✨'
           }
-          setMessages(prev => [...prev, fallbackMessage])
+          setMessages([fallbackMessage])
+          setBubbleText('AI 助理已就緒！')
+          setHasLoadedWelcome(true)
         }
-        
       } catch (error) {
-        console.error('AI 分析錯誤:', error)
-        setBubbleText('分析完成！')
-        const errorMessage = { 
+        console.error('載入 AI 歡迎訊息失敗:', error)
+        const fallbackMessage = { 
           type: 'ai' as const, 
-          content: `商品分析：「${product.name.zh}」<br/>
-          價格：${product.price.twd ? `NT$ ${product.price.twd}` : '價格洽詢'}<br/>
-          特色：${product.styleTags.zh.join('、')}<br/><br/>
-          現在請上傳你的全身照片，我就可以為你生成試穿效果圖了！📸` 
+          content: '👋 您好！我是 STYLEMATE 的專業韓式時尚顧問助理。請輸入您的需求或上傳照片開始諮詢！ ✨'
         }
-        setMessages(prev => [...prev, errorMessage])
+        setMessages([fallbackMessage])
+        setBubbleText('AI 助理已就緒！')
+        setHasLoadedWelcome(true)
       }
     }
-  }
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files && event.target.files[0]
-    if (file) {
-      // 檢查檔案類型
-      if (!file.type.startsWith('image/')) {
-        alert('請選擇圖片檔案！')
-        return
-      }
-      
-      // 檢查檔案大小 (5MB 限制)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('圖片檔案太大！請選擇小於 5MB 的檔案。')
-        return
-      }
-      
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        try {
-          const result = e.target?.result as string
-          if (result) {
-            setUploadedPhoto(result)
-            setAssistantEmoji('👩‍💼')
-            setBubbleText('照片上傳成功！')
-            
-            // 顯示上傳成功訊息
-            const newMessage = { 
-              type: 'ai' as const, 
-              content: '照片上傳成功！照片看起來很不錯呢 ✨<br/><br/>現在您可以：<br/>1. 先輸入您的需求（如：推薦約會洋裝）<br/>2. 點擊右側的「🎯 開始圖片風格分析」按鈕進行分析' 
-            }
-            setMessages(prev => [...prev, newMessage])
-          } else {
-            throw new Error('無法讀取圖片內容')
-          }
-        } catch (error) {
-          console.error('圖片讀取錯誤:', error)
-          setBubbleText('圖片讀取失敗！')
-          const errorMessage = { 
-            type: 'ai' as const, 
-            content: '抱歉，圖片讀取失敗 😅<br/><br/>請嘗試：<br/>• 選擇其他圖片<br/>• 確保圖片格式為 JPG/PNG<br/>• 確保圖片檔案小於 5MB' 
-          }
-          setMessages(prev => [...prev, errorMessage])
-        }
-      }
-      
-      reader.onerror = () => {
-        console.error('FileReader 錯誤')
-        setBubbleText('圖片讀取失敗！')
-        const errorMessage = { 
-          type: 'ai' as const, 
-          content: '圖片讀取過程出現錯誤 😅<br/><br/>請重新選擇圖片或嘗試其他圖片檔案。' 
-        }
-        setMessages(prev => [...prev, errorMessage])
-      }
-      
-      reader.readAsDataURL(file)
-    }
-  }
+    loadFashionItems()
+    loadAIWelcome()
+  }, [hasLoadedWelcome])
 
-  const startTryOn = async () => {
-    if (!selectedProduct || !uploadedPhoto) {
-      alert('請先選擇商品和上傳照片！')
+  // 處理照片上傳
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      alert('請上傳 JPG、PNG 或 WebP 格式的圖片')
       return
     }
-    
-    setAssistantEmoji('👩‍💼')
-    setBubbleText('AI 合成中...')
-    
-    const processingMessage = { 
-      type: 'ai' as const, 
-      content: `正在生成你穿著「${selectedProduct.name}」的試穿效果圖...<br/><br/>AI 正在進行智能合成，請稍等 ⏳` 
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('圖片大小不能超過 5MB')
+      return
     }
-    setMessages(prev => [...prev, processingMessage])
-    
-    try {
-      // 調用照片合成 API
-      const response = await fetch('/api/tryon/simple', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userPhotoBase64: uploadedPhoto,
-          productId: selectedProduct.id,
-          category: selectedProduct.category
-        }),
-      })
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const result = event.target?.result as string
+      setUploadedPhoto(result)
+      setBubbleText('照片上傳成功！')
       
-      const result = await response.json()
-      
-      if (result.success) {
-        setBubbleText('合成完成！')
-        const successMessage = { 
-          type: 'ai' as const, 
-          content: `✨ 試穿圖生成成功！<br/><br/>你穿這件 ${selectedProduct.name} 真的很美！<br/>正在為你展示結果...` 
-        }
-        setMessages(prev => [...prev, successMessage])
-        
-        // 儲存結果到 localStorage，讓 tryon 頁面可以顯示
-        localStorage.setItem('tryonResult', JSON.stringify({
-          resultImage: result.resultImage,
-          productName: selectedProduct.name,
-          originalPhoto: uploadedPhoto
-        }))
-        
-        // 跳轉到結果頁面
-        setTimeout(() => {
-          router.push('/tryon')
-        }, 2000)
-        
-      } else {
-        setBubbleText('處理完成')
-        const errorMessage = { 
-          type: 'ai' as const, 
-          content: `抱歉，圖片合成遇到問題：${result.message}<br/><br/>請嘗試上傳清晰的全身照片，我會為你重新處理！` 
-        }
-        setMessages(prev => [...prev, errorMessage])
-      }
-      
-    } catch (error) {
-      console.error('試穿合成錯誤:', error)
-      setBubbleText('處理完成')
-      const errorMessage = { 
+      const uploadMessage = { 
         type: 'ai' as const, 
-        content: `合成過程遇到技術問題，請稍後再試。<br/><br/>或者先瀏覽其他商品，我隨時為你服務！ 💕` 
+        content: '照片上傳成功！點擊下方「開始圖片分析」按鈕進行 GPT-4o AI 分析 ✨' 
       }
-      setMessages(prev => [...prev, errorMessage])
+      setMessages(prev => [...prev, uploadMessage])
     }
+    reader.readAsDataURL(file)
   }
 
-  // 🤖 GPT-4V AI 圖片+文字分析函數
-  const analyzeImageWithText = async (userMessage: string) => {
-    if (!uploadedPhoto) {
-      alert('請先上傳圖片！')
-      return
-    }
+  // 🎯 方案A：統一對話流程，避免分段回復混亂
+  const sendMessage = async () => {
+    if (inputValue.trim() === '') return
     
-    setIsAnalyzing(true)
-    setBubbleText('AI 深度分析中...')
-    
-    const analysisMessage = { 
-      type: 'ai' as const, 
-      content: `🤖 **GPT-4o 正在分析您的圖片與需求...**<br/><br/>正在結合您的圖片與「${userMessage}」進行專業分析，請稍等 ⏳` 
-    }
-    setMessages(prev => [...prev, analysisMessage])
-    
+    const userMessage = inputValue.trim()
+    setMessages(prev => [...prev, { type: 'user', content: userMessage }])
+
     try {
-      // 真正調用 GPT-4o API
-      const base64Image = uploadedPhoto.split(',')[1] // 移除 data:image/jpeg;base64, 前綴
+      setBubbleText('🤖 AI 分析中...')
       
+      // 🧠 Step 1: 使用新的 Intent Parser
+      const intentAnalysis = analyzeIntent({ text: userMessage })
+      console.log('🧠 Intent 分析結果:', intentAnalysis)
+
+      // Step 2: 根據 Intent 類型處理
+      if (intentAnalysis.mode === 'trend_summary') {
+        console.log('🔥 檢測到流行趨勢查詢，直接調用 API...')
+        setBubbleText('🔥 獲取最新時尚趨勢中...')
+        
+        // 直接調用 API，讓後端處理 WebSearch
+        const response = await fetch('/api/chat/recommend', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json; charset=utf-8'
+          },
+          body: JSON.stringify({
+            message: userMessage,
+            conversationHistory: messages
+          }),
+        })
+        
+        const result = await response.json()
+        
+        if (result.success) {
+          setMessages(prev => [...prev, { type: 'ai', content: result.response }])
+          
+          if (result.recommendedProducts?.length > 0) {
+            const recommendedItems = fashionItems.filter(item => 
+              result.recommendedProducts.includes(item.id.toString())
+            )
+            setRecommendedItems(recommendedItems.length > 0 ? recommendedItems : fashionItems.slice(0, 3))
+          } else {
+            setRecommendedItems(fashionItems.slice(0, 3))
+          }
+          setTimeout(() => setShowProducts(true), 1000)
+        } else {
+          setMessages(prev => [...prev, { 
+            type: 'ai', 
+            content: '抱歉，趨勢查詢遇到問題，請稍後再試。' 
+          }])
+        }
+        
+        setBubbleText('AI 助理已就緒！')
+        setInputValue('')
+        return
+      }
+
+      // Step 3: 其他類型查詢（一般穿搭建議）
+      setBubbleText('🤖 生成穿搭建議中...')
+
       const response = await fetch('/api/chat/recommend', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+        headers: { 
+          'Content-Type': 'application/json; charset=utf-8'
         },
         body: JSON.stringify({
           message: userMessage,
-          image: base64Image,
           conversationHistory: messages
         }),
       })
@@ -432,16 +194,9 @@ export default function ChatPage() {
       const result = await response.json()
       
       if (result.success) {
-        setBubbleText('AI 分析完成！')
+        setMessages(prev => [...prev, { type: 'ai', content: result.response }])
         
-        // 顯示分析結果
-        const aiAnalysisMessage = { 
-          type: 'ai' as const, 
-          content: result.response
-        }
-        setMessages(prev => [...prev, aiAnalysisMessage])
-        
-        // 顯示推薦商品
+        // 處理商品推薦
         if (result.recommendedProducts?.length > 0) {
           const recommendedItems = fashionItems.filter(item => 
             result.recommendedProducts.includes(item.id.toString())
@@ -451,45 +206,36 @@ export default function ChatPage() {
           setRecommendedItems(fashionItems.slice(0, 3))
         }
         setTimeout(() => setShowProducts(true), 1000)
-        
       } else {
-        setBubbleText('分析遇到問題')
-        const errorMessage = { 
-          type: 'ai' as const, 
-          content: `圖片分析遇到問題：${result.error || '請重新嘗試'}<br/><br/>請確保圖片清晰且為服裝相關內容。` 
-        }
-        setMessages(prev => [...prev, errorMessage])
+        setMessages(prev => [...prev, { 
+          type: 'ai', 
+          content: '抱歉，我現在遇到一些技術問題，請稍後再試。' 
+        }])
       }
-      
     } catch (error) {
-      console.error('GPT-4o 圖片分析錯誤:', error)
-      setBubbleText('分析失敗')
-      const errorMessage = { 
-        type: 'ai' as const, 
-        content: `抱歉，圖片分析遇到技術問題。<br/><br/>請檢查網路連接或稍後再試。` 
-      }
-      setMessages(prev => [...prev, errorMessage])
+      console.error('發送訊息錯誤:', error)
+      setMessages(prev => [...prev, { 
+        type: 'ai', 
+        content: '抱歉，處理您的請求時遇到問題，請重新嘗試。' 
+      }])
     }
     
-    // 清空狀態
+    setBubbleText('AI 助理已就緒！')
     setInputValue('')
-    setPendingMessage('')
-    setUploadedPhoto(null)
-    setIsAnalyzing(false)
-    setConversationStep(prev => prev + 1)
   }
 
-  // 🤖 GPT-4V AI 圖片分析函數（純圖片）
-  const analyzeImage = async () => {
+
+  // GPT-4o 圖片分析
+  const analyzeImageWithText = async () => {
     if (!uploadedPhoto) {
       alert('請先上傳圖片！')
       return
     }
     
     setIsAnalyzing(true)
-    setBubbleText('AI 深度分析中...')
+    setBubbleText('GPT-4o 分析中...')
     
-    const userMessage = pendingMessage.trim() || '請分析我的身形並提供韓式時尚穿搭建議'
+    const userMessage = inputValue.trim() || '請分析我的照片並提供韓式時尚穿搭建議'
     
     const analysisMessage = { 
       type: 'ai' as const, 
@@ -498,13 +244,12 @@ export default function ChatPage() {
     setMessages(prev => [...prev, analysisMessage])
     
     try {
-      // 真正調用 GPT-4o API
-      const base64Image = uploadedPhoto.split(',')[1] // 移除 data:image/jpeg;base64, 前綴
+      const base64Image = uploadedPhoto.split(',')[1]
       
       const response = await fetch('/api/chat/recommend', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+        headers: { 
+          'Content-Type': 'application/json; charset=utf-8'
         },
         body: JSON.stringify({
           message: userMessage,
@@ -518,14 +263,12 @@ export default function ChatPage() {
       if (result.success) {
         setBubbleText('AI 分析完成！')
         
-        // 顯示分析結果
         const aiAnalysisMessage = { 
           type: 'ai' as const, 
           content: result.response
         }
         setMessages(prev => [...prev, aiAnalysisMessage])
         
-        // 顯示推薦商品
         if (result.recommendedProducts?.length > 0) {
           const recommendedItems = fashionItems.filter(item => 
             result.recommendedProducts.includes(item.id.toString())
@@ -555,159 +298,380 @@ export default function ChatPage() {
       setMessages(prev => [...prev, errorMessage])
     }
     
-    // 清空狀態
     setInputValue('')
-    setPendingMessage('')
-    setUploadedPhoto(null)
+    // 不清空照片，讓用戶可以繼續使用
+    // setUploadedPhoto(null)  
     setIsAnalyzing(false)
-    setConversationStep(prev => prev + 1)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200">
-      {/* 裝飾性邊框 */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-r from-indigo-400 via-purple-500 to-violet-600 opacity-30"></div>
-        <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-400 opacity-30"></div>
-        <div className="absolute top-0 left-0 w-8 h-full bg-gradient-to-b from-indigo-400 via-purple-500 to-violet-600 opacity-30"></div>
-        <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-b from-violet-600 via-purple-500 to-indigo-400 opacity-30"></div>
-        
-        {/* 角落裝飾 */}
-        <div className="absolute top-2 left-2 w-6 h-6 bg-slate-300 rounded-full opacity-80"></div>
-        <div className="absolute top-2 right-2 w-6 h-6 bg-indigo-300 rounded-full opacity-80"></div>
-        <div className="absolute bottom-2 left-2 w-6 h-6 bg-violet-300 rounded-full opacity-80"></div>
-        <div className="absolute bottom-2 right-2 w-6 h-6 bg-slate-300 rounded-full opacity-80"></div>
-      </div>
-
-      {/* 小人頭助理 */}
-      <div className="fixed top-12 right-12 z-50">
-        <div className="relative">
-          {/* 助理頭像 */}
-          <div className="w-16 h-16 bg-gradient-to-br from-slate-700 to-slate-800 border-2 border-slate-200 rounded-full flex items-center justify-center shadow-lg animate-bounce">
-            <span className="text-2xl text-white">{assistantEmoji}</span>
+    <div style={{
+      width: '100%',
+      height: 'auto',
+      minHeight: '100vh',
+      background: 'linear-gradient(to bottom right, #f8fafc, #e2e8f0, #f1f5f9)',
+      paddingBottom: '8rem',
+      overflow: 'visible',
+      position: 'relative'
+    }}>
+      {/* AI 助理頭像 */}
+      <div style={{
+        position: 'fixed',
+        top: '3rem',
+        right: '3rem',
+        zIndex: 50
+      }}>
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            width: '4rem',
+            height: '4rem',
+            background: 'linear-gradient(to bottom right, #475569, #334155)',
+            border: '2px solid #e2e8f0',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            animation: 'bounce 1s infinite'
+          }}>
+            <span style={{ fontSize: '1.5rem', color: 'white' }}>👩‍💼</span>
           </div>
-          
-          {/* 說話氣泡 */}
-          <div className="absolute -left-32 top-1/2 transform -translate-y-1/2 bg-white rounded-lg px-3 py-2 shadow-lg border-2 border-slate-200">
-            <div className="text-sm text-gray-600">{bubbleText}</div>
-            <div className="absolute right-0 top-1/2 transform translate-x-1 -translate-y-1/2 w-0 h-0 border-l-8 border-l-white border-t-4 border-t-transparent border-b-4 border-b-transparent"></div>
+          <div style={{
+            position: 'absolute',
+            top: '0',
+            left: '-10rem',
+            background: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(8px)',
+            color: '#374151',
+            fontSize: '0.75rem',
+            padding: '0.5rem 0.75rem',
+            borderRadius: '0.75rem',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            whiteSpace: 'nowrap'
+          }}>
+            {bubbleText}
+            <div style={{
+              position: 'absolute',
+              top: '0.75rem',
+              right: '0',
+              width: '0',
+              height: '0',
+              borderLeft: '4px solid rgba(255, 255, 255, 0.9)',
+              borderTop: '4px solid transparent',
+              borderBottom: '4px solid transparent',
+              transform: 'translateX(1px)'
+            }} />
           </div>
         </div>
       </div>
 
-      {/* 主要內容區域 */}
-      <div className="container mx-auto px-8 py-12 max-w-4xl relative z-10">
-        {/* 標題區域 */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <ChatBubbleLeftRightIcon className="w-8 h-8 text-indigo-600" />
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-              STYLEMATE
+      {/* 主要內容 */}
+      <div style={{
+        maxWidth: '80rem',
+        margin: '0 auto',
+        padding: '2rem 1rem'
+      }}>
+        {/* 標題 */}
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            marginBottom: '1rem'
+          }}>
+            <ChatBubbleLeftRightIcon style={{ width: '2rem', height: '2rem', color: '#4f46e5' }} />
+            <h1 style={{
+              fontSize: '2.25rem',
+              fontWeight: 'bold',
+              background: 'linear-gradient(to right, #4f46e5, #7c3aed)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              STYLEMATE ✨
             </h1>
-            <SparklesIcon className="w-8 h-8 text-violet-600 animate-pulse" />
           </div>
-          <div className="text-center">
-            <p className="text-slate-600 mb-2">讓我來幫你找到最完美的韓式穿搭！</p>
-            <div className="inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
-              <span>🤖</span>
-              <span>Fashion-CLIP AI 語義理解</span>
-              <span>🎯</span>
-            </div>
-          </div>
+          <p style={{
+            fontSize: '1.125rem',
+            color: '#4b5563',
+            fontWeight: '500'
+          }}>
+            讓我來幫你找到最完美的韓式穿搭！
+          </p>
         </div>
 
-        {/* 主要內容區 - 左右分欄 */}
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
-          {/* 左側：聊天區域 - 加寬對話框 */}
-          <div className="lg:col-span-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-4 border-slate-200 p-6">
-            {/* 聊天訊息區域 */}
-            <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
-              {/* 歡迎訊息 */}
-              <div className="flex justify-start">
-                <div className="max-w-md bg-gradient-to-r from-slate-100 to-gray-200 text-gray-800 rounded-br-2xl rounded-tr-2xl rounded-tl-sm border-2 border-slate-200 px-4 py-3 shadow-md">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-lg">👩‍💼</span>
-                    <span className="text-xs font-semibold text-indigo-600">STYLEMATE 助理</span>
-                  </div>
-                  <p className="text-sm leading-relaxed">
-                    哈囉！我是STYLEMATE的專業韓式時尚顧問助理，擁有Fashion-CLIP AI語義理解能力。上傳照片或描述需求，開始你的時尚之旅~
-                  </p>
-                </div>
-              </div>
-              
-              {/* 動態訊息 */}
+        {/* 聊天區域 */}
+        <div style={{
+          width: '100%',
+          maxWidth: '7xl',
+          margin: '0 auto 2rem auto'
+        }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: '1rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '4px solid #e5e7eb',
+            padding: '2rem'
+          }}>
+            {/* 聊天訊息 */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              marginBottom: '1.5rem'
+            }}>
               {messages.map((message, index) => (
-                <div key={index} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-md px-4 py-3 rounded-2xl shadow-md ${
-                    message.type === 'user' 
-                      ? 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-bl-2xl rounded-tl-2xl rounded-tr-sm' 
-                      : 'bg-gradient-to-r from-slate-100 to-gray-200 text-gray-800 rounded-br-2xl rounded-tr-2xl rounded-tl-sm border-2 border-slate-200'
-                  }`}>
+                <div key={index} style={{
+                  display: 'flex',
+                  justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start'
+                }}>
+                  <div style={{
+                    maxWidth: '4xl',
+                    padding: '1.5rem',
+                    borderRadius: '1rem',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    background: message.type === 'user' 
+                      ? 'linear-gradient(to right, #4f46e5, #7c3aed)'
+                      : 'linear-gradient(to right, #f1f5f9, #e2e8f0)',
+                    color: message.type === 'user' ? 'white' : '#374151',
+                    borderTopLeftRadius: message.type === 'ai' ? '0.25rem' : '1rem',
+                    borderTopRightRadius: message.type === 'user' ? '0.25rem' : '1rem'
+                  }}>
                     {message.type === 'ai' && (
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-lg">👩‍💼</span>
-                        <span className="text-xs font-semibold text-indigo-600">STYLEMATE 助理</span>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '0.5rem'
+                      }}>
+                        <span style={{ fontSize: '1.125rem' }}>👩‍💼</span>
+                        <span style={{
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          color: '#4f46e5'
+                        }}>
+                          STYLEMATE 助理
+                        </span>
                       </div>
                     )}
-                    <p className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: message.content }} />
+                    <div style={{
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5'
+                    }} dangerouslySetInnerHTML={{ __html: message.content }} />
                   </div>
                 </div>
               ))}
             </div>
 
             {/* 輸入區域 */}
-            <div className="flex space-x-3">            
+            <div style={{
+              display: 'flex',
+              gap: '1rem'
+            }}>
               <input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                 type="text"
-                placeholder={uploadedPhoto ? '🖼️ 已上傳圖片，請輸入您的需求或直接點擊 AI 分析' : '🤖 試試："韓系甜美約會風格"或上傳圖片進行 AI 分析'}
-                className="flex-1 px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-indigo-400 focus:outline-none transition-all"
+                placeholder="🤖 試試：「海邊婚禮穿搭」「去日本5天旅行天氣穿搭」「今年韓國流行趨勢」或上傳全身照分析"
+                style={{
+                  flex: 1,
+                  padding: '1rem 1.5rem',
+                  background: '#f8fafc',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '0.75rem',
+                  fontSize: '1.125rem',
+                  outline: 'none',
+                  transition: 'all 0.2s'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#4f46e5'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
               />
-              
-              <button onClick={sendMessage} className="p-3 bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-xl hover:from-indigo-600 hover:to-violet-700 shadow-md transition-all">
-                <span className="text-xl">✨</span>
+              <button 
+                onClick={sendMessage}
+                style={{
+                  padding: '1rem 1.5rem',
+                  background: 'linear-gradient(to right, #4f46e5, #7c3aed)',
+                  color: 'white',
+                  borderRadius: '0.75rem',
+                  border: 'none',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #4338ca, #6d28d9)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #4f46e5, #7c3aed)'
+                }}
+              >
+                <span style={{ fontSize: '1.25rem' }}>✨</span>
               </button>
             </div>
           </div>
-          
-          {/* 右側：照片上傳區域 - 給足夠寬度 */}
-          <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-4 border-slate-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">📷 照片上傳</h3>
+        </div>
+
+        {/* 照片上傳區域 */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '2rem',
+          marginBottom: '2rem'
+        }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: '1rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '4px solid #e5e7eb',
+            padding: '1.5rem'
+          }}>
+            <h3 style={{
+              fontSize: '1.125rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '1rem',
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem'
+            }}>
+              <PhotoIcon style={{ width: '1.25rem', height: '1.25rem', color: '#4f46e5' }} />
+              📷 上傳你的照片
+            </h3>
             
-            <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center transition-all hover:border-indigo-400">
+            <div style={{
+              border: '2px dashed #d1d5db',
+              borderRadius: '0.75rem',
+              padding: '2rem',
+              textAlign: 'center',
+              transition: 'all 0.3s',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = '#4f46e5'}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+            >
               {!uploadedPhoto ? (
                 <>
-                  <div className="text-gray-400 mb-4">
-                    <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div style={{
+                    color: '#9ca3af',
+                    marginBottom: '1rem'
+                  }}>
+                    <svg style={{ width: '4rem', height: '4rem', margin: '0 auto 1rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                     </svg>
                   </div>
-                  <p className="text-sm text-gray-500 mb-2">上傳你的全身照片</p>
-                  <p className="text-xs text-gray-400">支援 JPG, PNG 格式</p>
-                  <label htmlFor="photoInput" className="cursor-pointer">
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>上傳你的全身照片</p>
+                  <p style={{ fontSize: '0.75rem', color: '#9ca3af' }}>支援 JPG, PNG 格式</p>
+                  <label htmlFor="photoInput" style={{ cursor: 'pointer' }}>
                     <input 
                       type="file" 
                       id="photoInput" 
                       accept="image/*" 
-                      className="hidden" 
-                      onChange={handlePhotoUpload} 
+                      style={{ display: 'none' }}
+                      onChange={handlePhotoUpload}
                     />
-                    <div className="mt-4 bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-4 py-2 rounded-lg text-sm hover:from-indigo-600 hover:to-violet-700 transition-all inline-block">
+                    <div style={{
+                      marginTop: '1rem',
+                      background: 'linear-gradient(to right, #4f46e5, #7c3aed)',
+                      color: 'white',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '0.875rem',
+                      display: 'inline-block',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}>
                       選擇照片
                     </div>
                   </label>
                 </>
               ) : (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">照片預覽</h4>
-                  <div className="bg-slate-50 rounded-lg p-4">
-                    <img src={uploadedPhoto} alt="預覽圖片" className="w-full h-48 object-cover rounded-lg mb-4" />
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>照片預覽</h4>
+                  <div style={{
+                    background: '#f8fafc',
+                    borderRadius: '0.5rem',
+                    padding: '1rem'
+                  }}>
+                    <div style={{
+                      width: '100%',
+                      aspectRatio: photoAspectRatio,
+                      minHeight: 360,
+                      maxHeight: '70vh',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      background: 'linear-gradient(to bottom right, #f1f5f9, #e0e7ff)',
+                      borderRadius: '0.5rem',
+                      marginBottom: '1rem',
+                      overflow: 'hidden'
+                    }}>
+                      <img src={uploadedPhoto} alt="預覽圖片" style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        width: 'auto',
+                        height: 'auto',
+                        objectFit: 'contain',
+                        transition: 'transform 0.3s'
+                      }}
+                      onLoad={(e) => {
+                        const { naturalWidth: w, naturalHeight: h } = e.currentTarget
+                        setPhotoNaturalSize({ w, h })
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                      onError={(e) => {
+                        e.currentTarget.src = '/images/products/dress1.jpg'
+                      }}
+                      />
+                    </div>
+                    
+                    {/* 上傳新照片按鈕 */}
+                    <label htmlFor="photoInputReplace" style={{ cursor: 'pointer', marginBottom: '0.5rem', display: 'block' }}>
+                      <input 
+                        type="file" 
+                        id="photoInputReplace" 
+                        accept="image/*" 
+                        style={{ display: 'none' }}
+                        onChange={handlePhotoUpload}
+                      />
+                      <div style={{
+                        width: '100%',
+                        background: 'linear-gradient(to right, #6b7280, #4b5563)',
+                        color: 'white',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '0.5rem',
+                        fontSize: '0.875rem',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}>
+                        📷 重新上傳照片
+                      </div>
+                    </label>
+                    
+                    {/* 分析照片按鈕 */}
                     <button 
-                      onClick={analyzeImage}
+                      onClick={analyzeImageWithText}
                       disabled={isAnalyzing}
-                      className="w-full bg-gradient-to-r from-indigo-500 to-violet-600 text-white py-2 px-4 rounded-lg text-sm hover:from-indigo-600 hover:to-violet-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{
+                        width: '100%',
+                        background: isAnalyzing 
+                          ? 'linear-gradient(to right, #9ca3af, #6b7280)'
+                          : 'linear-gradient(to right, #4f46e5, #7c3aed)',
+                        color: 'white',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '0.5rem',
+                        fontSize: '0.875rem',
+                        border: 'none',
+                        cursor: isAnalyzing ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s'
+                      }}
                     >
                       {isAnalyzing ? '🤖 AI 分析中...' : '🎯 開始圖片風格分析 →'}
                     </button>
@@ -720,157 +684,266 @@ export default function ChatPage() {
 
         {/* 商品推薦區域 */}
         {showProducts && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-4 border-slate-200 p-6 mb-6">
-            <h3 className="text-xl font-bold text-center mb-6 bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">✨ AI 為你精選的商品 ✨</h3>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: '1rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '4px solid #e5e7eb',
+            padding: '1.5rem',
+            marginBottom: '1.5rem'
+          }}>
+            <h3 style={{
+              fontSize: '1.25rem',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              marginBottom: '1.5rem',
+              background: 'linear-gradient(to right, #4f46e5, #7c3aed)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              ✨ AI 為你精選的商品 ✨
+            </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '1.5rem'
+            }}>
               {recommendedItems.length > 0 ? recommendedItems.map((product) => (
-                <div key={product.id} className="bg-white rounded-xl p-4 shadow-md border border-slate-100 hover:shadow-lg transition-all hover:-translate-y-2">
-                  <div className="text-center mb-4">
-                    <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-indigo-200 rounded-lg overflow-hidden mb-4 relative">
+                <div key={product.id} style={{
+                  background: 'white',
+                  borderRadius: '0.75rem',
+                  padding: '1rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  border: '1px solid #f3f4f6',
+                  transition: 'all 0.3s',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-0.5rem)'
+                  e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+                >
+                  <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                    <div style={{
+                      width: '100%',
+                      aspectRatio: '4 / 5',
+                      background: 'linear-gradient(to bottom right, #f1f5f9, #e0e7ff)',
+                      borderRadius: '0.5rem',
+                      marginBottom: '1rem',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}>
                       <img 
-                        src={`/images/korean-fashion/${product.filename}`}
+                        src={`/images/korean-fashion/${encodeURIComponent(product.filename)}`}
                         alt={product.name.zh}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNHB4IiBmaWxsPSIjOWNhM2FmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+' + btoa(product.category.zh === '洋裝' ? '👗' : '👚') + 'PC90ZXh0Pjwvc3ZnPg=='
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          width: 'auto',
+                          height: 'auto',
+                          transition: 'transform 0.3s'
                         }}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        onError={(e) => {
+                          console.log('Image load error for:', product.filename)
+                          e.currentTarget.src = '/images/products/dress1.jpg'
+                        }}
+                        onLoad={() => console.log('Image loaded successfully:', product.filename)}
                       />
-                      <div className="absolute top-2 left-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full">
-                        韓國代購
-                      </div>
-                      {product.price.discount && (
-                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                          特價
-                        </div>
-                      )}
+                    </div>
+                    <h4 style={{
+                      fontWeight: 'bold',
+                      color: '#374151',
+                      marginBottom: '0.5rem',
+                      fontSize: '0.875rem'
+                    }}>
+                      {product.name.zh}
+                    </h4>
+                    <p style={{
+                      color: '#6b7280',
+                      fontSize: '0.75rem',
+                      marginBottom: '0.5rem'
+                    }}>
+                      {product.category.zh}
+                    </p>
+                    <div style={{
+                      color: '#4f46e5',
+                      fontWeight: 'bold',
+                      fontSize: '1.125rem',
+                      marginBottom: '0.5rem'
+                    }}>
+                      NT$ {typeof product.price === 'object' ? product.price?.twd : product.price}
                     </div>
                     
-                    <h4 className="font-semibold text-gray-800 mb-2">{product.name.zh}</h4>
-                    
                     {/* 標籤顯示 */}
-                    <div className="flex flex-wrap gap-1 justify-center mb-3">
-                      {product.styleTags.zh.slice(0, 3).map((tag, index) => (
-                        <span key={index} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
-                          #{tag}
+                    <div style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.25rem',
+                      justifyContent: 'center',
+                      marginBottom: '0.75rem'
+                    }}>
+                      {(product.styleTags?.zh || []).slice(0, 3).map((tag: string, index: number) => (
+                        <span key={index} style={{
+                          padding: '0.25rem 0.5rem',
+                          background: '#e0e7ff',
+                          color: '#4f46e5',
+                          borderRadius: '9999px',
+                          fontSize: '0.75rem'
+                        }}>
+                          {tag}
                         </span>
                       ))}
                     </div>
                     
-                    <p className="text-xs text-gray-600 mb-3">{product.description.zh}</p>
-                    
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      {product.price.discount && (
-                        <span className="text-sm text-gray-400 line-through">NT$ {product.price.twd}</span>
-                      )}
-                      <span className="text-lg font-bold text-indigo-600">
-                        {product.price.twd ? `NT$ ${product.price.discount || product.price.twd}` : '價格洽詢'}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <button 
-                      onClick={() => likeProduct(product.id.toString())}
-                      className="w-full bg-gradient-to-r from-indigo-500 to-violet-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:from-indigo-600 hover:to-violet-700 transition-all flex items-center justify-center space-x-2"
-                    >
-                      <HeartIcon className="w-4 h-4" />
-                      <span>我喜歡！生成試穿圖</span>
-                    </button>
-                    <button className="w-full bg-gray-100 text-gray-600 py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-200 transition-all">
-                      了解更多詳情
-                    </button>
-                  </div>
-                </div>
-              )) : fashionItems.slice(0, 6).map((product) => (
-                <div key={product.id} className="bg-white rounded-xl p-4 shadow-md border border-slate-100 hover:shadow-lg transition-all hover:-translate-y-2">
-                  <div className="text-center mb-4">
-                    <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-indigo-200 rounded-lg overflow-hidden mb-4 relative">
-                      <img 
-                        src={`/images/korean-fashion/${product.filename}`}
-                        alt={product.name.zh}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNHB4IiBmaWxsPSIjOWNhM2FmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+' + btoa(product.category.zh === '洋裝' ? '👗' : '👚') + 'PC90ZXh0Pjwvc3ZnPg=='
+                    {/* 動作按鈕 */}
+                    <div style={{
+                      display: 'flex',
+                      gap: '0.5rem'
+                    }}>
+                      <button 
+                        onClick={() => {
+                          router.push(`/tryon?productId=${product.id}&productImage=${encodeURIComponent(`/images/korean-fashion/${product.filename}`)}`)
                         }}
-                      />
-                      <div className="absolute top-2 left-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full">
-                        韓國代購
-                      </div>
-                      {product.price.discount && (
-                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                          特價
-                        </div>
-                      )}
+                        style={{
+                          flex: 1,
+                          background: 'linear-gradient(to right, #7c3aed, #a855f7)',
+                          color: 'white',
+                          padding: '0.5rem 0.75rem',
+                          borderRadius: '0.5rem',
+                          fontSize: '0.75rem',
+                          border: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        🔄 虛擬試穿
+                      </button>
+                      <button 
+                        onClick={() => router.push(`/checkout?productId=${product.id}`)}
+                        style={{
+                          flex: 1,
+                          background: 'linear-gradient(to right, #4f46e5, #7c3aed)',
+                          color: 'white',
+                          padding: '0.5rem 0.75rem',
+                          borderRadius: '0.5rem',
+                          fontSize: '0.75rem',
+                          border: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        🛒 立即購買
+                      </button>
                     </div>
-                    
-                    <h4 className="font-semibold text-gray-800 mb-2">{product.name.zh}</h4>
-                    
-                    {/* 標籤顯示 */}
-                    <div className="flex flex-wrap gap-1 justify-center mb-3">
-                      {product.styleTags.zh.slice(0, 3).map((tag, index) => (
-                        <span key={index} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                    
-                    <p className="text-xs text-gray-600 mb-3">{product.description.zh}</p>
-                    
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      {product.price.discount && (
-                        <span className="text-sm text-gray-400 line-through">NT$ {product.price.twd}</span>
-                      )}
-                      <span className="text-lg font-bold text-indigo-600">
-                        {product.price.twd ? `NT$ ${product.price.discount || product.price.twd}` : '價格洽詢'}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <button 
-                      onClick={() => likeProduct(product.id.toString())}
-                      className="w-full bg-gradient-to-r from-indigo-500 to-violet-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:from-indigo-600 hover:to-violet-700 transition-all flex items-center justify-center space-x-2"
-                    >
-                      <HeartIcon className="w-4 h-4" />
-                      <span>我喜歡！生成試穿圖</span>
-                    </button>
-                    <button className="w-full bg-gray-100 text-gray-600 py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-200 transition-all">
-                      了解更多詳情
-                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            <div className="text-center mt-6">
-              <p className="text-sm text-gray-600 mb-4">選擇你喜歡的商品，我可以為你生成試穿效果哦！ 📸</p>
+              )) : (
+                <div style={{
+                  gridColumn: '1 / -1',
+                  textAlign: 'center',
+                  color: '#6b7280',
+                  padding: '2rem'
+                }}>
+                  <SparklesIcon style={{ width: '4rem', height: '4rem', margin: '0 auto 1rem', color: '#d1d5db' }} />
+                  <p>正在為您搜尋最適合的商品...</p>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* 底部導航 */}
-        <div className="text-center space-y-3">
-          <div className="flex items-center justify-center space-x-8">
-            <Link 
-              href="/"
-              className="inline-flex items-center space-x-2 text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
-            >
-              <span>←</span>
-              <span>返回首頁</span>
-            </Link>
-            <Link 
-              href="/member"
-              className="inline-flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-stone-100 to-amber-100 text-stone-700 hover:from-stone-200 hover:to-amber-200 rounded-2xl font-medium transition-all hover:shadow-md transform hover:-translate-y-0.5"
-            >
-              <span>✨</span>
-              <span>完善會員檔案</span>
-              <span>→</span>
-            </Link>
-          </div>
-          <p className="text-sm text-gray-500">建立專屬風格檔案，享受個人化韓式時尚推薦</p>
+        {/* 導航按鈕 */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          maxWidth: '400px',
+          margin: '0 auto',
+          gap: '2rem'
+        }}>
+          <Link href="/" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(8px)',
+            color: '#6b7280',
+            padding: '0.75rem 1.5rem',
+            borderRadius: '0.75rem',
+            border: '2px solid #e5e7eb',
+            textDecoration: 'none',
+            transition: 'all 0.3s',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'white'
+            e.currentTarget.style.color = '#374151'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)'
+            e.currentTarget.style.color = '#6b7280'
+          }}
+          >
+            <span>←</span>
+            <span>上一頁：首頁</span>
+          </Link>
+
+          <Link href="/checkout" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            background: 'linear-gradient(to right, #4f46e5, #7c3aed)',
+            color: 'white',
+            padding: '0.75rem 1.5rem',
+            borderRadius: '0.75rem',
+            border: 'none',
+            textDecoration: 'none',
+            transition: 'all 0.3s',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            fontWeight: '600'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(to right, #4338ca, #6d28d9)'
+            e.currentTarget.style.transform = 'translateY(-2px)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(to right, #4f46e5, #7c3aed)'
+            e.currentTarget.style.transform = 'translateY(0)'
+          }}
+          >
+            <span>下一頁</span>
+            <span>→</span>
+          </Link>
         </div>
+
       </div>
+
+      <style jsx>{`
+        @keyframes bounce {
+          0%, 20%, 53%, 80%, 100% {
+            transform: translate3d(0,0,0);
+          }
+          40%, 43% {
+            transform: translate3d(0,-10px,0);
+          }
+          70% {
+            transform: translate3d(0,-5px,0);
+          }
+          90% {
+            transform: translate3d(0,-2px,0);
+          }
+        }
+      `}</style>
     </div>
   )
 }
