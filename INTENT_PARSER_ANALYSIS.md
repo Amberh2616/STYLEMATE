@@ -1,4 +1,4 @@
-ㄍㄧㄠ# STYLEMATE Intent Parser 流程詳解
+# STYLEMATE Intent Parser 流程詳解
 
 ## 🧠 Intent Parser 核心機制
 

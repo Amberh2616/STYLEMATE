@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   ShoppingCartIcon,
@@ -15,6 +15,7 @@ import {
 export default function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [itemQuantity, setItemQuantity] = useState(1)
+  const [checkoutProduct, setCheckoutProduct] = useState<any>(null)
 
   const changeQuantity = (delta: number) => {
     setItemQuantity(Math.max(1, itemQuantity + delta))
@@ -52,6 +53,31 @@ export default function CheckoutPage() {
         return 'bg-slate-200 text-slate-600'
     }
   }
+
+  // 載入結帳商品資訊
+  useEffect(() => {
+    const productData = localStorage.getItem('checkoutProduct')
+    if (productData) {
+      try {
+        setCheckoutProduct(JSON.parse(productData))
+      } catch (error) {
+        console.error('解析商品資料錯誤:', error)
+        // 使用預設商品資料
+        setCheckoutProduct({
+          name: '韓式甜美花朵印花洋裝',
+          price: 1299,
+          image: '👗'
+        })
+      }
+    } else {
+      // 使用預設商品資料
+      setCheckoutProduct({
+        name: '韓式甜美花朵印花洋裝',
+        price: 1299,
+        image: '👗'
+      })
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200">
@@ -121,11 +147,24 @@ export default function CheckoutPage() {
                 {/* 商品項目 */}
                 <div className="space-y-4 mb-6">
                   <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg">
-                    <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-violet-200 rounded-lg flex items-center justify-center">
-                      <span className="text-2xl">👗</span>
+                    <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-violet-200 rounded-lg flex items-center justify-center overflow-hidden">
+                      {checkoutProduct?.image?.startsWith('http') ? (
+                        <img 
+                          src={checkoutProduct.image} 
+                          alt={checkoutProduct.name}
+                          className="w-full h-full object-cover rounded-lg"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                            e.currentTarget.nextElementSibling.style.display = 'flex'
+                          }}
+                        />
+                      ) : (
+                        <span className="text-2xl">{checkoutProduct?.image || '👗'}</span>
+                      )}
+                      <span className="text-2xl" style={{display: 'none'}}>👗</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-slate-800">韓式甜美花朵印花洋裝</h4>
+                      <h4 className="font-semibold text-slate-800">{checkoutProduct?.name || '韓式甜美花朵印花洋裝'}</h4>
                       <p className="text-sm text-slate-600">尺寸：M</p>
                       <p className="text-sm text-slate-600">顏色：粉色</p>
                     </div>
@@ -145,7 +184,7 @@ export default function CheckoutPage() {
                           +
                         </button>
                       </div>
-                      <div className="text-lg font-bold text-indigo-600">NT$ {(1299 * itemQuantity).toLocaleString()}</div>
+                      <div className="text-lg font-bold text-indigo-600">NT$ {((checkoutProduct?.price || 1299) * itemQuantity).toLocaleString()}</div>
                     </div>
                   </div>
                 </div>
@@ -330,7 +369,7 @@ export default function CheckoutPage() {
             <div className="space-y-4 mb-6">
               <div className="flex justify-between">
                 <span className="text-slate-600">商品小計</span>
-                <span className="font-semibold">NT$ {(1299 * itemQuantity).toLocaleString()}</span>
+                <span className="font-semibold">NT$ {((checkoutProduct?.price || 1299) * itemQuantity).toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">運費</span>
@@ -339,7 +378,7 @@ export default function CheckoutPage() {
               <div className="border-t border-slate-200 pt-4">
                 <div className="flex justify-between text-lg">
                   <span className="font-semibold">總計</span>
-                  <span className="font-bold text-indigo-600">NT$ {(1299 * itemQuantity).toLocaleString()}</span>
+                  <span className="font-bold text-indigo-600">NT$ {((checkoutProduct?.price || 1299) * itemQuantity).toLocaleString()}</span>
                 </div>
               </div>
             </div>

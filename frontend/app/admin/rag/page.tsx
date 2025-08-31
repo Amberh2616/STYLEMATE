@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { DocumentArrowUpIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
 export default function RAGAdminPage() {

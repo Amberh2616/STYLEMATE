@@ -6,11 +6,14 @@ import { useRouter } from 'next/navigation'
 import { 
   ChatBubbleLeftRightIcon,
   SparklesIcon,
-  PhotoIcon
+  PhotoIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline'
 import { analyzeIntent } from '@/lib/core/intentParser'
 
-export default function Chat3Page() {
+export default function ChatPage() {
   const router = useRouter()
   const [messages, setMessages] = useState<Array<{type: 'user' | 'ai', content: string}>>([])
   const [inputValue, setInputValue] = useState('')
@@ -22,6 +25,7 @@ export default function Chat3Page() {
   const [showProducts, setShowProducts] = useState(false)
   const [bubbleText, setBubbleText] = useState('AI 助理準備中...')
   const [hasLoadedWelcome, setHasLoadedWelcome] = useState(false)
+  const [hasUserInteracted, setHasUserInteracted] = useState(false)
 
   // 動態計算容器比例
   const isPhotoReady = photoNaturalSize.w > 0 && photoNaturalSize.h > 0
@@ -113,7 +117,7 @@ export default function Chat3Page() {
       
       const uploadMessage = { 
         type: 'ai' as const, 
-        content: '照片上傳成功！點擊下方「開始圖片分析」按鈕進行 GPT-4o AI 分析 ✨' 
+        content: '照片上傳成功！點擊下方「開始圖片分析」按鈕進行 GPT-4o mini AI 分析 ✨' 
       }
       setMessages(prev => [...prev, uploadMessage])
     }
@@ -125,6 +129,7 @@ export default function Chat3Page() {
     if (inputValue.trim() === '') return
     
     const userMessage = inputValue.trim()
+    setHasUserInteracted(true) // 標記用戶已互動
     setMessages(prev => [...prev, { type: 'user', content: userMessage }])
 
     try {
@@ -156,12 +161,12 @@ export default function Chat3Page() {
         if (result.success) {
           setMessages(prev => [...prev, { type: 'ai', content: result.response }])
           
-          if (result.recommendedProducts?.length > 0) {
-            const recommendedItems = fashionItems.filter(item => 
-              result.recommendedProducts.includes(item.id.toString())
-            )
-            setRecommendedItems(recommendedItems.length > 0 ? recommendedItems : fashionItems.slice(0, 3))
+          // 🚀 趨勢查詢也使用新架構：直接信任後端回傳的完整商品項目
+          if (Array.isArray(result.items) && result.items.length > 0) {
+            console.log(`✅ 趨勢查詢使用後端 ${result.from} 模式回傳的 ${result.items.length} 個商品`)
+            setRecommendedItems(result.items)
           } else {
+            console.log('⚠️ 趨勢查詢後端未回傳商品項目，使用 fallback')
             setRecommendedItems(fashionItems.slice(0, 3))
           }
           setTimeout(() => setShowProducts(true), 1000)
@@ -196,13 +201,15 @@ export default function Chat3Page() {
       if (result.success) {
         setMessages(prev => [...prev, { type: 'ai', content: result.response }])
         
-        // 處理商品推薦
-        if (result.recommendedProducts?.length > 0) {
-          const recommendedItems = fashionItems.filter(item => 
-            result.recommendedProducts.includes(item.id.toString())
-          )
-          setRecommendedItems(recommendedItems.length > 0 ? recommendedItems : fashionItems.slice(0, 3))
+        // 🚀 新架構：直接信任後端回傳的完整商品項目
+        if (Array.isArray(result.items) && result.items.length > 0) {
+          console.log(`✅ 直接使用後端 ${result.from} 模式回傳的 ${result.items.length} 個商品`)
+          setRecommendedItems(result.items)
+          // 可選：調試信息
+          console.log(`🎯 推薦來源: ${result.from}, ID類型: ${result.idType}, 生成時間: ${result.generatedAt}`)
         } else {
+          // 極少見兜底：後端真的沒回 items 時才用固定 fallback
+          console.log('⚠️ 後端未回傳商品項目，使用 fallback')
           setRecommendedItems(fashionItems.slice(0, 3))
         }
         setTimeout(() => setShowProducts(true), 1000)
@@ -224,8 +231,7 @@ export default function Chat3Page() {
     setInputValue('')
   }
 
-
-  // GPT-4o 圖片分析
+  // GPT-4o mini 圖片分析
   const analyzeImageWithText = async () => {
     if (!uploadedPhoto) {
       alert('請先上傳圖片！')
@@ -233,13 +239,14 @@ export default function Chat3Page() {
     }
     
     setIsAnalyzing(true)
-    setBubbleText('GPT-4o 分析中...')
+    setHasUserInteracted(true) // 標記用戶已互動
+    setBubbleText('GPT-4o mini 分析中...')
     
     const userMessage = inputValue.trim() || '請分析我的照片並提供韓式時尚穿搭建議'
     
     const analysisMessage = { 
       type: 'ai' as const, 
-      content: `🤖 **GPT-4o 正在分析您的圖片...**<br/><br/>結合您的需求「${userMessage}」進行專業分析，請稍等 ⏳` 
+      content: `🤖 **GPT-4o mini 正在分析您的圖片...**<br/><br/>結合您的需求「${userMessage}」進行專業分析，請稍等 ⏳` 
     }
     setMessages(prev => [...prev, analysisMessage])
     
@@ -304,16 +311,17 @@ export default function Chat3Page() {
     setIsAnalyzing(false)
   }
 
+  const trendSuggestions = [
+    "2025年韓系流行趨勢",
+    "首爾街頭時尚分析", 
+    "K-pop穿搭風格解析",
+    "韓系色彩搭配趨勢",
+    "潮流追蹤",
+    "天氣穿搭"
+  ]
+
   return (
-    <div style={{
-      width: '100%',
-      height: 'auto',
-      minHeight: '100vh',
-      background: 'linear-gradient(to bottom right, #f8fafc, #e2e8f0, #f1f5f9)',
-      paddingBottom: '8rem',
-      overflow: 'visible',
-      position: 'relative'
-    }}>
+    <div className="min-h-screen bg-gradient-to-br from-neutral-cream via-primary-50 to-secondary-50">
       {/* AI 助理頭像 */}
       <div style={{
         position: 'fixed',
@@ -366,40 +374,61 @@ export default function Chat3Page() {
         </div>
       </div>
 
-      {/* 主要內容 */}
-      <div style={{
-        maxWidth: '80rem',
-        margin: '0 auto',
-        padding: '2rem 1rem'
-      }}>
-        {/* 標題 */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.75rem',
-            marginBottom: '1rem'
-          }}>
-            <ChatBubbleLeftRightIcon style={{ width: '2rem', height: '2rem', color: '#4f46e5' }} />
-            <h1 style={{
-              fontSize: '2.25rem',
-              fontWeight: 'bold',
-              background: 'linear-gradient(to right, #4f46e5, #7c3aed)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              STYLEMATE ✨
-            </h1>
-          </div>
-          <p style={{
-            fontSize: '1.125rem',
-            color: '#4b5563',
-            fontWeight: '500'
-          }}>
-            讓我來幫你找到最完美的韓式穿搭！
-          </p>
+      {/* Header */}
+      <header className="border-b border-white/20 bg-white/60 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
+              <ChatBubbleLeftRightIcon className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-lg font-bold text-neutral-dark">STYLEMATE</span>
+          </Link>
+          
+          <nav className="flex items-center space-x-4">
+            <Link href="/products" className="text-neutral-medium hover:text-primary-600 transition-colors">
+              商品專區
+            </Link>
+          </nav>
         </div>
+      </header>
+
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        {/* Welcome Message with 6 buttons - Always show for AI welcome messages */}
+        {(messages.length === 0 || (messages.length <= 2 && messages.every(msg => msg.type === 'ai'))) && (
+          <div className="text-center mb-12">
+            <div className="w-16 h-16 bg-gradient-to-br from-secondary-400 to-secondary-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <SparklesIcon className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-neutral-dark mb-4">讓我來幫你找到最完美的韓式穿搭！</h1>
+            <p className="text-neutral-medium mb-8 max-w-2xl mx-auto">
+              獲取最新的K-fashion趨勢資訊，包括時裝周分析、街頭時尚、色彩趨勢和設計師品牌推薦
+            </p>
+            
+            {/* 6 Trend Suggestion Buttons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl mx-auto">
+              {trendSuggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setInputValue(suggestion)
+                    // 立即發送訊息而不是只設定 input
+                    setTimeout(() => {
+                      document.querySelector('input[type="text"]')?.dispatchEvent(
+                        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
+                      )
+                    }, 100)
+                  }}
+                  className="p-4 bg-white/70 backdrop-blur-sm border border-white/60 rounded-xl hover:bg-white/90 transition-all duration-300 text-left group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <SparklesIcon className="w-5 h-5 text-secondary-500 group-hover:text-secondary-600" />
+                    <span className="text-neutral-dark font-medium">{suggestion}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 聊天區域 */}
         <div style={{
@@ -673,7 +702,7 @@ export default function Chat3Page() {
                         transition: 'all 0.2s'
                       }}
                     >
-                      {isAnalyzing ? '🤖 AI 分析中...' : '🎯 開始圖片風格分析 →'}
+                      {isAnalyzing ? '🤖 AI 分析中...' : '🎯 開始圖片風格分析 (GPT-4o mini) →'}
                     </button>
                   </div>
                 </div>
@@ -742,8 +771,8 @@ export default function Chat3Page() {
                       alignItems: 'center'
                     }}>
                       <img 
-                        src={`/images/korean-fashion/${encodeURIComponent(product.filename)}`}
-                        alt={product.name.zh}
+                        src={product.image || '/picture/DRESS/法式01.jpg'}
+                        alt={product.name?.zh || product.name || '商品圖片'}
                         style={{
                           maxWidth: '100%',
                           maxHeight: '100%',
@@ -754,10 +783,20 @@ export default function Chat3Page() {
                         onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                         onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         onError={(e) => {
-                          console.log('Image load error for:', product.filename)
-                          e.currentTarget.src = '/images/products/dress1.jpg'
+                          console.log('Image load error for:', product.filename || product.imagePath)
+                          // 嘗試多個備用路径
+                          const fallbackPaths = [
+                            '/images/products/dress1.jpg',
+                            '/picture/DRESS/01fffba5-6a65-4c1b-af4f-67d47667a05d.jpg',
+                            '/picture/TOP/mmexport1754562883395.jpg'
+                          ]
+                          const currentSrc = e.currentTarget.src
+                          const nextFallback = fallbackPaths.find(path => !currentSrc.includes(path))
+                          if (nextFallback) {
+                            e.currentTarget.src = nextFallback
+                          }
                         }}
-                        onLoad={() => console.log('Image loaded successfully:', product.filename)}
+                        onLoad={() => console.log('Image loaded successfully:', product.filename || product.imagePath)}
                       />
                     </div>
                     <h4 style={{
@@ -766,14 +805,14 @@ export default function Chat3Page() {
                       marginBottom: '0.5rem',
                       fontSize: '0.875rem'
                     }}>
-                      {product.name.zh}
+                      {product.name?.zh || product.name || '時尚單品'}
                     </h4>
                     <p style={{
                       color: '#6b7280',
                       fontSize: '0.75rem',
                       marginBottom: '0.5rem'
                     }}>
-                      {product.category.zh}
+                      {product.category?.zh || product.category || '服飾'}
                     </p>
                     <div style={{
                       color: '#4f46e5',
@@ -781,7 +820,12 @@ export default function Chat3Page() {
                       fontSize: '1.125rem',
                       marginBottom: '0.5rem'
                     }}>
-                      NT$ {typeof product.price === 'object' ? product.price?.twd : product.price}
+                      NT$ {
+                        product.price?.twd || 
+                        product.price ||
+                        (product.priceTier === 'high' ? 4500 : 
+                         product.priceTier === 'mid' ? 2800 : 1600)
+                      }
                     </div>
                     
                     {/* 標籤顯示 */}
@@ -792,7 +836,7 @@ export default function Chat3Page() {
                       justifyContent: 'center',
                       marginBottom: '0.75rem'
                     }}>
-                      {(product.styleTags?.zh || []).slice(0, 3).map((tag: string, index: number) => (
+                      {(product.styleTags?.zh || product.styleTags || product.tags || []).slice(0, 3).map((tag: string, index: number) => (
                         <span key={index} style={{
                           padding: '0.25rem 0.5rem',
                           background: '#e0e7ff',
@@ -805,6 +849,20 @@ export default function Chat3Page() {
                       ))}
                     </div>
                     
+                    {/* 商品描述 */}
+                    {(product.description?.zh || product.description) && (
+                      <p style={{
+                        color: '#6b7280',
+                        fontSize: '0.75rem',
+                        lineHeight: '1.4',
+                        marginBottom: '0.75rem',
+                        textAlign: 'center',
+                        padding: '0 0.5rem'
+                      }}>
+                        {product.description?.zh || product.description}
+                      </p>
+                    )}
+                    
                     {/* 動作按鈕 */}
                     <div style={{
                       display: 'flex',
@@ -812,7 +870,17 @@ export default function Chat3Page() {
                     }}>
                       <button 
                         onClick={() => {
-                          router.push(`/tryon?productId=${product.id}&productImage=${encodeURIComponent(`/images/korean-fashion/${product.filename}`)}`)
+                          // 儲存選中的衣服資料到 localStorage
+                          const garmentData = {
+                            productId: product.id,
+                            productName: product.name?.zh || product.name || '時尚單品',
+                            filename: product.filename || product.imagePath,
+                            imageUrl: `http://localhost:3002/images/korean-fashion/${encodeURIComponent((product.imagePath || product.filename || '').replace(/\\/g, '/').replace(/^[^/]*\//, ''))}`
+                          };
+                          localStorage.setItem('selectedGarment', JSON.stringify(garmentData));
+                          
+                          // 導向虛擬試穿上傳頁面
+                          router.push('/tryon/upload');
                         }}
                         style={{
                           flex: 1,
@@ -848,102 +916,33 @@ export default function Chat3Page() {
                   </div>
                 </div>
               )) : (
-                <div style={{
-                  gridColumn: '1 / -1',
-                  textAlign: 'center',
-                  color: '#6b7280',
-                  padding: '2rem'
-                }}>
-                  <SparklesIcon style={{ width: '4rem', height: '4rem', margin: '0 auto 1rem', color: '#d1d5db' }} />
-                  <p>正在為您搜尋最適合的商品...</p>
-                </div>
+                <p style={{ textAlign: 'center', color: '#6b7280' }}>暫無商品推薦，請先進行對話或圖片分析。</p>
               )}
             </div>
           </div>
         )}
 
-        {/* 導航按鈕 */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          maxWidth: '400px',
-          margin: '0 auto',
-          gap: '2rem'
-        }}>
-          <Link href="/" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(8px)',
-            color: '#6b7280',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '0.75rem',
-            border: '2px solid #e5e7eb',
-            textDecoration: 'none',
-            transition: 'all 0.3s',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'white'
-            e.currentTarget.style.color = '#374151'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)'
-            e.currentTarget.style.color = '#6b7280'
-          }}
+        {/* Navigation Buttons */}
+        <div className="flex justify-center items-center space-x-8 mt-16 mb-8">
+          <Link 
+            href="/"
+            className="flex items-center space-x-2 text-neutral-medium hover:text-primary-600 transition-colors group"
           >
-            <span>←</span>
-            <span>上一頁：首頁</span>
+            <ArrowLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span>上一頁</span>
           </Link>
-
-          <Link href="/checkout" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            background: 'linear-gradient(to right, #4f46e5, #7c3aed)',
-            color: 'white',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '0.75rem',
-            border: 'none',
-            textDecoration: 'none',
-            transition: 'all 0.3s',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            fontWeight: '600'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(to right, #4338ca, #6d28d9)'
-            e.currentTarget.style.transform = 'translateY(-2px)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(to right, #4f46e5, #7c3aed)'
-            e.currentTarget.style.transform = 'translateY(0)'
-          }}
+          
+          <div className="w-2 h-2 bg-primary-300 rounded-full"></div>
+          
+          <Link 
+            href="/products"
+            className="flex items-center space-x-2 text-neutral-medium hover:text-primary-600 transition-colors group"
           >
             <span>下一頁</span>
-            <span>→</span>
+            <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
-
       </div>
-
-      <style jsx>{`
-        @keyframes bounce {
-          0%, 20%, 53%, 80%, 100% {
-            transform: translate3d(0,0,0);
-          }
-          40%, 43% {
-            transform: translate3d(0,-10px,0);
-          }
-          70% {
-            transform: translate3d(0,-5px,0);
-          }
-          90% {
-            transform: translate3d(0,-2px,0);
-          }
-        }
-      `}</style>
     </div>
   )
 }

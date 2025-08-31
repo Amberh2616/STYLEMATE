@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 }`
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       raw_response: rawResponse,
       parsed_response: parsedResponse,
       parse_error: parseError,
-      model_used: "gpt-4o",
+      model_used: "gpt-4o-mini",
       timestamp: new Date().toISOString()
     })
 
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     message: "GPT-4V 測試端點已就緒",
-    available_models: ["gpt-4o"],
+    available_models: ["gpt-4o-mini"],
     usage: "POST 請求包含 { image: 'base64_string', message?: 'optional_prompt' }"
   })
 }

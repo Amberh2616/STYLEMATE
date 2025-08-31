@@ -1,11 +1,48 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronDownIcon, FunnelIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon, FunnelIcon, HeartIcon, StarIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 import Image from 'next/image'
 import Link from 'next/link'
 import { products, Product } from '@/lib/products'
+
+// 根據商品 ID 精確分配對應的韓式時尚照片
+const getProductImage = (product: Product) => {
+  // 根據商品名稱精確匹配照片
+  const imageMapping: { [key: string]: string } = {
+    // 洋裝類
+    'dress_elegant_floral': '/images/korean-fashion/LINE_ALBUM_🪸七月 · 各種裙子、洋裝🪸_250807_1.jpg',
+    'dress_sweet_pink_midi': '/images/korean-fashion/LINE_ALBUM_🪸七月 · 各種裙子、洋裝🪸_250807_4.jpg', 
+    'dress_minimalist_white_maxi': '/images/korean-fashion/LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_1.jpg',
+    'dress_french_elegant': '/images/korean-fashion/LINE_ALBUM_🪸七月 · 各種裙子、洋裝🪸_250808_6.jpg',
+    
+    // 上衣類
+    'top_basic_white_tee': '/images/korean-fashion/LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_121.jpg',
+    'top_casual_striped': '/images/korean-fashion/LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_134.jpg',
+    'top_puff_sleeve': '/images/korean-fashion/LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_151.jpg',
+    'top_french_romantic': '/images/korean-fashion/LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_213.jpg',
+    
+    // 下身類
+    'shorts_high_waisted_denim': '/images/korean-fashion/LINE_ALBUM_🪸七月 · 各種褲子、褲裙🪸_250808_1.jpg',
+  }
+  
+  // 如果找到精確匹配，使用精確匹配的圖片
+  if (imageMapping[product.id]) {
+    return imageMapping[product.id]
+  }
+  
+  // 否則使用類別匹配作為備用
+  const categoryImages = {
+    dress: '/images/korean-fashion/LINE_ALBUM_🪸七月 · 各種裙子、洋裝🪸_250807_1.jpg',
+    top: '/images/korean-fashion/LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_121.jpg',
+    bottom: '/images/korean-fashion/LINE_ALBUM_🪸七月 · 各種褲子、褲裙🪸_250808_1.jpg',
+    outer: '/images/korean-fashion/LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_1.jpg',
+    set: '/images/korean-fashion/LINE_ALBUM_🌼六月 · 各種套裝、套組🌼_250808_1.jpg'
+  }
+  
+  return categoryImages[product.category] || categoryImages.dress
+}
 
 export default function ProductsPage() {
   const [productList, setProductList] = useState<Product[]>(products)
@@ -67,6 +104,17 @@ export default function ProductsPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-primary-500 to-primary-600">
         <div className="max-w-7xl mx-auto px-6 py-16">
+          {/* Back to Home Button */}
+          <div className="mb-8">
+            <Link 
+              href="/" 
+              className="inline-flex items-center space-x-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+              <span>返回首頁</span>
+            </Link>
+          </div>
+          
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
               韓式風格商品
@@ -168,10 +216,16 @@ export default function ProductsPage() {
                   <div key={product.id} className="bg-white rounded-xl overflow-hidden shadow-morandi hover:shadow-morandi-lg transition-all duration-300 hover:-translate-y-2 group">
                     <div className="relative">
                       <div className="aspect-square bg-neutral-light relative overflow-hidden">
-                        {/* Placeholder image */}
-                        <div className="w-full h-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
-                          <span className="text-4xl opacity-50">👗</span>
-                        </div>
+                        {/* Product image */}
+                        <img 
+                          src={getProductImage(product)} 
+                          alt={product.name}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          onError={(e) => {
+                            // 如果圖片加載失敗，顯示預設圖片
+                            e.currentTarget.src = '/images/products/dress1.jpg'
+                          }}
+                        />
                         
                         {/* Badges */}
                         <div className="absolute top-3 left-3 flex flex-col gap-2">
@@ -201,10 +255,22 @@ export default function ProductsPage() {
 
                         {/* Try On Button */}
                         <div className="absolute inset-x-3 bottom-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                          <Link href={`/tryon?product=${product.id}`}>
-                            <button className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white py-2.5 rounded-lg font-medium hover:from-primary-600 hover:to-primary-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center space-x-2">
+                          <Link 
+                            href="/tryon/upload"
+                            onClick={() => {
+                              // 儲存選中的衣服資料到 localStorage
+                              const garmentData = {
+                                productId: product.id,
+                                productName: product.name,
+                                filename: product.id,
+                                imageUrl: getProductImage(product)
+                              };
+                              localStorage.setItem('selectedGarment', JSON.stringify(garmentData));
+                            }}
+                          >
+                            <button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-2.5 rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg flex items-center justify-center space-x-2">
                               <span>👗</span>
-                              <span>立即試穿</span>
+                              <span>虛擬試穿</span>
                             </button>
                           </Link>
                         </div>
@@ -251,15 +317,28 @@ export default function ProductsPage() {
 
                       {/* Action Buttons */}
                       <div className="flex gap-2">
-                        <Link href={`/tryon?product=${product.id}`} className="flex-1">
-                          <button className="w-full bg-primary-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center justify-center space-x-1">
-                            <span>👗</span>
-                            <span>試穿</span>
+                        <Link 
+                          href="/checkout" 
+                          className="flex-1"
+                          onClick={() => {
+                            // 儲存商品資料到 localStorage 供結帳頁使用
+                            localStorage.setItem('checkoutProduct', JSON.stringify({
+                              id: product.id,
+                              name: product.name,
+                              image: getProductImage(product),
+                              price: product.price,
+                              quantity: 1
+                            }))
+                          }}
+                        >
+                          <button className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:from-primary-600 hover:to-primary-700 transition-colors flex items-center justify-center space-x-2">
+                            <span>🛒</span>
+                            <span>確認購買</span>
                           </button>
                         </Link>
                         <button 
                           onClick={() => toggleFavorite(product.id)}
-                          className="px-3 py-2 rounded-lg border border-neutral-light hover:border-primary-300 hover:bg-primary-50 transition-colors"
+                          className="px-3 py-2.5 rounded-lg border border-neutral-light hover:border-primary-300 hover:bg-primary-50 transition-colors"
                         >
                           {favorites.includes(product.id) ? (
                             <HeartSolidIcon className="w-4 h-4 text-error" />

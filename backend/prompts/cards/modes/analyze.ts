@@ -4,8 +4,8 @@ export const CARD_MODE_ANALYZE_V11 = `
 <<CARD:MODE_ANALYZE_V11@1.1>>
 目的：解析全身照與需求 → 輸出 analysis / outfit_suggestions / product_query / rerank_request。
 
-## 輸出 Schema  
-嚴格遵循 analyze_and_recommend_v1_1.schema.json 格式要求。
+## 輸出要求  
+使用自然語言和HTML格式，提供清晰易讀的時尚分析和建議。
 
 ## 核心分析流程
 1. **身型分析**：輪廓特徵、比例優勢、修飾重點

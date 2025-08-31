@@ -36,17 +36,42 @@ export async function POST(request: NextRequest) {
     if (recentRequests.length >= RATE_LIMIT) {
       return NextResponse.json(
         { success: false, response: "請求過於頻繁，請稍後再試。" },
-        { status: 429 }
+        { 
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8'
+          }
+        }
       )
     }
     
     recentRequests.push(now)
     requestCounts.set(clientIP, recentRequests)
     
-    const { message, conversationHistory, image, analysis_type = 'auto', userEmail } = await request.json()
+    // 確保正確解析 UTF-8 編碼的 JSON
+    const body = await request.text()
+    let parsedBody
+    try {
+      parsedBody = JSON.parse(body)
+    } catch (error) {
+      console.error('❌ JSON 解析失敗:', error)
+      return NextResponse.json(
+        { success: false, response: "請求格式錯誤" },
+        { 
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8'
+          }
+        }
+      )
+    }
+    
+    const { message, conversationHistory, image, analysis_type = 'auto', userEmail } = parsedBody
 
     console.log('🎯 Chat 推薦請求:', { 
-      message, 
+      message: message, 
+      messageLength: message?.length,
+      messageBytes: Buffer.from(message || '', 'utf8').length,
       historyLength: conversationHistory?.length || 0,
       hasImage: !!image,
       analysis_type,
@@ -121,7 +146,13 @@ export async function POST(request: NextRequest) {
             
             if (forecasts.length > 0) {
               console.log('✅ 獲取5天天氣預報成功，天數:', forecasts.length)
-              weatherContext = TravelWeatherAnalyzer.generate5DayOutfitPlan(forecasts, travelContext)
+              const planResult = TravelWeatherAnalyzer.generate5DayOutfitPlan(forecasts, travelContext)
+              weatherContext = planResult.content
+              // 將天氣推薦的產品加入推薦清單
+              if (planResult.recommendedProducts && planResult.recommendedProducts.length > 0) {
+                console.log('🔍 天氣推薦商品 ID:', planResult.recommendedProducts)
+                // 這些 ID 會在後面與 AI 推薦的 ID 合併
+              }
               console.log('🔍 5天穿搭計劃生成，長度:', weatherContext.length)
             } else {
               throw new Error('天氣預報數據為空')
@@ -293,7 +324,7 @@ export async function POST(request: NextRequest) {
       // 構建查詢
       let query = `
         SELECT 
-          id, name_zh, name_en, category_zh, category_en,
+          id, image_path, filename, name_zh, name_en, category_zh, category_en,
           colors_zh, colors_en, style_tags_zh, style_tags_en,
           occasion_zh, occasion_en, price_twd, description_zh, description_en
         FROM fashion_items 
@@ -303,7 +334,7 @@ export async function POST(request: NextRequest) {
         query += ` WHERE (${searchConditions.join(' OR ')}) `
       }
       
-      query += ` ORDER BY created_at DESC LIMIT 10`
+      query += ` ORDER BY RANDOM() LIMIT 20`
       
       const result = await client.query(query, params)
       client.release()
@@ -313,11 +344,11 @@ export async function POST(request: NextRequest) {
       if (fashionItems.length === 0) {
         const allItemsQuery = `
           SELECT 
-            id, name_zh, name_en, category_zh, category_en,
+            id, image_path, filename, name_zh, name_en, category_zh, category_en,
             colors_zh, colors_en, style_tags_zh, style_tags_en,
             occasion_zh, occasion_en, price_twd, description_zh, description_en
           FROM fashion_items 
-          ORDER BY created_at DESC LIMIT 6
+          ORDER BY RANDOM() LIMIT 15
         `
         const allResult = await pool.query(allItemsQuery)
         fashionItems = allResult.rows
@@ -337,6 +368,20 @@ export async function POST(request: NextRequest) {
     }))
 
     const systemPrompt = `你是STYLEMATE韓式時尚顧問，擁有Fashion-CLIP AI語義分析能力。
+
+## 🚫 重要警告 - 商品推薦限制 🚫
+❌ 禁止使用以下不存在的商品名稱：
+- "Basic Ruched Sleeve 上衣"
+- "Sleeveless Ribbed Knit 上衣" 
+- "Graphic Print T-襯衫"
+- "優雅 White Maxi 洋裝"
+- "Sleeveless Black Midi 洋裝"
+- "優雅 Black Ruffle 上衣"
+- "Sleeveless Midi 洋裝"
+- "Sleeveless Summer 洋裝"
+
+✅ 只能推薦以下真實存在的商品（使用正確的ID格式）：
+${productInfo.slice(0, 15).map(item => `- [${item.id}] ${item.name}`).join('\n')}
 
 ## 風格分類（7種）：
 1. "清新韓系" - 溫柔色調、層次穿搭
@@ -373,8 +418,9 @@ ${trendContext ? `
 
 ${weatherContext ? `
 <h3>🌤️ 天氣預報與每日穿搭建議</h3>
-<p><strong>重要：請完整顯示以下天氣預報內容，不要省略任何一天：</strong></p>
-${weatherContext}
+<div style="line-height: 1.8; margin-bottom: 20px;">
+${weatherContext.replace(/\n/g, '<br/>')}
+</div>
 ` : ''}
 
 <h3>📋 推薦方案</h3>
@@ -408,9 +454,10 @@ ${weatherContext}
       console.log('🔍 Debug - 天氣上下文長度:', weatherContext?.length || 0)
       console.log('🔍 Debug - 系統提示包含天氣:', systemPrompt.includes('📅') || systemPrompt.includes('🌤️'))
       console.log('🔍 Debug - 系統提示長度:', systemPrompt.length)
-      console.log('🔍 Debug - 系統提示末尾100字:', systemPrompt.substring(systemPrompt.length - 100))
+      console.log('🔍 Debug - 系統提示末尾200字:', systemPrompt.substring(systemPrompt.length - 200))
       if (weatherContext) {
-        console.log('🔍 Debug - 天氣上下文預覽:', weatherContext.substring(0, 100) + '...')
+        console.log('🔍 Debug - 天氣上下文完整內容:', weatherContext)
+        console.log('🔍 Debug - 天氣上下文類型:', typeof weatherContext)
       } else {
         console.log('⚠️ Debug - 天氣上下文為空！')
       }
@@ -441,12 +488,24 @@ ${weatherContext}
     const aiResponse = completion.choices[0]?.message?.content || "抱歉，我現在無法回應，請稍後再試。"
 
     // 解析推薦的商品 ID
-    const recommendedProductIds = []
+    let recommendedProductIds = []
+    
+    // 首先，如果天氣分析有推薦產品，優先使用這些
+    if (intentAnalysis.needs_weather && weatherContext.includes('商品 ID:')) {
+      const weatherIdMatches = weatherContext.match(/商品 ID: ([a-zA-Z_-]+)/g)
+      if (weatherIdMatches) {
+        const weatherIds = weatherIdMatches.map(match => match.replace('商品 ID: ', ''))
+        recommendedProductIds.push(...weatherIds.slice(0, 6))
+        console.log('🔍 使用天氣推薦的產品 ID:', weatherIds)
+      }
+    }
+    
+    // 然後解析 AI 回應中的推薦 ID
     const idMatches = aiResponse.match(/\[([^\]]+)\]/g)
     if (idMatches) {
       for (const match of idMatches) {
         const id = match.replace(/[[\]]/g, '')
-        if (fashionItems.find(item => item.id.toString() === id)) {
+        if (fashionItems.find(item => item.id.toString() === id) && !recommendedProductIds.includes(id)) {
           recommendedProductIds.push(id)
         }
       }
@@ -456,12 +515,42 @@ ${weatherContext}
     if (recommendedProductIds.length === 0 && fashionItems && fashionItems.length > 0) {
       recommendedProductIds.push(...fashionItems.slice(0, 3).map(item => item.id.toString()))
     }
+    
+    // 限制最多顯示6個推薦產品
+    recommendedProductIds = recommendedProductIds.slice(0, 6)
+
+    // 🚀 新契約：回傳完整商品項目，前端直接使用
+    const items = fashionItems.slice(0, 6).map(item => ({
+      id: item.id,
+      slug: item.id, // slug 作為權威主鍵
+      name: { zh: item.name_zh || item.name_en, en: item.name_en || item.name_zh },
+      price: { twd: item.price_twd || item.price },
+      image: `/images/products/${(item.image_path || item.filename || '').replace(/\\/g, '/').toLowerCase().replace('/dress/', '/dress/').replace('/top/', '/top/').replace('/pants/', '/pants/')}`,
+      imagePath: item.image_path,
+      filename: item.filename,
+      category: { zh: item.category_zh, en: item.category_en },
+      colors: { zh: item.colors_zh || [], en: item.colors_en || [] },
+      styleTags: { zh: item.style_tags_zh || [], en: item.style_tags_en || [] },
+      occasion: { zh: item.occasion_zh || [], en: item.occasion_en || [] },
+      description: { zh: item.description_zh, en: item.description_en }
+    }))
+
+    console.log(`🎯 最終回傳：${items.length} 個完整商品項目`)
 
     return NextResponse.json({
       success: true,
       response: aiResponse,
-      recommendedProducts: recommendedProductIds,
+      recommendedProducts: recommendedProductIds, // 保持兼容性
+      items, // 🚀 新契約：完整商品陣列
+      from: intentAnalysis.needs_weather ? "weather" : 
+            fashionClipResults.length > 0 ? "fashion-clip" : "traditional",
+      idType: "slug",
+      generatedAt: new Date().toISOString(),
       searchMethod: fashionClipResults.length > 0 ? 'fashion-clip' : 'traditional'
+    }, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8'
+      }
     })
 
   } catch (error) {
@@ -472,7 +561,12 @@ ${weatherContext}
         response: "抱歉，我現在遇到一些技術問題，請稍後再試。",
         recommendedProducts: []
       },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        }
+      }
     )
   }
 }
@@ -494,7 +588,7 @@ async function handleImageAnalysis(imageBase64: string, userMessage: string, ana
           colors_zh, colors_en, style_tags_zh, style_tags_en,
           occasion_zh, occasion_en, price_twd, description_zh, description_en
         FROM fashion_items 
-        ORDER BY created_at DESC LIMIT 10
+        ORDER BY RANDOM() LIMIT 20
       `
       const result = await client.query(query)
       client.release()
@@ -670,6 +764,10 @@ ${JSON.stringify(productInfo, null, 2)}
       response: aiResponse,
       recommendedProducts: recommendedProductIds,
       searchMethod: 'integrated-image-analysis'
+    }, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8'
+      }
     })
 
   } catch (error) {
@@ -683,7 +781,12 @@ ${JSON.stringify(productInfo, null, 2)}
       success: false,
       response: `圖片分析遇到技術問題。<br/><br/>請檢查網路連接或稍後再試。`,
       recommendedProducts: []
-    }, { status: 500 })
+    }, { 
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8'
+      }
+    })
   }
 }
 
@@ -987,7 +1090,7 @@ async function fetchFashionTrends(message: string): Promise<string> {
       return global.webSearchCache[cacheKey]
     }
     
-    const response = await fetch('http://localhost:3007/search', {
+    const response = await fetch('http://localhost:3008/search', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -97,7 +97,7 @@ async function analyzeProductWithOpenAI(product: any, userPreferences: any, cont
 `
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",

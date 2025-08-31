@@ -1,0 +1,777 @@
+{
+  "picture_catalog": {
+    "DRESS": {
+      "price_range": [2980, 4980],
+      "items": [
+        {
+          "filename": "01fffba5-6a65-4c1b-af4f-67d47667a05d.jpg",
+          "name": "Elegant Floral Print 洋裝",
+          "price": 3480,
+          "tags": ["韓系", "優雅", "碎花", "春夏", "約會"],
+          "style": "elegant",
+          "category": "dress",
+          "occasion": ["date", "casual", "spring_summer"],
+          "features": ["floral_print", "feminine", "midi_length"],
+          "color": ["粉色", "白色", "花卉印花"],
+          "sleeve": "短袖",
+          "length": "中長版",
+          "material": "雪紡",
+          "season": ["春", "夏"]
+        },
+        {
+          "filename": "12eec23d-8257-4134-a6b6-5fadb037a87e.jpg",
+          "name": "Sweet Pink Midi 洋裝",
+          "price": 3280,
+          "tags": ["甜美", "粉色", "韓系", "可愛", "日常"],
+          "style": "sweet",
+          "category": "dress",
+          "occasion": ["casual", "date", "daily"],
+          "features": ["midi_length", "sweet", "pink"]
+        },
+        {
+          "filename": "2171d7e6-cbdf-4bde-9551-a8272b668075.jpeg",
+          "name": "Minimalist White Maxi 洋裝",
+          "price": 4280,
+          "tags": ["極簡", "白色", "長裙", "優雅", "度假"],
+          "style": "minimalist",
+          "category": "dress",
+          "occasion": ["vacation", "formal", "summer"],
+          "features": ["maxi_length", "minimalist", "white"]
+        },
+        {
+          "filename": "237a8eb7-ad51-4ca5-bdfd-4513626ffaa8.jpg",
+          "name": "Vintage Floral Midi 洋裝",
+          "price": 3680,
+          "tags": ["復古", "花卉", "中長裙", "文青", "春季"],
+          "style": "vintage",
+          "category": "dress",
+          "occasion": ["casual", "artsy", "spring"],
+          "features": ["vintage", "floral", "midi_length"]
+        },
+        {
+          "filename": "28ca2ecc-ddd8-4d27-886d-80b596c3c6a3.jpg",
+          "name": "Korean Style A-line 洋裝",
+          "price": 3180,
+          "tags": ["韓系", "A字裙", "清新", "學院風", "日常"],
+          "style": "sweet",
+          "category": "dress",
+          "occasion": ["school", "casual", "daily"],
+          "features": ["a_line", "korean_style", "fresh"]
+        },
+        {
+          "filename": "46d7fc70-bfd4-443d-8128-441eaca7b90c.jpg",
+          "name": "Elegant Black Midi 洋裝",
+          "price": 4180,
+          "tags": ["黑色", "優雅", "正式", "職場", "經典"],
+          "style": "elegant",
+          "category": "dress",
+          "occasion": ["work", "formal", "business"],
+          "features": ["black", "elegant", "midi_length"]
+        },
+        {
+          "filename": "51e0bc8c-39a0-4775-9eb0-3909a5d22ee9.jpeg",
+          "name": "Romantic Floral Maxi 洋裝",
+          "price": 4480,
+          "tags": ["浪漫", "花卉", "長裙", "度假", "女性化"],
+          "style": "romantic",
+          "category": "dress",
+          "occasion": ["vacation", "date", "summer"],
+          "features": ["romantic", "floral", "maxi_length"]
+        },
+        {
+          "filename": "7c866592-1527-4755-9f66-3a86b97e5b5f.jpg",
+          "name": "Casual Summer Mini 洋裝",
+          "price": 2980,
+          "tags": ["休閒", "夏季", "短裙", "活力", "年輕"],
+          "style": "casual",
+          "category": "dress",
+          "occasion": ["casual", "summer", "youth"],
+          "features": ["mini_length", "casual", "summer"]
+        },
+        {
+          "filename": "7d749a81-f2b4-43a7-a97a-8c193bb41b50.jpeg",
+          "name": "Chic Striped Midi 洋裝",
+          "price": 3380,
+          "tags": ["條紋", "時髦", "中長裙", "簡約", "都會"],
+          "style": "chic",
+          "category": "dress",
+          "occasion": ["urban", "casual", "work"],
+          "features": ["striped", "chic", "midi_length"]
+        },
+        {
+          "filename": "8f8a9845-ed8e-4fe1-99a4-35e8b2a5952a.jpg",
+          "name": "Bohemian Print Maxi 洋裝",
+          "price": 4680,
+          "tags": ["波希米亞", "印花", "長裙", "度假", "自由"],
+          "style": "bohemian",
+          "category": "dress",
+          "occasion": ["vacation", "festival", "casual"],
+          "features": ["bohemian", "print", "maxi_length"]
+        },
+        {
+          "filename": "9ff8cd76-90a6-4a94-924d-bba4b7d9454d.jpeg",
+          "name": "French Chic Midi 洋裝",
+          "price": 4280,
+          "tags": ["法式", "時髦", "中長裙", "優雅", "復古"],
+          "style": "french_chic",
+          "category": "dress",
+          "occasion": ["date", "elegant", "casual"],
+          "features": ["french_style", "chic", "midi_length"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_1.jpg",
+          "name": "Flowy Summer Midi 洋裝",
+          "price": 3480,
+          "tags": ["飄逸", "夏季", "中長裙", "輕柔", "度假"],
+          "style": "flowy",
+          "category": "dress",
+          "occasion": ["summer", "vacation", "casual"],
+          "features": ["flowy", "summer", "midi_length"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_12.jpg",
+          "name": "Garden Party Floral 洋裝",
+          "price": 3680,
+          "tags": ["花園派對", "花卉", "甜美", "春季", "聚會"],
+          "style": "garden_party",
+          "category": "dress",
+          "occasion": ["party", "spring", "gathering"],
+          "features": ["floral", "party", "sweet"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_2.jpg",
+          "name": "Vintage Rose Print 洋裝",
+          "price": 3580,
+          "tags": ["復古", "玫瑰印花", "浪漫", "女性化", "約會"],
+          "style": "vintage",
+          "category": "dress",
+          "occasion": ["date", "romantic", "vintage"],
+          "features": ["rose_print", "vintage", "romantic"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種裙子、洋裝🪸_250807_2.jpg",
+          "name": "Modern Geometric 洋裝",
+          "price": 3780,
+          "tags": ["現代", "幾何", "都會", "簡約", "職場"],
+          "style": "modern",
+          "category": "dress",
+          "occasion": ["work", "urban", "modern"],
+          "features": ["geometric", "modern", "urban"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種裙子、洋裝🪸_250807_3.jpg",
+          "name": "Casual Denim Midi 洋裝",
+          "price": 3180,
+          "tags": ["牛仔", "休閒", "中長裙", "日常", "簡約"],
+          "style": "casual",
+          "category": "dress",
+          "occasion": ["casual", "daily", "weekend"],
+          "features": ["denim", "casual", "midi_length"]
+        },
+        {
+          "filename": "極簡01.jpg",
+          "name": "Minimal Sleek 洋裝",
+          "price": 4180,
+          "tags": ["極簡", "俐落", "現代", "高級", "都會"],
+          "style": "minimalist",
+          "category": "dress",
+          "occasion": ["work", "formal", "urban"],
+          "features": ["minimalist", "sleek", "modern"]
+        },
+        {
+          "filename": "法式01.jpg",
+          "name": "French Elegant 洋裝",
+          "price": 4480,
+          "tags": ["法式", "優雅", "精緻", "浪漫", "高級"],
+          "style": "french",
+          "category": "dress",
+          "occasion": ["formal", "date", "elegant"],
+          "features": ["french_style", "elegant", "sophisticated"]
+        },
+        {
+          "filename": "法式04.jpg",
+          "name": "Parisian Chic 洋裝",
+          "price": 4580,
+          "tags": ["巴黎風", "時髦", "法式", "優雅", "都會"],
+          "style": "parisian",
+          "category": "dress",
+          "occasion": ["urban", "chic", "elegant"],
+          "features": ["parisian", "chic", "sophisticated"]
+        },
+        {
+          "filename": "甜美01.jpg",
+          "name": "Sweet Girly 洋裝",
+          "price": 3280,
+          "tags": ["甜美", "少女", "可愛", "粉嫩", "約會"],
+          "style": "sweet",
+          "category": "dress",
+          "occasion": ["date", "sweet", "youth"],
+          "features": ["sweet", "girly", "cute"]
+        },
+        {
+          "filename": "甜美02.jpg",
+          "name": "Cute Pastel 洋裝",
+          "price": 3180,
+          "tags": ["可愛", "粉彩", "甜美", "春季", "清新"],
+          "style": "cute",
+          "category": "dress",
+          "occasion": ["spring", "sweet", "casual"],
+          "features": ["pastel", "cute", "fresh"]
+        },
+        {
+          "filename": "甜美03.jpg",
+          "name": "Princess Style 洋裝",
+          "price": 3480,
+          "tags": ["公主風", "甜美", "蓬蓬裙", "夢幻", "派對"],
+          "style": "princess",
+          "category": "dress",
+          "occasion": ["party", "special", "romantic"],
+          "features": ["princess", "puffy", "dreamy"]
+        },
+        {
+          "filename": "華麗02.jpg",
+          "name": "Glamorous Evening 洋裝",
+          "price": 4980,
+          "tags": ["華麗", "晚宴", "閃亮", "正式", "派對"],
+          "style": "glamorous",
+          "category": "dress",
+          "occasion": ["evening", "party", "formal"],
+          "features": ["glamorous", "evening", "sparkle"]
+        },
+        {
+          "filename": "韓系01.jpg",
+          "name": "Korean Trendy 洋裝",
+          "price": 3380,
+          "tags": ["韓系", "流行", "時尚", "年輕", "街頭"],
+          "style": "korean",
+          "category": "dress",
+          "occasion": ["trendy", "street", "youth"],
+          "features": ["korean_style", "trendy", "fashionable"]
+        }
+      ]
+    },
+    "TOP": {
+      "price_range": [1480, 3280],
+      "items": [
+        {
+          "filename": "LINE_ALBUM__250808_78.jpg",
+          "name": "Basic White Tee 上衣",
+          "price": 1480,
+          "tags": ["基本款", "白色", "T恤", "簡約", "百搭"],
+          "style": "basic",
+          "category": "top",
+          "occasion": ["daily", "casual", "basic"],
+          "features": ["basic", "white", "versatile"]
+        },
+        {
+          "filename": "LINE_ALBUM__250808_79.jpg",
+          "name": "Casual Striped 上衣",
+          "price": 1680,
+          "tags": ["休閒", "條紋", "日常", "簡約", "經典"],
+          "style": "casual",
+          "category": "top",
+          "occasion": ["casual", "daily", "classic"],
+          "features": ["striped", "casual", "classic"]
+        },
+        {
+          "filename": "LINE_ALBUM__250808_80.jpg",
+          "name": "Elegant Blouse 上衣",
+          "price": 2480,
+          "tags": ["優雅", "襯衫", "職場", "正式", "女性化"],
+          "style": "elegant",
+          "category": "top",
+          "occasion": ["work", "formal", "business"],
+          "features": ["blouse", "elegant", "formal"]
+        },
+        {
+          "filename": "LINE_ALBUM__250808_83.jpg",
+          "name": "Trendy Graphic 上衣",
+          "price": 1880,
+          "tags": ["潮流", "圖案", "街頭", "年輕", "休閒"],
+          "style": "trendy",
+          "category": "top",
+          "occasion": ["street", "casual", "youth"],
+          "features": ["graphic", "trendy", "street"]
+        },
+        {
+          "filename": "條紋1.jpg",
+          "name": "Classic Striped 上衣",
+          "price": 1680,
+          "tags": ["經典", "條紋", "百搭", "簡約", "法式"],
+          "style": "classic",
+          "category": "top",
+          "occasion": ["classic", "versatile", "daily"],
+          "features": ["striped", "classic", "versatile"]
+        },
+        {
+          "filename": "條紋2.jpg",
+          "name": "Nautical Striped 上衣",
+          "price": 1780,
+          "tags": ["海軍風", "條紋", "休閒", "夏季", "清新"],
+          "style": "nautical",
+          "category": "top",
+          "occasion": ["summer", "casual", "nautical"],
+          "features": ["nautical", "striped", "summer"]
+        },
+        {
+          "filename": "條紋3.jpg",
+          "name": "Modern Striped 上衣",
+          "price": 1980,
+          "tags": ["現代", "條紋", "都會", "簡約", "時尚"],
+          "style": "modern",
+          "category": "top",
+          "occasion": ["urban", "modern", "fashionable"],
+          "features": ["modern", "striped", "urban"]
+        },
+        {
+          "filename": "條紋4.jpg",
+          "name": "Chic Striped 上衣",
+          "price": 2180,
+          "tags": ["時髦", "條紋", "優雅", "職場", "精緻"],
+          "style": "chic",
+          "category": "top",
+          "occasion": ["work", "chic", "elegant"],
+          "features": ["chic", "striped", "sophisticated"]
+        },
+        {
+          "filename": "條紋襯衫01.jpg",
+          "name": "Classic Striped Shirt 襯衫",
+          "price": 2280,
+          "tags": ["經典", "條紋襯衫", "正式", "職場", "百搭"],
+          "style": "classic",
+          "category": "top",
+          "occasion": ["work", "formal", "classic"],
+          "features": ["shirt", "striped", "classic"]
+        },
+        {
+          "filename": "法式03.jpg",
+          "name": "French Romantic 上衣",
+          "price": 2680,
+          "tags": ["法式", "浪漫", "優雅", "女性化", "精緻"],
+          "style": "french",
+          "category": "top",
+          "occasion": ["romantic", "elegant", "date"],
+          "features": ["french_style", "romantic", "elegant"]
+        },
+        {
+          "filename": "泡泡袖上衣.jpeg",
+          "name": "Puff Sleeve 上衣",
+          "price": 2380,
+          "tags": ["泡泡袖", "甜美", "浪漫", "女性化", "復古"],
+          "style": "romantic",
+          "category": "top",
+          "occasion": ["romantic", "sweet", "vintage"],
+          "features": ["puff_sleeve", "romantic", "feminine"]
+        }
+      ]
+    },
+    "PANTS": {
+      "price_range": [1680, 2980],
+      "items": [
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_130.jpg",
+          "name": "Wide Leg Trousers 長褲",
+          "price": 2480,
+          "tags": ["寬褲", "長褲", "舒適", "優雅", "職場"],
+          "style": "elegant",
+          "category": "pants",
+          "occasion": ["work", "elegant", "comfortable"],
+          "features": ["wide_leg", "comfortable", "elegant"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_131.jpg",
+          "name": "Slim Fit Pants 長褲",
+          "price": 2180,
+          "tags": ["修身", "長褲", "都會", "俐落", "現代"],
+          "style": "modern",
+          "category": "pants",
+          "occasion": ["urban", "work", "modern"],
+          "features": ["slim_fit", "sleek", "urban"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_183.jpg",
+          "name": "Casual Straight Pants 長褲",
+          "price": 1980,
+          "tags": ["休閒", "直筒", "舒適", "日常", "百搭"],
+          "style": "casual",
+          "category": "pants",
+          "occasion": ["casual", "daily", "comfortable"],
+          "features": ["straight", "casual", "versatile"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_187.jpg",
+          "name": "High Waisted Pants 長褲",
+          "price": 2380,
+          "tags": ["高腰", "修身", "顯瘦", "時尚", "女性化"],
+          "style": "fashionable",
+          "category": "pants",
+          "occasion": ["fashionable", "flattering", "trendy"],
+          "features": ["high_waisted", "flattering", "trendy"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_189.jpg",
+          "name": "Palazzo Wide Pants 寬褲",
+          "price": 2680,
+          "tags": ["宮廷褲", "寬鬆", "飄逸", "度假", "舒適"],
+          "style": "palazzo",
+          "category": "pants",
+          "occasion": ["vacation", "comfortable", "flowing"],
+          "features": ["palazzo", "wide", "flowing"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_203.jpg",
+          "name": "Cropped Wide Pants 九分寬褲",
+          "price": 2280,
+          "tags": ["九分", "寬褲", "現代", "時尚", "顯腿長"],
+          "style": "modern",
+          "category": "pants",
+          "occasion": ["modern", "fashionable", "flattering"],
+          "features": ["cropped", "wide", "modern"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_210.jpg",
+          "name": "Tailored Trousers 西裝褲",
+          "price": 2780,
+          "tags": ["西裝褲", "正式", "職場", "俐落", "專業"],
+          "style": "formal",
+          "category": "pants",
+          "occasion": ["work", "formal", "business"],
+          "features": ["tailored", "formal", "professional"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_85.jpg",
+          "name": "Relaxed Fit Pants 休閒褲",
+          "price": 1880,
+          "tags": ["寬鬆", "休閒", "舒適", "日常", "輕鬆"],
+          "style": "relaxed",
+          "category": "pants",
+          "occasion": ["casual", "relaxed", "comfortable"],
+          "features": ["relaxed_fit", "comfortable", "casual"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_87.jpg",
+          "name": "Ankle Length Pants 九分褲",
+          "price": 2080,
+          "tags": ["九分褲", "顯瘦", "俐落", "都會", "現代"],
+          "style": "urban",
+          "category": "pants",
+          "occasion": ["urban", "modern", "sleek"],
+          "features": ["ankle_length", "sleek", "urban"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_89.jpg",
+          "name": "Flowy Palazzo Pants 飄逸寬褲",
+          "price": 2580,
+          "tags": ["飄逸", "寬褲", "舒適", "度假", "女性化"],
+          "style": "flowy",
+          "category": "pants",
+          "occasion": ["vacation", "comfortable", "feminine"],
+          "features": ["flowy", "palazzo", "feminine"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_90.jpg",
+          "name": "Classic Straight Pants 經典直筒褲",
+          "price": 1980,
+          "tags": ["經典", "直筒", "百搭", "基本款", "實用"],
+          "style": "classic",
+          "category": "pants",
+          "occasion": ["classic", "versatile", "basic"],
+          "features": ["straight", "classic", "versatile"]
+        }
+      ]
+    },
+    "SHORTS": {
+      "price_range": [1190, 2290],
+      "items": [
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_100.jpg",
+          "name": "High Waisted Denim Shorts 牛仔短褲",
+          "price": 1690,
+          "tags": ["高腰", "牛仔", "夏季", "休閒", "顯瘦"],
+          "style": "casual",
+          "category": "shorts",
+          "occasion": ["summer", "casual", "trendy"],
+          "features": ["high_waisted", "denim", "summer"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_170.jpg",
+          "name": "Casual Cotton Shorts 棉質短褲",
+          "price": 1390,
+          "tags": ["棉質", "休閒", "舒適", "日常", "透氣"],
+          "style": "casual",
+          "category": "shorts",
+          "occasion": ["casual", "daily", "comfortable"],
+          "features": ["cotton", "comfortable", "breathable"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_172.jpg",
+          "name": "Tailored Bermuda Shorts 百慕達短褲",
+          "price": 1890,
+          "tags": ["百慕達", "正式", "俐落", "夏季", "優雅"],
+          "style": "tailored",
+          "category": "shorts",
+          "occasion": ["smart_casual", "summer", "elegant"],
+          "features": ["bermuda", "tailored", "elegant"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_173.jpg",
+          "name": "Flowy Summer Shorts 飄逸短褲",
+          "price": 1590,
+          "tags": ["飄逸", "夏季", "輕柔", "度假", "舒適"],
+          "style": "flowy",
+          "category": "shorts",
+          "occasion": ["summer", "vacation", "comfortable"],
+          "features": ["flowy", "light", "summer"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_97.jpg",
+          "name": "Vintage High Waist Shorts 復古高腰短褲",
+          "price": 1790,
+          "tags": ["復古", "高腰", "vintage", "時尚", "個性"],
+          "style": "vintage",
+          "category": "shorts",
+          "occasion": ["vintage", "trendy", "retro"],
+          "features": ["vintage", "high_waisted", "retro"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_99.jpg",
+          "name": "Sporty Casual Shorts 運動休閒短褲",
+          "price": 1290,
+          "tags": ["運動", "休閒", "舒適", "活力", "年輕"],
+          "style": "sporty",
+          "category": "shorts",
+          "occasion": ["sports", "casual", "active"],
+          "features": ["sporty", "comfortable", "active"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種外套、開扣背心🪸_250808_5.jpg",
+          "name": "Chic Linen Shorts 亞麻短褲",
+          "price": 1990,
+          "tags": ["亞麻", "時髦", "透氣", "夏季", "自然"],
+          "style": "chic",
+          "category": "shorts",
+          "occasion": ["summer", "chic", "natural"],
+          "features": ["linen", "breathable", "natural"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種褲子、褲裙🪸_250808_32.jpg",
+          "name": "Pleated Mini Shorts 百褶短褲",
+          "price": 1490,
+          "tags": ["百褶", "甜美", "學院風", "可愛", "年輕"],
+          "style": "sweet",
+          "category": "shorts",
+          "occasion": ["sweet", "school", "youth"],
+          "features": ["pleated", "sweet", "youthful"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種褲子、褲裙🪸_250808_34.jpg",
+          "name": "Wide Leg Summer Shorts 寬腿短褲",
+          "price": 1690,
+          "tags": ["寬腿", "夏季", "舒適", "休閒", "涼爽"],
+          "style": "comfortable",
+          "category": "shorts",
+          "occasion": ["summer", "comfortable", "relaxed"],
+          "features": ["wide_leg", "comfortable", "cool"]
+        }
+      ]
+    },
+    "SKIRTS": {
+      "price_range": [1690, 4980],
+      "items": [
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_10.jpg",
+          "name": "Pleated Mini Skirt 百褶短裙",
+          "price": 1890,
+          "tags": ["百褶", "短裙", "學院風", "甜美", "年輕"],
+          "style": "sweet",
+          "category": "skirt",
+          "occasion": ["school", "sweet", "youth"],
+          "features": ["pleated", "mini", "youthful"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_4.jpg",
+          "name": "A-line Midi Skirt A字中長裙",
+          "price": 2390,
+          "tags": ["A字裙", "中長裙", "優雅", "百搭", "經典"],
+          "style": "classic",
+          "category": "skirt",
+          "occasion": ["classic", "versatile", "elegant"],
+          "features": ["a_line", "midi", "classic"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_6.jpg",
+          "name": "Flowy Maxi Skirt 飄逸長裙",
+          "price": 2890,
+          "tags": ["飄逸", "長裙", "浪漫", "度假", "女性化"],
+          "style": "romantic",
+          "category": "skirt",
+          "occasion": ["vacation", "romantic", "feminine"],
+          "features": ["flowy", "maxi", "romantic"]
+        },
+        {
+          "filename": "mmexport1754562921070.jpg",
+          "name": "Vintage Circle Skirt 復古圓裙",
+          "price": 2190,
+          "tags": ["復古", "圓裙", "vintage", "甜美", "經典"],
+          "style": "vintage",
+          "category": "skirt",
+          "occasion": ["vintage", "retro", "sweet"],
+          "features": ["circle", "vintage", "retro"]
+        },
+        {
+          "filename": "mmexport1754562963093.jpg",
+          "name": "Pencil High Waist Skirt 高腰鉛筆裙",
+          "price": 2490,
+          "tags": ["鉛筆裙", "高腰", "修身", "職場", "性感"],
+          "style": "sophisticated",
+          "category": "skirt",
+          "occasion": ["work", "sophisticated", "formal"],
+          "features": ["pencil", "high_waisted", "fitted"]
+        },
+        {
+          "filename": "甜美04.jpg",
+          "name": "Sweet Tulle Skirt 甜美紗裙",
+          "price": 2690,
+          "tags": ["甜美", "紗裙", "公主風", "夢幻", "可愛"],
+          "style": "princess",
+          "category": "skirt",
+          "occasion": ["special", "sweet", "dreamy"],
+          "features": ["tulle", "princess", "dreamy"]
+        },
+        {
+          "filename": "華麗01.jpg",
+          "name": "Glamorous Evening Skirt 華麗晚裙",
+          "price": 4980,
+          "tags": ["華麗", "晚裙", "閃亮", "正式", "派對"],
+          "style": "glamorous",
+          "category": "skirt",
+          "occasion": ["evening", "party", "formal"],
+          "features": ["glamorous", "evening", "sparkle"]
+        }
+      ]
+    },
+    "JACKET": {
+      "price_range": [2180, 4580],
+      "items": [
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_1.jpg",
+          "name": "Knit Cardigan 針織開衫",
+          "price": 2480,
+          "tags": ["針織", "開衫", "舒適", "溫暖", "百搭"],
+          "style": "cozy",
+          "category": "jacket",
+          "occasion": ["cozy", "casual", "layering"],
+          "features": ["knit", "cardigan", "comfortable"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_12.jpg",
+          "name": "Blazer Formal Jacket 正式西裝外套",
+          "price": 3680,
+          "tags": ["西裝外套", "正式", "職場", "專業", "俐落"],
+          "style": "formal",
+          "category": "jacket",
+          "occasion": ["work", "formal", "business"],
+          "features": ["blazer", "formal", "professional"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_13.jpg",
+          "name": "Oversized Denim Jacket 寬鬆牛仔外套",
+          "price": 2880,
+          "tags": ["牛仔外套", "寬鬆", "休閒", "街頭", "vintage"],
+          "style": "casual",
+          "category": "jacket",
+          "occasion": ["casual", "street", "vintage"],
+          "features": ["denim", "oversized", "casual"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_2.jpg",
+          "name": "Light Trench Coat 輕薄風衣",
+          "price": 4280,
+          "tags": ["風衣", "輕薄", "優雅", "春秋", "經典"],
+          "style": "elegant",
+          "category": "jacket",
+          "occasion": ["spring_autumn", "elegant", "classic"],
+          "features": ["trench", "light", "classic"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_24.jpg",
+          "name": "Cropped Jacket 短版外套",
+          "price": 3180,
+          "tags": ["短版", "外套", "時尚", "顯腰線", "現代"],
+          "style": "trendy",
+          "category": "jacket",
+          "occasion": ["trendy", "fashionable", "modern"],
+          "features": ["cropped", "fitted", "modern"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_25.jpg",
+          "name": "Puff Sleeve Jacket 泡泡袖外套",
+          "price": 3480,
+          "tags": ["泡泡袖", "外套", "浪漫", "女性化", "復古"],
+          "style": "romantic",
+          "category": "jacket",
+          "occasion": ["romantic", "feminine", "vintage"],
+          "features": ["puff_sleeve", "romantic", "feminine"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_27.jpg",
+          "name": "Vintage Wool Coat 復古羊毛外套",
+          "price": 4580,
+          "tags": ["復古", "羊毛", "保暖", "經典", "高級"],
+          "style": "vintage",
+          "category": "jacket",
+          "occasion": ["winter", "vintage", "elegant"],
+          "features": ["wool", "vintage", "warm"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_29.jpg",
+          "name": "Casual Bomber Jacket 休閒飛行外套",
+          "price": 2980,
+          "tags": ["飛行外套", "休閒", "街頭", "運動", "年輕"],
+          "style": "sporty",
+          "category": "jacket",
+          "occasion": ["casual", "street", "sporty"],
+          "features": ["bomber", "casual", "street"]
+        },
+        {
+          "filename": "街頭01.jpg",
+          "name": "Street Style Jacket 街頭風外套",
+          "price": 3280,
+          "tags": ["街頭", "個性", "時尚", "年輕", "潮流"],
+          "style": "street",
+          "category": "jacket",
+          "occasion": ["street", "edgy", "trendy"],
+          "features": ["street_style", "edgy", "trendy"]
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "total_items": 87,
+    "categories": {
+      "DRESS": 24,
+      "TOP": 11,
+      "PANTS": 11,
+      "SHORTS": 9,
+      "SKIRTS": 7,
+      "JACKET": 9
+    },
+    "price_statistics": {
+      "min_price": 1190,
+      "max_price": 4980,
+      "avg_price": 2685
+    },
+    "style_tags": [
+      "elegant", "sweet", "casual", "minimalist", "vintage", 
+      "romantic", "chic", "korean", "french", "glamorous",
+      "sporty", "street", "formal", "bohemian", "princess"
+    ],
+    "occasion_tags": [
+      "date", "work", "casual", "formal", "party", 
+      "vacation", "summer", "spring", "winter", "street",
+      "business", "evening", "youth", "daily", "romantic"
+    ],
+    "created_date": "2025-08-24",
+    "version": "1.0"
+  }
+}

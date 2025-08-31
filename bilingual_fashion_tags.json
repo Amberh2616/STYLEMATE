@@ -1,636 +1,148 @@
 {
-  "total_images": 20,
-  "processed_count": 10,
-  "success_count": 10,
-  "failed_count": 0,
+  "total_images": 36,
+  "processed_count": 20,
+  "success_count": 0,
+  "failed_count": 20,
   "bilingual_tags": {
+    "DRESS\\01fffba5-6a65-4c1b-af4f-67d47667a05d.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "DRESS",
+      "file_size": 169512
+    },
+    "DRESS\\12eec23d-8257-4134-a6b6-5fadb037a87e.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "DRESS",
+      "file_size": 211611
+    },
+    "DRESS\\237a8eb7-ad51-4ca5-bdfd-4513626ffaa8.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "DRESS",
+      "file_size": 175567
+    },
+    "DRESS\\28ca2ecc-ddd8-4d27-886d-80b596c3c6a3.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "DRESS",
+      "file_size": 198613
+    },
+    "DRESS\\46d7fc70-bfd4-443d-8128-441eaca7b90c.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "DRESS",
+      "file_size": 114487
+    },
+    "DRESS\\7c866592-1527-4755-9f66-3a86b97e5b5f.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "DRESS",
+      "file_size": 177517
+    },
+    "DRESS\\8f8a9845-ed8e-4fe1-99a4-35e8b2a5952a.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "DRESS",
+      "file_size": 214383
+    },
+    "DRESS\\a32812bb-c724-4a64-b63f-e70e6d35a138.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "DRESS",
+      "file_size": 200356
+    },
+    "DRESS\\a5ffc924-3281-40e6-8b21-2420ff1e5405.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "DRESS",
+      "file_size": 253438
+    },
     "DRESS\\LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_1.jpg": {
       "tags": {
-        "name_en": "Elegant White Maxi Dress",
-        "category_en": "dress",
-        "colors_en": [
-          "white"
-        ],
-        "style_tags_en": [
-          "korean",
-          "elegant",
-          "minimalist"
-        ],
-        "occasion_en": [
-          "daily",
-          "date",
-          "work"
-        ],
-        "season_en": [
-          "spring",
-          "summer"
-        ],
-        "fit_en": "regular",
-        "features_en": [
-          "comfortable",
-          "versatile",
-          "flowy"
-        ],
-        "description_en": "A chic white maxi dress with a minimalist design, perfect for elegant daily wear.",
-        "name_zh": "優雅 White Maxi 洋裝",
-        "category_zh": "洋裝",
-        "colors_zh": [
-          "白色"
-        ],
-        "style_tags_zh": [
-          "韓系",
-          "優雅",
-          "簡約"
-        ],
-        "occasion_zh": [
-          "日常",
-          "約會",
-          "上班"
-        ],
-        "season_zh": [
-          "春季",
-          "夏季"
-        ],
-        "fit_zh": "合身",
-        "features_zh": [
-          "舒適",
-          "百搭",
-          "flowy"
-        ],
-        "material_guess": "cotton",
-        "price_tier": "mid",
-        "description_zh": "韓系、優雅風格的白色洋裝，適合日常、約會穿著，展現韓式時尚魅力。",
-        "ai_confidence": "high",
-        "processed_at": "2025-08-11 21:46:21"
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
       },
       "category_hint": "DRESS",
       "file_size": 100672
     },
     "DRESS\\LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_12.jpg": {
       "tags": {
-        "name_en": "Sleeveless Summer Dress",
-        "category_en": "dress",
-        "colors_en": [
-          "white"
-        ],
-        "style_tags_en": [
-          "korean",
-          "elegant",
-          "minimalist"
-        ],
-        "occasion_en": [
-          "daily",
-          "date"
-        ],
-        "season_en": [
-          "spring",
-          "summer"
-        ],
-        "fit_en": "regular",
-        "features_en": [
-          "comfortable",
-          "versatile",
-          "breathable"
-        ],
-        "description_en": "Elegant sleeveless white dress with a tie waist, perfect for warm weather outings.",
-        "name_zh": "Sleeveless Summer 洋裝",
-        "category_zh": "洋裝",
-        "colors_zh": [
-          "白色"
-        ],
-        "style_tags_zh": [
-          "韓系",
-          "優雅",
-          "簡約"
-        ],
-        "occasion_zh": [
-          "日常",
-          "約會"
-        ],
-        "season_zh": [
-          "春季",
-          "夏季"
-        ],
-        "fit_zh": "合身",
-        "features_zh": [
-          "舒適",
-          "百搭",
-          "透氣"
-        ],
-        "material_guess": "cotton blend",
-        "price_tier": "mid",
-        "description_zh": "韓系、優雅風格的白色洋裝，適合日常、約會穿著，展現韓式時尚魅力。",
-        "ai_confidence": "high",
-        "processed_at": "2025-08-11 21:46:32"
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
       },
       "category_hint": "DRESS",
       "file_size": 121531
     },
-    "DRESS\\LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_13.jpg": {
-      "tags": {
-        "name_en": "Sleeveless Black Midi Dress",
-        "category_en": "dress",
-        "colors_en": [
-          "black"
-        ],
-        "style_tags_en": [
-          "korean",
-          "minimalist",
-          "elegant"
-        ],
-        "occasion_en": [
-          "daily",
-          "date",
-          "casual"
-        ],
-        "season_en": [
-          "spring",
-          "summer"
-        ],
-        "fit_en": "regular",
-        "features_en": [
-          "comfortable",
-          "versatile",
-          "chic"
-        ],
-        "description_en": "Elegant black midi dress with a minimalist design, perfect for casual outings and dates.",
-        "name_zh": "Sleeveless Black Midi 洋裝",
-        "category_zh": "洋裝",
-        "colors_zh": [
-          "黑色"
-        ],
-        "style_tags_zh": [
-          "韓系",
-          "簡約",
-          "優雅"
-        ],
-        "occasion_zh": [
-          "日常",
-          "約會",
-          "休閒"
-        ],
-        "season_zh": [
-          "春季",
-          "夏季"
-        ],
-        "fit_zh": "合身",
-        "features_zh": [
-          "舒適",
-          "百搭",
-          "chic"
-        ],
-        "material_guess": "cotton blend",
-        "price_tier": "mid",
-        "description_zh": "韓系、簡約風格的黑色洋裝，適合日常、約會穿著，展現韓式時尚魅力。",
-        "ai_confidence": "high",
-        "processed_at": "2025-08-11 21:46:42"
-      },
-      "category_hint": "DRESS",
-      "file_size": 92565
-    },
     "DRESS\\LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_2.jpg": {
       "tags": {
-        "name_en": "Elegant Black Maxi Dress",
-        "category_en": "dress",
-        "colors_en": [
-          "black"
-        ],
-        "style_tags_en": [
-          "korean",
-          "elegant",
-          "minimalist"
-        ],
-        "occasion_en": [
-          "date",
-          "work",
-          "formal"
-        ],
-        "season_en": [
-          "spring",
-          "autumn"
-        ],
-        "fit_en": "regular",
-        "features_en": [
-          "versatile",
-          "comfortable",
-          "timeless"
-        ],
-        "description_en": "A chic black maxi dress with a minimalist design, perfect for elegant occasions.",
-        "name_zh": "優雅 Black Maxi 洋裝",
-        "category_zh": "洋裝",
-        "colors_zh": [
-          "黑色"
-        ],
-        "style_tags_zh": [
-          "韓系",
-          "優雅",
-          "簡約"
-        ],
-        "occasion_zh": [
-          "約會",
-          "上班",
-          "正式"
-        ],
-        "season_zh": [
-          "春季",
-          "秋季"
-        ],
-        "fit_zh": "合身",
-        "features_zh": [
-          "百搭",
-          "舒適",
-          "timeless"
-        ],
-        "material_guess": "cotton blend",
-        "price_tier": "mid",
-        "description_zh": "韓系、優雅風格的黑色洋裝，適合約會、上班穿著，展現韓式時尚魅力。",
-        "ai_confidence": "high",
-        "processed_at": "2025-08-11 21:46:51"
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
       },
       "category_hint": "DRESS",
       "file_size": 95769
     },
-    "DRESS\\LINE_ALBUM_🌼六月 · 各種裙子、洋裝🌼_250808_3.jpg": {
-      "tags": {
-        "name_en": "Sleeveless Midi Dress",
-        "category_en": "dress",
-        "colors_en": [
-          "white",
-          "black"
-        ],
-        "style_tags_en": [
-          "korean",
-          "minimalist",
-          "elegant"
-        ],
-        "occasion_en": [
-          "daily",
-          "work",
-          "date"
-        ],
-        "season_en": [
-          "spring",
-          "summer"
-        ],
-        "fit_en": "regular",
-        "features_en": [
-          "comfortable",
-          "versatile",
-          "classic"
-        ],
-        "description_en": "A minimalist sleeveless midi dress perfect for casual and formal occasions.",
-        "name_zh": "Sleeveless Midi 洋裝",
-        "category_zh": "洋裝",
-        "colors_zh": [
-          "白色",
-          "黑色"
-        ],
-        "style_tags_zh": [
-          "韓系",
-          "簡約",
-          "優雅"
-        ],
-        "occasion_zh": [
-          "日常",
-          "上班",
-          "約會"
-        ],
-        "season_zh": [
-          "春季",
-          "夏季"
-        ],
-        "fit_zh": "合身",
-        "features_zh": [
-          "舒適",
-          "百搭",
-          "classic"
-        ],
-        "material_guess": "cotton blend",
-        "price_tier": "mid",
-        "description_zh": "韓系、簡約風格的白色、黑色洋裝，適合日常、上班穿著，展現韓式時尚魅力。",
-        "ai_confidence": "high",
-        "processed_at": "2025-08-11 21:47:02"
-      },
-      "category_hint": "DRESS",
-      "file_size": 72960
-    },
     "TOP\\LINE_ALBUM__250808_78.jpg": {
       "tags": {
-        "name_en": "Graphic Print T-Shirt",
-        "category_en": "top",
-        "colors_en": [
-          "white",
-          "light gray",
-          "dark gray"
-        ],
-        "style_tags_en": [
-          "korean",
-          "casual",
-          "streetwear"
-        ],
-        "occasion_en": [
-          "daily",
-          "casual outing"
-        ],
-        "season_en": [
-          "spring",
-          "summer"
-        ],
-        "fit_en": "regular",
-        "features_en": [
-          "comfortable",
-          "versatile",
-          "graphic print"
-        ],
-        "description_en": "Casual graphic print T-shirt with a regular fit, perfect for everyday wear.",
-        "name_zh": "Graphic Print T-襯衫",
-        "category_zh": "上衣",
-        "colors_zh": [
-          "白色",
-          "light gray",
-          "dark gray"
-        ],
-        "style_tags_zh": [
-          "韓系",
-          "休閒",
-          "streetwear"
-        ],
-        "occasion_zh": [
-          "日常",
-          "casual outing"
-        ],
-        "season_zh": [
-          "春季",
-          "夏季"
-        ],
-        "fit_zh": "合身",
-        "features_zh": [
-          "舒適",
-          "百搭",
-          "graphic print"
-        ],
-        "material_guess": "cotton",
-        "price_tier": "budget",
-        "description_zh": "韓系、休閒風格的白色、light gray上衣，適合日常、casual outing穿著，展現韓式時尚魅力。",
-        "ai_confidence": "high",
-        "processed_at": "2025-08-11 21:47:11"
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
       },
       "category_hint": "TOP",
       "file_size": 75732
     },
     "TOP\\LINE_ALBUM__250808_79.jpg": {
       "tags": {
-        "name_en": "Elegant Black Ruffle Top",
-        "category_en": "top",
-        "colors_en": [
-          "black"
-        ],
-        "style_tags_en": [
-          "korean",
-          "elegant",
-          "chic"
-        ],
-        "occasion_en": [
-          "daily",
-          "work",
-          "date"
-        ],
-        "season_en": [
-          "spring",
-          "summer"
-        ],
-        "fit_en": "loose",
-        "features_en": [
-          "comfortable",
-          "versatile",
-          "flowy"
-        ],
-        "description_en": "A chic black top with ruffle details, perfect for a stylish and comfortable look.",
-        "name_zh": "優雅 Black Ruffle 上衣",
-        "category_zh": "上衣",
-        "colors_zh": [
-          "黑色"
-        ],
-        "style_tags_zh": [
-          "韓系",
-          "優雅",
-          "時尚"
-        ],
-        "occasion_zh": [
-          "日常",
-          "上班",
-          "約會"
-        ],
-        "season_zh": [
-          "春季",
-          "夏季"
-        ],
-        "fit_zh": "寬鬆",
-        "features_zh": [
-          "舒適",
-          "百搭",
-          "flowy"
-        ],
-        "material_guess": "cotton blend",
-        "price_tier": "mid",
-        "description_zh": "韓系、優雅風格的黑色上衣，適合日常、上班穿著，展現韓式時尚魅力。",
-        "ai_confidence": "high",
-        "processed_at": "2025-08-11 21:47:20"
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
       },
       "category_hint": "TOP",
       "file_size": 84602
     },
     "TOP\\LINE_ALBUM__250808_80.jpg": {
       "tags": {
-        "name_en": "White Split Hem T-Shirt",
-        "category_en": "top",
-        "colors_en": [
-          "white"
-        ],
-        "style_tags_en": [
-          "korean",
-          "minimalist",
-          "casual",
-          "chic"
-        ],
-        "occasion_en": [
-          "daily",
-          "work",
-          "casual outing"
-        ],
-        "season_en": [
-          "spring",
-          "summer"
-        ],
-        "fit_en": "regular",
-        "features_en": [
-          "comfortable",
-          "versatile",
-          "minimalist"
-        ],
-        "description_en": "A chic white t-shirt with a split hem, perfect for casual and work settings.",
-        "name_zh": "White Split Hem T-襯衫",
-        "category_zh": "上衣",
-        "colors_zh": [
-          "白色"
-        ],
-        "style_tags_zh": [
-          "韓系",
-          "簡約",
-          "休閒",
-          "時尚"
-        ],
-        "occasion_zh": [
-          "日常",
-          "上班",
-          "casual outing"
-        ],
-        "season_zh": [
-          "春季",
-          "夏季"
-        ],
-        "fit_zh": "合身",
-        "features_zh": [
-          "舒適",
-          "百搭",
-          "minimalist"
-        ],
-        "material_guess": "cotton",
-        "price_tier": "mid",
-        "description_zh": "韓系、簡約風格的白色上衣，適合日常、上班穿著，展現韓式時尚魅力。",
-        "ai_confidence": "high",
-        "processed_at": "2025-08-11 21:47:32"
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
       },
       "category_hint": "TOP",
       "file_size": 74740
     },
-    "TOP\\LINE_ALBUM__250808_81.jpg": {
+    "TOP\\LINE_ALBUM__250808_83.jpg": {
       "tags": {
-        "name_en": "Basic Ruched Sleeve Top",
-        "category_en": "top",
-        "colors_en": [
-          "white",
-          "pink",
-          "light blue",
-          "black"
-        ],
-        "style_tags_en": [
-          "korean",
-          "casual",
-          "minimalist"
-        ],
-        "occasion_en": [
-          "daily",
-          "work",
-          "casual outings"
-        ],
-        "season_en": [
-          "spring",
-          "summer"
-        ],
-        "fit_en": "regular",
-        "features_en": [
-          "comfortable",
-          "versatile",
-          "minimalist"
-        ],
-        "description_en": "A versatile top with ruched sleeves, perfect for casual and work settings.",
-        "name_zh": "Basic Ruched Sleeve 上衣",
-        "category_zh": "上衣",
-        "colors_zh": [
-          "白色",
-          "粉色",
-          "light blue",
-          "黑色"
-        ],
-        "style_tags_zh": [
-          "韓系",
-          "休閒",
-          "簡約"
-        ],
-        "occasion_zh": [
-          "日常",
-          "上班",
-          "casual outings"
-        ],
-        "season_zh": [
-          "春季",
-          "夏季"
-        ],
-        "fit_zh": "合身",
-        "features_zh": [
-          "舒適",
-          "百搭",
-          "minimalist"
-        ],
-        "material_guess": "cotton blend",
-        "price_tier": "mid",
-        "description_zh": "韓系、休閒風格的白色、粉色上衣，適合日常、上班穿著，展現韓式時尚魅力。",
-        "ai_confidence": "high",
-        "processed_at": "2025-08-11 21:47:40"
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
       },
       "category_hint": "TOP",
-      "file_size": 57046
+      "file_size": 110696
     },
-    "TOP\\LINE_ALBUM__250808_82.jpg": {
+    "TOP\\LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_38.jpg": {
       "tags": {
-        "name_en": "Sleeveless Ribbed Knit Top",
-        "category_en": "top",
-        "colors_en": [
-          "beige"
-        ],
-        "style_tags_en": [
-          "korean",
-          "minimalist",
-          "casual"
-        ],
-        "occasion_en": [
-          "daily",
-          "casual outing"
-        ],
-        "season_en": [
-          "spring",
-          "summer"
-        ],
-        "fit_en": "regular",
-        "features_en": [
-          "comfortable",
-          "versatile",
-          "breathable"
-        ],
-        "description_en": "A beige sleeveless ribbed knit top perfect for casual outings in warmer seasons.",
-        "name_zh": "Sleeveless Ribbed Knit 上衣",
-        "category_zh": "上衣",
-        "colors_zh": [
-          "米色"
-        ],
-        "style_tags_zh": [
-          "韓系",
-          "簡約",
-          "休閒"
-        ],
-        "occasion_zh": [
-          "日常",
-          "casual outing"
-        ],
-        "season_zh": [
-          "春季",
-          "夏季"
-        ],
-        "fit_zh": "合身",
-        "features_zh": [
-          "舒適",
-          "百搭",
-          "透氣"
-        ],
-        "material_guess": "knit",
-        "price_tier": "mid",
-        "description_zh": "韓系、簡約風格的米色上衣，適合日常、casual outing穿著，展現韓式時尚魅力。",
-        "ai_confidence": "high",
-        "processed_at": "2025-08-11 21:47:51"
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
       },
       "category_hint": "TOP",
-      "file_size": 122762
+      "file_size": 90684
+    },
+    "TOP\\LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_135.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "TOP",
+      "file_size": 130714
+    },
+    "TOP\\LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_136.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "TOP",
+      "file_size": 101131
+    },
+    "TOP\\LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_155.jpg": {
+      "tags": {
+        "error": "Error code: 401 - {'error': {'message': 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************0isA. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"
+      },
+      "category_hint": "TOP",
+      "file_size": 95441
     }
   },
   "processing_time": 0

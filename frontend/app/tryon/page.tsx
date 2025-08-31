@@ -255,9 +255,26 @@ export default function TryOnResultPage() {
             
             {/* 購買按鈕 */}
             <div className="space-y-3">
-              <Link href="/checkout" className="w-full bg-gradient-to-r from-indigo-500 to-violet-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-indigo-600 hover:to-violet-700 transition-all flex items-center justify-center space-x-2">
+              <Link 
+                href="/checkout" 
+                className="w-full bg-gradient-to-r from-indigo-500 to-violet-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-indigo-600 hover:to-violet-700 transition-all flex items-center justify-center space-x-2"
+                onClick={() => {
+                  // 從 localStorage 獲取商品資訊傳遞給結帳頁
+                  const garmentData = localStorage.getItem('selectedGarment')
+                  if (garmentData) {
+                    const productData = JSON.parse(garmentData)
+                    localStorage.setItem('checkoutProduct', JSON.stringify({
+                      id: productData.productId,
+                      name: productData.productName,
+                      image: productData.imageUrl,
+                      price: 1299, // 可以從產品資料庫獲取實際價格
+                      quantity: 1
+                    }))
+                  }
+                }}
+              >
                 <ShoppingCartIcon className="w-5 h-5" />
-                <span>加入購物車</span>
+                <span>確認購買</span>
               </Link>
               
               <button className="w-full bg-slate-100 text-slate-700 py-3 px-4 rounded-lg font-medium hover:bg-slate-200 transition-all flex items-center justify-center space-x-2">

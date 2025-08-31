@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     })
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // 用更便宜的模型測試
+      model: "gpt-4o-mini", // 用更便宜的模型測試
       messages: [
         {
           role: "user",

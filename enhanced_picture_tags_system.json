@@ -1,0 +1,285 @@
+{
+  "picture_catalog": {
+    "DRESS": {
+      "price_range": [2980, 4980],
+      "items": [
+        {
+          "filename": "01fffba5-6a65-4c1b-af4f-67d47667a05d.jpg",
+          "name": "Elegant Floral Print 洋裝",
+          "price": 3480,
+          "tags": ["韓系", "優雅", "碎花", "春夏", "約會"],
+          "style": "elegant",
+          "category": "dress",
+          "occasion": ["date", "casual", "spring_summer"],
+          "features": ["floral_print", "feminine", "midi_length"],
+          "color": ["粉色", "白色", "花卉印花"],
+          "sleeve": "短袖",
+          "length": "中長版",
+          "material": "雪紡",
+          "season": ["春", "夏"]
+        },
+        {
+          "filename": "12eec23d-8257-4134-a6b6-5fadb037a87e.jpg",
+          "name": "Sweet Pink Midi 洋裝",
+          "price": 3280,
+          "tags": ["甜美", "粉色", "韓系", "可愛", "日常"],
+          "style": "sweet",
+          "category": "dress",
+          "occasion": ["casual", "date", "daily"],
+          "features": ["midi_length", "sweet", "pink"],
+          "color": ["粉色", "淡粉色"],
+          "sleeve": "短袖",
+          "length": "中長版", 
+          "material": "棉質",
+          "season": ["春", "夏"]
+        },
+        {
+          "filename": "2171d7e6-cbdf-4bde-9551-a8272b668075.jpeg",
+          "name": "Minimalist White Maxi 洋裝",
+          "price": 4280,
+          "tags": ["極簡", "白色", "長裙", "優雅", "度假"],
+          "style": "minimalist",
+          "category": "dress",
+          "occasion": ["vacation", "formal", "summer"],
+          "features": ["maxi_length", "minimalist", "white"],
+          "color": ["白色", "純白"],
+          "sleeve": "無袖",
+          "length": "長版",
+          "material": "棉麻",
+          "season": ["夏"]
+        },
+        {
+          "filename": "極簡01.jpg",
+          "name": "Minimal Sleek 洋裝",
+          "price": 4180,
+          "tags": ["極簡", "俐落", "現代", "高級", "都會"],
+          "style": "minimalist",
+          "category": "dress",
+          "occasion": ["work", "formal", "urban"],
+          "features": ["minimalist", "sleek", "modern"],
+          "color": ["黑色", "深色"],
+          "sleeve": "長袖",
+          "length": "中長版",
+          "material": "羊毛",
+          "season": ["秋", "冬"]
+        },
+        {
+          "filename": "法式01.jpg",
+          "name": "French Elegant 洋裝",
+          "price": 4480,
+          "tags": ["法式", "優雅", "精緻", "浪漫", "高級"],
+          "style": "french",
+          "category": "dress",
+          "occasion": ["formal", "date", "elegant"],
+          "features": ["french_style", "elegant", "sophisticated"],
+          "color": ["藏青色", "深藍色"],
+          "sleeve": "七分袖",
+          "length": "中長版",
+          "material": "真絲",
+          "season": ["春", "秋"]
+        },
+        {
+          "filename": "甜美01.jpg",
+          "name": "Sweet Girly 洋裝",
+          "price": 3280,
+          "tags": ["甜美", "少女", "可愛", "粉嫩", "約會"],
+          "style": "sweet",
+          "category": "dress",
+          "occasion": ["date", "sweet", "youth"],
+          "features": ["sweet", "girly", "cute"],
+          "color": ["粉色", "淡紫色", "漸層"],
+          "sleeve": "短袖",
+          "length": "短版",
+          "material": "雪紡",
+          "season": ["春", "夏"]
+        }
+      ]
+    },
+    "TOP": {
+      "price_range": [1480, 3280],
+      "items": [
+        {
+          "filename": "LINE_ALBUM__250808_78.jpg",
+          "name": "Basic White Tee 上衣",
+          "price": 1480,
+          "tags": ["基本款", "白色", "T恤", "簡約", "百搭"],
+          "style": "basic",
+          "category": "top",
+          "occasion": ["daily", "casual", "basic"],
+          "features": ["basic", "white", "versatile"],
+          "color": ["白色", "純白"],
+          "sleeve": "短袖",
+          "length": "標準版",
+          "material": "純棉",
+          "season": ["春", "夏", "秋"]
+        },
+        {
+          "filename": "條紋1.jpg",
+          "name": "Classic Striped 上衣",
+          "price": 1680,
+          "tags": ["經典", "條紋", "百搭", "簡約", "法式"],
+          "style": "classic",
+          "category": "top",
+          "occasion": ["classic", "versatile", "daily"],
+          "features": ["striped", "classic", "versatile"],
+          "color": ["黑白條紋", "經典條紋"],
+          "sleeve": "長袖",
+          "length": "標準版",
+          "material": "棉質",
+          "season": ["春", "秋"]
+        },
+        {
+          "filename": "泡泡袖上衣.jpeg",
+          "name": "Puff Sleeve 上衣",
+          "price": 2380,
+          "tags": ["泡泡袖", "甜美", "浪漫", "女性化", "復古"],
+          "style": "romantic",
+          "category": "top",
+          "occasion": ["romantic", "sweet", "vintage"],
+          "features": ["puff_sleeve", "romantic", "feminine"],
+          "color": ["白色", "米白色"],
+          "sleeve": "泡泡短袖",
+          "length": "標準版",
+          "material": "棉麻",
+          "season": ["春", "夏"]
+        },
+        {
+          "filename": "法式03.jpg",
+          "name": "French Romantic 上衣",
+          "price": 2680,
+          "tags": ["法式", "浪漫", "優雅", "女性化", "精緻"],
+          "style": "french",
+          "category": "top",
+          "occasion": ["romantic", "elegant", "date"],
+          "features": ["french_style", "romantic", "elegant"],
+          "color": ["粉色", "淡粉色"],
+          "sleeve": "長袖",
+          "length": "標準版",
+          "material": "真絲",
+          "season": ["春", "秋"]
+        }
+      ]
+    },
+    "SHORTS": {
+      "price_range": [1190, 2290],
+      "items": [
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_100.jpg",
+          "name": "High Waisted Denim Shorts 牛仔短褲",
+          "price": 1690,
+          "tags": ["高腰", "牛仔", "夏季", "休閒", "顯瘦"],
+          "style": "casual",
+          "category": "shorts",
+          "occasion": ["summer", "casual", "trendy"],
+          "features": ["high_waisted", "denim", "summer"],
+          "color": ["藍色", "牛仔藍"],
+          "sleeve": "無袖",
+          "length": "短版",
+          "material": "牛仔布",
+          "season": ["夏"]
+        },
+        {
+          "filename": "LINE_ALBUM_🪸七月 · 各種上衣🪸_250808_172.jpg",
+          "name": "Tailored Bermuda Shorts 百慕達短褲",
+          "price": 1890,
+          "tags": ["百慕達", "正式", "俐落", "夏季", "優雅"],
+          "style": "tailored",
+          "category": "shorts",
+          "occasion": ["smart_casual", "summer", "elegant"],
+          "features": ["bermuda", "tailored", "elegant"],
+          "color": ["卡其色", "米色"],
+          "sleeve": "無袖",
+          "length": "中短版",
+          "material": "棉質",
+          "season": ["夏"]
+        }
+      ]
+    },
+    "JACKET": {
+      "price_range": [2180, 4580],
+      "items": [
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_1.jpg",
+          "name": "Knit Cardigan 針織開衫",
+          "price": 2480,
+          "tags": ["針織", "開衫", "舒適", "溫暖", "百搭"],
+          "style": "cozy",
+          "category": "jacket",
+          "occasion": ["cozy", "casual", "layering"],
+          "features": ["knit", "cardigan", "comfortable"],
+          "color": ["米色", "駝色"],
+          "sleeve": "長袖",
+          "length": "標準版",
+          "material": "羊毛混紡",
+          "season": ["秋", "冬"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_12.jpg",
+          "name": "Blazer Formal Jacket 正式西裝外套",
+          "price": 3680,
+          "tags": ["西裝外套", "正式", "職場", "專業", "俐落"],
+          "style": "formal",
+          "category": "jacket",
+          "occasion": ["work", "formal", "business"],
+          "features": ["blazer", "formal", "professional"],
+          "color": ["黑色", "深色"],
+          "sleeve": "長袖",
+          "length": "標準版",
+          "material": "羊毛",
+          "season": ["春", "秋", "冬"]
+        },
+        {
+          "filename": "LINE_ALBUM_🌼六月 · 各種外套、開衫、背心🌼_250808_25.jpg",
+          "name": "Puff Sleeve Jacket 泡泡袖外套",
+          "price": 3480,
+          "tags": ["泡泡袖", "外套", "浪漫", "女性化", "復古"],
+          "style": "romantic",
+          "category": "jacket",
+          "occasion": ["romantic", "feminine", "vintage"],
+          "features": ["puff_sleeve", "romantic", "feminine"],
+          "color": ["粉色", "淡粉色"],
+          "sleeve": "泡泡長袖",
+          "length": "短版",
+          "material": "棉麻",
+          "season": ["春", "秋"]
+        }
+      ]
+    }
+  },
+  "tag_categories": {
+    "colors": [
+      "黑色", "白色", "粉色", "藍色", "紅色", "綠色", "黃色", "紫色",
+      "灰色", "棕色", "米色", "卡其色", "藏青色", "淡粉色", "深藍色",
+      "純白", "牛仔藍", "花卉印花", "條紋", "格紋", "漸層"
+    ],
+    "sleeves": [
+      "短袖", "長袖", "無袖", "七分袖", "五分袖", "泡泡短袖", "泡泡長袖",
+      "燈籠袖", "喇叭袖", "緊身袖", "寬鬆袖"
+    ],
+    "lengths": [
+      "短版", "標準版", "中長版", "長版", "超短版", "中短版", "及膝", "過膝"
+    ],
+    "materials": [
+      "純棉", "棉質", "棉麻", "雪紡", "真絲", "羊毛", "羊毛混紡", "牛仔布",
+      "針織", "聚酯纖維", "亞麻", "絲綢", "毛呢", "彈性纖維", "尼龍"
+    ],
+    "seasons": [
+      "春", "夏", "秋", "冬", "春夏", "秋冬", "四季"
+    ],
+    "styles": [
+      "韓系", "日系", "法式", "美式", "英倫", "復古", "現代", "極簡",
+      "甜美", "優雅", "休閒", "正式", "街頭", "波希米亞", "田園"
+    ]
+  },
+  "metadata": {
+    "enhanced_features": [
+      "詳細顏色標籤",
+      "袖長分類", 
+      "版型長度",
+      "材質資訊",
+      "季節適用性"
+    ],
+    "created_date": "2025-08-24",
+    "version": "2.0_enhanced"
+  }
+}

@@ -365,8 +365,8 @@ def main():
     print("Starting bilingual fashion tagging...")
     print("English tags for FashionCLIP, Chinese tags for frontend")
     
-    # 先測試少量圖片
-    test_limit = 20  # 測試20張
+    # 擴充商品選擇範圍
+    test_limit = 50  # 擴充到50張，提供更豐富的推薦選項
     
     results = tagger.process_batch(
         input_dir="./picture",

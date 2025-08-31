@@ -141,10 +141,26 @@ export class TravelWeatherAnalyzer {
       input.includes(keyword.toLowerCase())
     )
 
-    // 提取地點
-    const detectedLocation = Object.keys(this.locationMap).find(location => 
+    // 提取地點 - 加強「去某地」模式識別
+    let detectedLocation = Object.keys(this.locationMap).find(location => 
       userInput.includes(location)
     )
+    
+    // 如果沒找到預設地點，嘗試從「去某地」模式中提取
+    if (!detectedLocation) {
+      const goPattern = /去\s*([^\s，。！？]{1,10})/
+      const match = userInput.match(goPattern)
+      if (match && match[1]) {
+        const destination = match[1]
+        // 檢查是否在我們的地點庫中
+        const foundKey = Object.keys(this.locationMap).find(key => 
+          key.includes(destination) || destination.includes(key)
+        )
+        if (foundKey) {
+          detectedLocation = foundKey
+        }
+      }
+    }
 
     // 提取時間語境
     const timeContext = this.timeKeywords.find(time => 
@@ -158,12 +174,13 @@ export class TravelWeatherAnalyzer {
       )
       .map(([scenario, _]) => scenario)
 
-    // 判斷是否需要天氣數據
+    // 判斷是否需要天氣數據 - 只要有地點就需要天氣
     const needsWeather = !!(
       hasWeatherKeywords || 
       hasTravelKeywords || 
       hasTimeKeywords || 
-      detectedLocation
+      detectedLocation ||
+      /去\s*[^\s，。！？]{1,10}/.test(userInput) // 「去某地」模式
     )
 
     return {
@@ -249,61 +266,136 @@ export class TravelWeatherAnalyzer {
   /**
    * 生成5天穿搭計劃
    */
-  static generate5DayOutfitPlan(forecasts: WeatherData[], context: TravelContext): string {
-    let plan = `
-<h3>🌤️ ${forecasts.length}天天氣預報與穿搭計劃</h3>
-<div>`
+  static generate5DayOutfitPlan(forecasts: WeatherData[], context: TravelContext): { content: string; recommendedProducts: string[] } {
+    let plan = `\n\n**🌤️ ${forecasts.length}天天氣預報與穿搭計劃**\n\n`
+    let allRecommendedProducts: string[] = []
     
     forecasts.forEach((weather, index) => {
       const day = index + 1
-      const clothing = this.getClothingAdviceForWeather(weather)
+      const clothingData = this.getClothingAdviceForWeather(weather, index)
       
-      plan += `
-<p><strong>Day ${day} (${weather.date.split('-').slice(1).join('/')})：</strong> ${weather.temperature}°C ${weather.description}</p>
-<p>🎯 <strong>穿搭建議：</strong> ${clothing}</p>`
+      plan += `**Day ${day} (${weather.date.split('-').slice(1).join('/')})：** ${weather.temperature}°C ${weather.description}\n\n`
+      plan += `🎯 **穿搭建議：** ${clothingData.advice}\n\n`
+      
+      if (clothingData.products.length > 0) {
+        plan += `👗 **推薦商品：**\n`
+        clothingData.products.forEach(productId => {
+          plan += `• 商品 ID: ${productId}\n`
+          // 收集所有推薦的產品 ID
+          if (!allRecommendedProducts.includes(productId)) {
+            allRecommendedProducts.push(productId)
+          }
+        })
+        plan += `\n`
+      }
       
       if (weather.rain_probability > 40) {
-        plan += `
-<p>☔ <strong>特別提醒：</strong> 降雨機率${weather.rain_probability}%，建議攜帶雨具</p>`
+        plan += `☔ **特別提醒：** 降雨機率${weather.rain_probability}%，建議攜帶雨具。\n\n`
+      } else {
+        plan += `\n`
       }
     })
     
-    plan += `
-</div>
-<p>🧳 <strong>行李建議：</strong> 依據天氣變化，建議準備${this.generatePackingSuggestion(forecasts)}</p>`
+    plan += `🧳 **行李建議：** 依據天氣變化，建議準備${this.generatePackingSuggestion(forecasts)}\n`
     
-    return plan
+    return {
+      content: plan,
+      recommendedProducts: allRecommendedProducts.slice(0, 6) // 限制最多6個產品推薦
+    }
   }
 
   /**
-   * 根據天氣生成穿衣建議
+   * 根據天氣生成穿衣建議和商品推薦
    */
-  private static getClothingAdviceForWeather(weather: WeatherData): string {
+  private static getClothingAdviceForWeather(weather: WeatherData, dayIndex: number = 0): { advice: string; products: string[] } {
     let advice = []
+    let products = []
     
-    // 溫度建議
+    // 🎯 動態隨機商品池 - 從資料庫獲取實際產品名稱
+    const getRandomizedProducts = (temperature: number, dayIndex: number = 0): string[] => {
+      // 使用真實的產品ID (基於products.ts)
+      const hotWeatherProducts = [
+        'dress_sweet_pink_midi',        // 粉色洋裝，適合炎熱天氣
+        'dress_minimalist_white_maxi',  // 白色長洋裝，涼爽
+        'top_basic_white_tee',          // 基本白T，透氣
+        'top_casual_striped',           // 條紋上衣，休閒
+        'shorts_high_waisted_denim'     // 高腰牛仔短褲
+      ]
+      
+      const coldWeatherProducts = [
+        'dress_elegant_floral',         // 優雅花卉洋裝，適合較冷天氣
+        'dress_french_elegant',         // 法式優雅洋裝，保暖
+        'top_puff_sleeve',              // 泡泡袖上衣，較保暖  
+        'top_french_romantic'           // 法式浪漫上衣，長袖
+      ]
+      
+      const allAvailableProductIds = [...hotWeatherProducts, ...coldWeatherProducts]
+      
+      // 根據溫度和天氣推薦不同類型
+      let suitableProductIds = [...allAvailableProductIds]
+      
+      if (temperature >= 28) {
+        // 炎熱天氣優先推薦清爽款式
+        suitableProductIds = hotWeatherProducts
+      } else if (temperature >= 15) {
+        // 適中溫度，所有商品都適合
+        suitableProductIds = allAvailableProductIds
+      } else {
+        // 較冷天氣優先推薦保暖款式
+        suitableProductIds = coldWeatherProducts
+      }
+      
+      // 根據天數錯開商品，避免5天重複推薦
+      const shuffled = [...suitableProductIds].sort(() => Math.random() - 0.5)
+      
+      // 使用日期索引來確保不同天推薦不同商品
+      const startIndex = (dayIndex * 1) % suitableProductIds.length
+      let selectedProductIds = []
+      
+      // 選擇2-3個不重疊的商品
+      const itemsPerDay = Math.min(3, suitableProductIds.length)
+      for (let i = 0; i < itemsPerDay; i++) {
+        const index = (startIndex + i) % suitableProductIds.length
+        if (!selectedProductIds.includes(shuffled[index])) {
+          selectedProductIds.push(shuffled[index])
+        }
+      }
+      
+      return selectedProductIds
+    }
+    
+    // 溫度建議（使用隨機化商品推薦）
     if (weather.temperature >= 29) {
       advice.push('極輕薄材質、吸濕排汗上衣、透氣短褲')
+      if (weather.wind_speed > 25) {
+        advice.push('抗風外套、避免飄逸設計')
+      }
+      products.push(...getRandomizedProducts(weather.temperature, dayIndex))
     } else if (weather.temperature >= 23) {
       advice.push('輕薄短袖、薄款下身、舒適平底鞋')
+      products.push(...getRandomizedProducts(weather.temperature, dayIndex))
     } else if (weather.temperature >= 16) {
       advice.push('薄外套、長袖上衣、舒適長褲')
+      products.push(...getRandomizedProducts(weather.temperature, dayIndex))
     } else if (weather.temperature >= 9) {
       advice.push('外套、針織衫、保暖長褲')
+      products.push(...getRandomizedProducts(weather.temperature, dayIndex))
     } else {
       advice.push('厚外套、保暖內搭、防寒配件')
+      products.push(...getRandomizedProducts(weather.temperature, dayIndex))
     }
     
-    // 天氣狀況建議
+    // 雨天特殊建議
     if (weather.rain_probability > 50) {
-      advice.push('防水外套、防水鞋')
+      if (!advice.some(a => a.includes('防水'))) {
+        advice.push('防水外套、防水鞋')
+      }
     }
     
-    if (weather.wind_speed > 25) {
-      advice.push('抗風外套、避免飄逸設計')
+    return {
+      advice: advice.join('、'),
+      products: products.slice(0, 3) // 限制每天最多3個商品推薦
     }
-    
-    return advice.join('、')
   }
 
   /**

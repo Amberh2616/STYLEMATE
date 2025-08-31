@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       console.log('🖼️ 進行圖片分析...')
       
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o", // 使用支援視覺的模型
+        model: "gpt-4o-mini", // 使用支援視覺的模型
         messages: [
           {
             role: "system",
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       console.log('💬 進行文字對話...')
       
       const completion = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
