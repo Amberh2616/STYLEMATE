@@ -100,9 +100,9 @@ export default function PhotoUpload({
       {/* 上傳區域 */}
       <div
         className={`
-          upload-zone
-          ${dragOver ? 'dragover' : ''}
-          ${error ? 'border-error bg-error/5' : ''}
+          border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50
+          ${dragOver ? 'border-indigo-500 bg-indigo-50' : 'border-slate-300 bg-slate-50'}
+          ${error ? 'border-red-500 bg-red-50/50' : ''}
         `}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
@@ -128,7 +128,7 @@ export default function PhotoUpload({
             <button
               type="button"
               onClick={removeFile}
-              className="absolute top-2 right-2 bg-error text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-error/80 transition-colors"
+              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors"
             >
               ×
             </button>
@@ -138,7 +138,7 @@ export default function PhotoUpload({
           <div className="text-center">
             <div className="mb-4">
               <svg
-                className="w-12 h-12 text-secondary-400 mx-auto"
+                className="w-12 h-12 text-slate-400 mx-auto"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -152,18 +152,18 @@ export default function PhotoUpload({
               </svg>
             </div>
             
-            <h4 className="text-lg font-medium text-neutral-dark mb-2">
+            <h4 className="text-lg font-medium text-slate-800 mb-2">
               拖拽照片到此處或點擊上傳
             </h4>
             
-            <p className="text-secondary-600 mb-4">
+            <p className="text-slate-600 mb-4">
               支援 JPEG、PNG、WebP 格式，最大 {maxSize}MB
             </p>
             
             <button
               type="button"
               onClick={() => document.getElementById('photo-upload')?.click()}
-              className="btn-primary inline-flex items-center px-6 py-3"
+              className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-lg font-medium hover:from-indigo-600 hover:to-violet-700 transition-all inline-flex items-center px-6 py-3"
             >
               <svg
                 className="w-5 h-5 mr-2"
@@ -186,22 +186,22 @@ export default function PhotoUpload({
 
       {/* 錯誤訊息 */}
       {error && (
-        <div className="mt-3 p-3 bg-error/10 border border-error/20 rounded-lg">
-          <p className="text-error text-sm">{error}</p>
+        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm">{error}</p>
         </div>
       )}
 
       {/* 檔案資訊 */}
       {currentFile && !error && (
-        <div className="mt-3 p-3 bg-success/10 border border-success/20 rounded-lg">
+        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-neutral-dark">{currentFile.name}</p>
-              <p className="text-xs text-secondary-600">
+              <p className="text-sm font-medium text-slate-800">{currentFile.name}</p>
+              <p className="text-xs text-slate-600">
                 {(currentFile.size / 1024 / 1024).toFixed(2)} MB
               </p>
             </div>
-            <div className="text-success">
+            <div className="text-green-600">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"

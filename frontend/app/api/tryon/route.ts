@@ -130,6 +130,29 @@ async function tryonViaHF(personUrl: string, clothUrl: string): Promise<string> 
   return url;
 }
 
+/** 將 URL 轉換為適合 Gradio 的 Buffer 格式 */
+async function urlToImage(url: string): Promise<Buffer> {
+  try {
+    if (url.startsWith('data:image/')) {
+      // 處理 base64 格式
+      const base64Data = url.split(',')[1];
+      return Buffer.from(base64Data, 'base64');
+    } else {
+      // 處理 HTTP URL
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+      }
+      
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    }
+  } catch (error) {
+    console.error('urlToImage 轉換失敗:', error);
+    throw error;
+  }
+}
+
 /** Canvas 合成備援 */
 async function createCanvasFallback(personUrl: string, clothUrl: string): Promise<string> {
   const sharp = require('sharp')
