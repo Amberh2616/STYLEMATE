@@ -875,7 +875,7 @@ export default function ChatPage() {
                             productId: product.id,
                             productName: product.name?.zh || product.name || '時尚單品',
                             filename: product.filename || product.imagePath,
-                            imageUrl: `http://localhost:3002/images/korean-fashion/${encodeURIComponent((product.imagePath || product.filename || '').replace(/\\/g, '/').replace(/^[^/]*\//, ''))}`
+                            imageUrl: `http://localhost:3002${product.image || `/picture/${product.filename || 'DRESS/01fffba5-6a65-4c1b-af4f-67d47667a05d.jpg'}`}`
                           };
                           localStorage.setItem('selectedGarment', JSON.stringify(garmentData));
                           

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Affiora Virtual Try-On Assistant</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- Glass Header -->
+      <div class="header">
+        <div class="header-content">
+          <div class="app-title">
+            <div class="app-icon">
+              <img src="icons/icon128.png" alt="Affiora" class="app-logo" />
+            </div>
+            <div class="app-info">
+              <h1>Affiora</h1>
+              <p>Virtual Try-On Assistant</p>
+            </div>
+          </div>
+          <div class="header-controls">
+            <div class="status-pill" id="statusPill">
+              <div class="status-dot"></div>
+              <span>Ready</span>
+            </div>
+            <button class="settings-btn" id="settingsBtn" title="Settings">
+              <span>⚙️</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main">
+        <!-- API Setup Card -->
+        <div class="card setup-card" id="setupCard">
+          <div class="card-header">
+            <div class="step-badge">1</div>
+            <div class="card-title">
+              <h3>Setup API Key</h3>
+              <p>Connect your Gemini AI account</p>
+            </div>
+          </div>
+          <div class="card-content">
+            <div class="input-group">
+              <div class="input-container">
+                <input
+                  type="text"
+                  id="apiKey"
+                  placeholder="Enter your Gemini API key"
+                  class="input-field"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <button
+                  type="button"
+                  id="toggleApiKey"
+                  class="toggle-visibility"
+                  title="Show/Hide API key"
+                >
+                  👁️
+                </button>
+              </div>
+              <button id="saveApiKey" class="btn-primary">
+                <span>Save</span>
+                <div class="btn-icon">→</div>
+              </button>
+            </div>
+            <div class="api-status" id="apiStatus" style="display: none">
+              <span class="status-icon">✅</span>
+              <span class="status-text">API key configured</span>
+              <button type="button" id="changeApiKey" class="btn-link">
+                Change
+              </button>
+            </div>
+            <div class="help-text">
+              Get your free API key from
+              <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                >Google AI Studio</a
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload Cards -->
+        <div class="upload-section" id="uploadSection" style="display: none">
+          <div class="upload-grid">
+            <!-- User Photo -->
+            <div class="upload-card" id="userPhotoCard">
+              <div class="upload-area" data-type="user">
+                <div class="upload-content" id="userUploadContent">
+                  <div class="upload-icon">
+                    <div class="icon-person">👤</div>
+                  </div>
+                  <h4>Your Photo</h4>
+                  <p>Upload a clear photo</p>
+                  <div class="upload-btn">Choose Photo</div>
+                </div>
+                <div
+                  class="preview-container"
+                  id="userPreview"
+                  style="display: none"
+                >
+                  <img id="userImage" class="preview-image" />
+                  <div class="preview-overlay">
+                    <button class="change-photo" id="changeUserPhoto">
+                      Change
+                    </button>
+                    <button class="clear-photo" id="clearUserPhoto">×</button>
+                  </div>
+                </div>
+              </div>
+              <input type="file" id="userPhotoInput" accept="image/*" hidden />
+            </div>
+
+            <!-- Clothing Photo -->
+            <div class="upload-card" id="clothingCard">
+              <div class="upload-area" data-type="clothing">
+                <div class="upload-content" id="clothingUploadContent">
+                  <div class="upload-icon">
+                    <div class="icon-clothing">👕</div>
+                  </div>
+                  <h4>Clothing</h4>
+                  <p>Upload clothing image</p>
+                  <p class="upload-hint">
+                    or right-click on images anywhere on the web
+                  </p>
+                  <div class="upload-btn" id="uploadClothingBtn">
+                    Choose Photo
+                  </div>
+                </div>
+                <div
+                  class="preview-container"
+                  id="clothingPreview"
+                  style="display: none"
+                >
+                  <img id="clothingImage" class="preview-image" />
+                  <div class="preview-overlay">
+                    <button class="change-photo" id="changeClothingPhoto">
+                      Change
+                    </button>
+                    <button class="clear-photo" id="clearClothingPhoto">
+                      ×
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <input type="file" id="clothingInput" accept="image/*" hidden />
+            </div>
+          </div>
+
+          <!-- Progress Steps -->
+          <div class="progress-steps">
+            <div class="step completed">API</div>
+            <div class="step" id="photoStep">Photo</div>
+            <div class="step" id="clothingStep">Clothing</div>
+          </div>
+        </div>
+
+        <!-- Mode Selector & Try-On Button -->
+        <div class="action-section" id="actionSection" style="display: none">
+          <div class="mode-toggle-container">
+            <div class="mode-toggle" id="modeToggle">
+              <button
+                class="mode-option active"
+                data-mode="overall"
+                id="overallModeBtn"
+              >
+                <span class="mode-icon">✨</span>
+                <span class="mode-text">Style Transform</span>
+              </button>
+              <button class="mode-option" data-mode="direct" id="directModeBtn">
+                <span class="mode-icon">🔄</span>
+                <span class="mode-text">Direct Replace</span>
+              </button>
+            </div>
+            <div class="mode-description-inline" id="modeDescriptionInline">
+              Style transformation: Complete outfit makeover with scene and
+              lighting adaptation
+            </div>
+          </div>
+
+          <button id="tryOnBtn" class="try-on-button" disabled>
+            <div class="btn-content">
+              <span class="magic-icon">✨</span>
+              <span>Generate Virtual Try-On</span>
+            </div>
+            <div class="loading-spinner" style="display: none">
+              <div class="spinner"></div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Result Card -->
+        <div class="result-card" id="resultCard" style="display: none">
+          <div class="result-header">
+            <h3>✨ Your Virtual Try-On</h3>
+            <button class="close-btn" id="closeResult">×</button>
+          </div>
+          <div class="result-content">
+            <div class="result-image-container">
+              <img id="resultImage" class="result-image" />
+            </div>
+            <div class="result-actions">
+              <button id="downloadBtn" class="result-btn download">
+                <span>📱</span>
+                Download
+              </button>
+              <button id="shareBtn" class="result-btn share">
+                <span>🔗</span>
+                Share
+              </button>
+              <button id="customPromptBtn" class="result-btn custom">
+                <span>✏️</span>
+                Custom Prompt
+              </button>
+              <button id="retryBtn" class="result-btn retry">
+                <span>🔄</span>
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Prompt Modal -->
+      <div
+        class="custom-prompt-modal"
+        id="customPromptModal"
+        style="display: none"
+      >
+        <div class="modal-backdrop"></div>
+        <div class="modal-dialog">
+          <div class="modal-header">
+            <h3>Custom Prompt</h3>
+            <button class="close-btn" id="closeCustomPrompt">×</button>
+          </div>
+          <div class="modal-body">
+            <label for="customPromptInput"
+              >Describe how you want the try-on to look:</label
+            >
+            <textarea
+              id="customPromptInput"
+              placeholder="e.g., Make it more casual, add a leather jacket, change to outdoor setting..."
+              rows="4"
+            ></textarea>
+          </div>
+          <div class="modal-footer">
+            <button id="cancelCustomPrompt" class="btn-secondary">
+              Cancel
+            </button>
+            <button id="generateCustomPrompt" class="btn-primary">
+              Generate
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Modal -->
+      <div class="settings-modal" id="settingsModal" style="display: none">
+        <div class="modal-backdrop"></div>
+        <div class="modal-dialog">
+          <div class="modal-header">
+            <h3>Settings</h3>
+            <button class="close-btn" id="closeSettings">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="settings-group">
+              <label for="apiKeySettingsInput">API Key Management:</label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  id="apiKeySettingsInput"
+                  placeholder="Your Gemini API key"
+                  class="input-field"
+                  readonly
+                />
+                <button id="changeApiKeySettings" class="btn-secondary">
+                  Change
+                </button>
+                <button id="resetApiKey" class="btn-danger">Clear</button>
+              </div>
+            </div>
+
+            <div class="settings-group">
+              <label for="defaultPromptInput">Default Try-On Prompt:</label>
+              <textarea
+                id="defaultPromptInput"
+                placeholder="Leave empty to use system default..."
+                rows="4"
+              ></textarea>
+              <div class="settings-help">
+                <p><strong>Tips:</strong></p>
+                <ul>
+                  <li>
+                    Fit preferences: "loose fit", "fitted style", "oversized
+                    look"
+                  </li>
+                  <li>
+                    Color matching: "match existing colors", "complementary
+                    colors"
+                  </li>
+                  <li>
+                    Style coordination: "keep it casual", "maintain formal
+                    look", "blend with current outfit"
+                  </li>
+                  <li>
+                    Fabric details: "show texture details", "natural draping",
+                    "realistic wrinkles"
+                  </li>
+                </ul>
+              </div>
+              <div class="prompt-actions" style="margin-top: 16px; display: flex; gap: 8px; justify-content: flex-end;">
+                <button id="resetPrompt" class="btn-secondary">
+                  Reset to Default
+                </button>
+                <button id="savePromptSettings" class="btn-primary">
+                  Save Prompt Settings
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Messages -->
+      <div class="toast" id="toast" style="display: none"></div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -23,6 +23,8 @@ export default function TryOnUploadPage() {
   const [userPhoto, setUserPhoto] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [processStep, setProcessStep] = useState('')
+  const [customRequest, setCustomRequest] = useState('')
+  const [keepOtherItems, setKeepOtherItems] = useState(true)
 
   useEffect(() => {
     // 從 localStorage 讀取選中的衣服
@@ -71,21 +73,46 @@ export default function TryOnUploadPage() {
       })
 
       const result = await response.json()
+      
+      console.log('🔍 前端收到API回應:', JSON.stringify(result, null, 2))
+      console.log('🔍 回應狀態碼:', response.status)
+      console.log('🔍 result.success:', result.success)
+      console.log('🔍 result.url存在:', !!result.url)
+      console.log('🔍 result.url長度:', result.url ? result.url.length : 0)
 
       setProcessStep('生成試穿效果中...')
 
       if (result.success !== false && result.url) {
         // 3. 成功：儲存結果並導向結果頁面
         const tryonResult = {
+          id: Date.now(), // 添加唯一ID
+          timestamp: new Date().toISOString(),
           resultImage: result.url,
           productName: selectedGarment.productName,
-          originalPhoto: userPhotoBase64
+          originalPhoto: userPhotoBase64,
+          productId: selectedGarment.productId
         }
         
-        localStorage.setItem('tryonResult', JSON.stringify(tryonResult))
+        // 保存到試穿歷史記錄
+        const existingHistory = JSON.parse(localStorage.getItem('tryonHistory') || '[]')
+        existingHistory.unshift(tryonResult) // 最新的放在前面
+        
+        // 只保留最近10次記錄，避免localStorage過大
+        if (existingHistory.length > 10) {
+          existingHistory.splice(10)
+        }
+        
+        localStorage.setItem('tryonHistory', JSON.stringify(existingHistory))
+        localStorage.setItem('tryonResult', JSON.stringify(tryonResult)) // 當前結果
+        
+        console.log(`✅ 試穿成功！結果已保存 (ID: ${tryonResult.id})`)
         router.push('/tryon')
         
       } else {
+        console.log('❌ 虛擬試穿處理失敗')
+        console.log('💥 失敗原因:', result.error || '未知錯誤')
+        console.log('💥 後端訊息:', result.message)
+        console.log('💥 使用的後端:', result.backend)
         throw new Error(result.error || '虛擬試穿處理失敗')
       }
 

@@ -14,15 +14,19 @@ import {
 } from '@heroicons/react/24/outline'
 
 interface TryOnResult {
+  id?: number
+  timestamp?: string
   resultImage: string
   productName: string
   originalPhoto: string
+  productId?: string
 }
 
 export default function TryOnResultPage() {
   const [currentQuantity, setCurrentQuantity] = useState(1)
   const [tryonResult, setTryonResult] = useState<TryOnResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [historyResults, setHistoryResults] = useState<TryOnResult[]>([])
 
   const changeQuantity = (delta: number) => {
     setCurrentQuantity(Math.max(1, currentQuantity + delta))
@@ -39,6 +43,19 @@ export default function TryOnResultPage() {
         console.error('解析試穿結果錯誤:', error)
       }
     }
+    
+    // 從 localStorage 讀取歷史記錄
+    const storedHistory = localStorage.getItem('tryonHistory')
+    if (storedHistory) {
+      try {
+        const history = JSON.parse(storedHistory)
+        setHistoryResults(history)
+        console.log(`📋 載入了 ${history.length} 個歷史試穿記錄`)
+      } catch (error) {
+        console.error('解析試穿歷史錯誤:', error)
+      }
+    }
+    
     setIsLoading(false)
   }, [])
 
@@ -144,6 +161,49 @@ export default function TryOnResultPage() {
           <h2 className="text-2xl font-semibold text-slate-700 mb-2">試穿效果完成！</h2>
           <p className="text-slate-600">你的專屬試穿效果圖已經生成完成</p>
         </div>
+
+        {/* 歷史記錄區域 */}
+        {historyResults.length > 1 && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-4 border-slate-200 p-6 mb-8">
+            <h3 className="text-xl font-semibold text-slate-800 mb-4 text-center">📸 試穿歷史記錄 ({historyResults.length} 個)</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {historyResults.map((history, index) => (
+                <div 
+                  key={history.id || index}
+                  className={`aspect-[3/4] rounded-lg overflow-hidden cursor-pointer border-2 transition-all relative ${
+                    history.id === tryonResult?.id 
+                      ? 'border-indigo-500 ring-2 ring-indigo-200' 
+                      : 'border-slate-200 hover:border-indigo-300'
+                  }`}
+                  onClick={() => setTryonResult(history)}
+                  title={`${history.productName} - ${history.timestamp ? new Date(history.timestamp).toLocaleString('zh-TW') : ''}`}
+                >
+                  <img 
+                    src={history.resultImage} 
+                    alt={`${history.productName} 試穿記錄`}
+                    className="w-full h-full object-cover"
+                  />
+                  {index === 0 && (
+                    <div className="absolute top-1 right-1 bg-green-500 text-white text-xs px-1 rounded">新</div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between items-center mt-2">
+              <p className="text-xs text-slate-500">點擊縮圖查看該試穿結果</p>
+              <button 
+                onClick={() => {
+                  localStorage.removeItem('tryonHistory')
+                  setHistoryResults([])
+                  console.log('🗑️ 歷史記錄已清除')
+                }}
+                className="text-xs text-slate-400 hover:text-slate-600 underline"
+              >
+                清除歷史
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* 主要內容區 - 左右分欄 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
