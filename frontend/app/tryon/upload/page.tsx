@@ -68,7 +68,9 @@ export default function TryOnUploadPage() {
         },
         body: JSON.stringify({
           personImageUrl: userPhotoBase64,
-          garmentImageUrl: selectedGarment.imageUrl
+          garmentImageUrl: selectedGarment.imageUrl,
+          customRequest: customRequest.trim(),
+          keepOtherItems: keepOtherItems
         })
       })
 
@@ -204,14 +206,69 @@ export default function TryOnUploadPage() {
               />
             </div>
 
-            {/* 提示說明 */}
+            {/* 自訂試穿需求 */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+              <h4 className="font-medium text-gray-900 mb-3">Customize Your Try-On</h4>
+              
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  What would you like to try on?
+                </label>
+                <textarea
+                  value={customRequest}
+                  onChange={(e) => setCustomRequest(e.target.value)}
+                  placeholder="e.g., Only the top shirt, Just the bottom skirt, Everything except accessories..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                  rows={2}
+                />
+              </div>
+
+              <div className="flex items-center space-x-2 mb-3">
+                <input
+                  type="checkbox"
+                  id="keepOtherItems"
+                  checked={keepOtherItems}
+                  onChange={(e) => setKeepOtherItems(e.target.checked)}
+                  className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                />
+                <label htmlFor="keepOtherItems" className="text-sm text-gray-700">
+                  Keep my current clothing for unlisted items
+                </label>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCustomRequest('Only the top shirt')}
+                  className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors"
+                >
+                  Top only
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCustomRequest('Only the bottom piece')}
+                  className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors"
+                >
+                  Bottom only
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCustomRequest('Complete outfit')}
+                  className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors"
+                >
+                  Full outfit
+                </button>
+              </div>
+            </div>
+
+            {/* 拍照建議 */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h4 className="font-medium text-blue-900 mb-2">📋 拍照建議</h4>
+              <h4 className="font-medium text-blue-900 mb-2">Photo Guidelines</h4>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• 請站立並面向鏡頭</li>
-                <li>• 確保全身或上半身清晰可見</li>
-                <li>• 光線充足，背景簡潔</li>
-                <li>• 避免穿著過於寬鬆的衣物</li>
+                <li>• Stand facing the camera</li>
+                <li>• Full body or upper body clearly visible</li>
+                <li>• Good lighting, clean background</li>
+                <li>• Avoid overly loose clothing</li>
               </ul>
             </div>
 

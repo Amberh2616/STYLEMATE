@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { personImageUrl, garmentImageUrl } = await req.json();
+  const { personImageUrl, garmentImageUrl, customRequest = '', keepOtherItems = true } = await req.json();
 
   const backend = process.env.TRYON_BACKEND || "hf_space";
   
   try {
     if (backend === "gemini") {
       console.log('🎯 使用 Gemini 後端進行虛擬試穿');
-      const url = await tryonViaGemini(personImageUrl, garmentImageUrl);
+      console.log('📝 用戶需求:', customRequest || '完整試穿');
+      const url = await tryonViaGemini(personImageUrl, garmentImageUrl, customRequest, keepOtherItems);
       console.log('🎉 Gemini 虛擬試穿完成，返回結果');
       return NextResponse.json({ 
         url,
@@ -17,6 +18,7 @@ export async function POST(req: Request) {
       });
     } else if (backend === "hf_space") {
       console.log('🎯 使用 HF Space 後端進行虛擬試穿');
+      console.log('📝 用戶需求:', customRequest || '完整試穿');
       const url = await tryonViaHF(personImageUrl, garmentImageUrl);
       console.log('🎉 HF Space 虛擬試穿完成，返回結果');
       return NextResponse.json({ 
@@ -79,7 +81,7 @@ export async function POST(req: Request) {
 }
 
 /** Google Gemini API 虛擬試穿 */
-async function tryonViaGemini(personUrl: string, clothUrl: string): Promise<string> {
+async function tryonViaGemini(personUrl: string, clothUrl: string, customRequest: string = '', keepOtherItems: boolean = true): Promise<string> {
   const geminiApiKey = process.env.GEMINI_API_KEY;
   
   if (!geminiApiKey || geminiApiKey === 'your-gemini-api-key-here') {
@@ -93,19 +95,8 @@ async function tryonViaGemini(personUrl: string, clothUrl: string): Promise<stri
     const personImageData = await prepareImageForGemini(personUrl);
     const garmentImageData = await prepareImageForGemini(clothUrl);
     
-    const prompt = `You are a professional virtual try-on AI. Replace the person's current clothing with the new clothing item from the second image.
-
-CRITICAL INSTRUCTIONS:
-- REMOVE the person's existing clothing completely
-- REPLACE it with ONLY the clothing item from the second image
-- DO NOT layer or overlay clothing - completely substitute the original clothing
-- The person should appear to be naturally wearing ONLY the new clothing item
-- Maintain person's exact pose, face, hair, skin tone, and background unchanged
-- Ensure the new clothing fits naturally with proper sizing, proportions, and realistic draping
-- Apply realistic lighting, shadows, and fabric textures
-- Generate in high resolution with professional photography quality
-
-IMPORTANT: This is clothing replacement, not clothing layering. The result should show the person wearing ONLY the new clothing item, as if they had changed clothes completely.`;
+    // 根據用戶需求生成智能提示詞
+    const prompt = generateSmartPrompt(customRequest, keepOtherItems);
 
     const requestBody = {
       contents: [
@@ -533,5 +524,83 @@ async function createCanvasFallback(personUrl: string, clothUrl: string): Promis
     console.error('Canvas 合成失敗:', error)
     throw error
   }
+}
+
+/** 根據用戶需求生成智能提示詞 */
+function generateSmartPrompt(customRequest: string, keepOtherItems: boolean): string {
+  const basePrompt = `You are a professional virtual try-on AI. Your task is to realistically apply clothing from the second image to the person in the first image.
+
+CORE PRINCIPLES:
+- Maintain person's exact pose, face, hair, skin tone, and background unchanged
+- Apply realistic lighting, shadows, and fabric textures
+- Ensure natural fit with proper sizing and proportions
+- Generate in high resolution with professional photography quality`;
+
+  // 如果有自訂需求，解析並應用
+  if (customRequest && customRequest.trim()) {
+    const request = customRequest.toLowerCase().trim();
+    
+    // 智能解析用戶需求
+    let specificInstructions = '';
+    
+    if (request.includes('only') || request.includes('just')) {
+      if (request.includes('top') || request.includes('shirt') || request.includes('blouse')) {
+        specificInstructions = `
+SPECIFIC REQUEST: Replace ONLY the top/upper clothing item from the garment image.
+- Apply only the upper garment (shirt, top, blouse) from the second image
+- Keep the person's original bottom clothing (pants, skirt, etc.)
+- Keep all accessories, shoes, and other items unchanged`;
+      } else if (request.includes('bottom') || request.includes('pants') || request.includes('skirt') || request.includes('shorts')) {
+        specificInstructions = `
+SPECIFIC REQUEST: Replace ONLY the bottom/lower clothing item from the garment image.
+- Apply only the lower garment (pants, skirt, shorts) from the second image  
+- Keep the person's original top clothing
+- Keep all accessories, shoes, and other items unchanged`;
+      } else if (request.includes('dress')) {
+        specificInstructions = `
+SPECIFIC REQUEST: Replace with the dress from the garment image.
+- Apply the complete dress from the second image
+- Remove existing top and bottom clothing
+- Keep accessories and shoes unless specified otherwise`;
+      }
+    } else if (request.includes('everything') || request.includes('complete') || request.includes('full')) {
+      specificInstructions = `
+SPECIFIC REQUEST: Complete outfit replacement.
+- Replace all clothing items with those from the garment image
+- Apply the complete look from the second image`;
+    } else {
+      // 自由文字描述
+      specificInstructions = `
+CUSTOM REQUEST: "${customRequest}"
+- Follow the user's specific instructions as closely as possible
+- Apply only the requested clothing items from the garment image`;
+    }
+    
+    const preservationNote = keepOtherItems ? 
+      `- Preserve all unmentioned clothing items from the original person's outfit` :
+      `- Allow AI to make appropriate styling choices for unmentioned items`;
+    
+    return `${basePrompt}${specificInstructions}
+${preservationNote}
+
+EXECUTION:
+- Analyze both images carefully
+- Apply the requested changes naturally and realistically
+- Ensure the final result looks professionally photographed`;
+  }
+  
+  // 預設：完整替換
+  return `${basePrompt}
+
+DEFAULT INSTRUCTIONS:
+- REMOVE the person's existing clothing completely  
+- REPLACE it with ALL clothing items from the second image
+- This is complete clothing replacement, not layering
+- The result should show the person wearing the complete outfit from the garment image
+
+EXECUTION:
+- Apply all clothing items from the garment image
+- Ensure natural fit and realistic appearance
+- Maintain professional photography quality`;
 }
 
