@@ -27,6 +27,11 @@ export default function TryOnResultPage() {
   const [tryonResult, setTryonResult] = useState<TryOnResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [historyResults, setHistoryResults] = useState<TryOnResult[]>([])
+  
+  // AI 搭配建議狀態
+  const [stylingPrompt, setStylingPrompt] = useState('')
+  const [stylingResponse, setStylingResponse] = useState('')
+  const [isStyleLoading, setIsStyleLoading] = useState(false)
 
   const changeQuantity = (delta: number) => {
     setCurrentQuantity(Math.max(1, currentQuantity + delta))

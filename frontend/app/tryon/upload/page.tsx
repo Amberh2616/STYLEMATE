@@ -91,20 +91,37 @@ export default function TryOnUploadPage() {
           timestamp: new Date().toISOString(),
           resultImage: result.url,
           productName: selectedGarment.productName,
-          originalPhoto: userPhotoBase64,
+          // 不存儲原始照片的 base64，避免 localStorage 超限
+          originalPhoto: 'user_photo_' + Date.now(), // 只存儲標識符
           productId: selectedGarment.productId
         }
         
-        // 保存到試穿歷史記錄
-        const existingHistory = JSON.parse(localStorage.getItem('tryonHistory') || '[]')
-        existingHistory.unshift(tryonResult) // 最新的放在前面
-        
-        // 只保留最近10次記錄，避免localStorage過大
-        if (existingHistory.length > 10) {
-          existingHistory.splice(10)
+        // 保存到試穿歷史記錄（極簡存儲）
+        try {
+          // 直接清空舊歷史，只保留最新結果
+          localStorage.removeItem('tryonHistory')
+          const newHistory = [tryonResult] // 只保存1次最新記錄
+          
+          const historyString = JSON.stringify(newHistory)
+          console.log('📊 存儲大小:', Math.round(historyString.length / 1024), 'KB')
+          
+          if (historyString.length > 500000) { // 如果超過500KB
+            console.log('⚠️ 單次記錄過大，僅保存基本資訊')
+            const minimalResult = {
+              id: tryonResult.id,
+              timestamp: tryonResult.timestamp,
+              resultImage: 'large_image_' + tryonResult.id, // 不保存實際圖片URL
+              productName: tryonResult.productName,
+              productId: tryonResult.productId
+            }
+            localStorage.setItem('tryonHistory', JSON.stringify([minimalResult]))
+          } else {
+            localStorage.setItem('tryonHistory', historyString)
+          }
+        } catch (storageError) {
+          console.warn('⚠️ 存儲失敗，跳過歷史記錄:', storageError)
+          // 完全跳過歷史記錄存儲
         }
-        
-        localStorage.setItem('tryonHistory', JSON.stringify(existingHistory))
         localStorage.setItem('tryonResult', JSON.stringify(tryonResult)) // 當前結果
         
         console.log(`✅ 試穿成功！結果已保存 (ID: ${tryonResult.id})`)
@@ -296,6 +313,25 @@ export default function TryOnUploadPage() {
                 </>
               )}
             </button>
+          </div>
+        </div>
+
+        {/* 新設計預覽按鈕 */}
+        <div className="text-center mt-6">
+          <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-6 mb-8">
+            <div className="text-center text-white mb-4">
+              <SparklesIcon className="w-8 h-8 mx-auto mb-2" />
+              <h3 className="text-xl font-bold">🎮 全新試穿遊戲場體驗！</h3>
+              <p className="text-purple-100 mt-2">體驗兩種全新設計的試穿介面</p>
+            </div>
+            <Link 
+              href="/tryon/design-preview" 
+              className="inline-flex items-center space-x-2 bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:bg-purple-50 transition-all shadow-lg"
+            >
+              <SparklesIcon className="w-5 h-5" />
+              <span>查看新設計方案</span>
+              <SparklesIcon className="w-5 h-5" />
+            </Link>
           </div>
         </div>
 

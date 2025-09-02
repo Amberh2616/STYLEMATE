@@ -28,25 +28,25 @@ export interface Product {
 export const products: Product[] = [
   // === DRESS 洋裝類 ===
   {
-    id: 'dress_elegant_floral',
-    name: 'Sweet Pink Ruffle Set 粉色套裝',
+    id: 'set_sweet_pink_ruffle',
+    name: 'Sweet Pink Ruffle Set 粉色荷葉邊套裝',
     price: 3480,
     originalPrice: 3980,
-    image: '/images/products/dress/01fffba5-6a65-4c1b-af4f-67d47667a05d.jpg',
+    image: '/picture/DRESS/01fffba5-6a65-4c1b-af4f-67d47667a05d.jpg',
     category: 'set',
     style: 'sweet',
-    description: '甜美粉色荷葉邊套裝，上衣搭配修身中長裙，優雅女性化設計，適合約會場合。',
+    description: '甜美粉色荷葉邊兩件套裝，無袖荷葉邊上衣搭配修身開叉中長裙，完美展現女性優雅魅力，適合約會與聚會場合。',
     rating: 4.7,
     reviews: 89,
     isNew: true,
     colors: ['粉色', '淡粉色'],
     sizes: ['S', 'M', 'L', 'XL'],
-    tags: ['甜美', '套裝', '荷葉邊', '粉色', '約會'],
+    tags: ['甜美', '套裝', '荷葉邊', '粉色', '約會', '兩件式'],
     aiMetadata: {
-      occasion: ['date', 'elegant', 'party'],
+      occasion: ['date', 'party', 'dinner'],
       season: ['spring', 'summer'],
-      features: ['ruffle_detail', 'feminine', 'midi_length'],
-      material: '雪紡',
+      features: ['ruffle_detail', 'two_piece', 'slit_detail', 'sleeveless'],
+      material: '雪紡混紡',
       fit: '修身'
     }
   },
