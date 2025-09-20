@@ -1,23 +1,15 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { 
-    personImageUrl, 
-    garmentImageUrl, 
-    customRequest = '', 
-    keepOtherItems = true,
-    hairstyle = 'short',
-    background = 'studio', 
-    range = 'full'
-  } = await req.json();
+  const { personImageUrl, garmentImageUrl, customRequest = '', keepOtherItems = true } = await req.json();
 
-  const backend = process.env.TRYON_BACKEND || "mock"; // 暫時使用模擬模式
+  const backend = process.env.TRYON_BACKEND || "hf_space";
   
   try {
     if (backend === "gemini") {
       console.log('🎯 使用 Gemini 後端進行虛擬試穿');
       console.log('📝 用戶需求:', customRequest || '完整試穿');
-      const url = await tryonViaGemini(personImageUrl, garmentImageUrl, customRequest, keepOtherItems, hairstyle, background, range);
+      const url = await tryonViaGemini(personImageUrl, garmentImageUrl, customRequest, keepOtherItems);
       console.log('🎉 Gemini 虛擬試穿完成，返回結果');
       return NextResponse.json({ 
         url,
@@ -34,31 +26,6 @@ export async function POST(req: Request) {
         backend: 'hf_space',
         message: 'Hugging Face Space 處理完成'
       });
-    } else if (backend === "mock") {
-      console.log('🎯 使用模擬模式進行 UI 測試');
-      console.log('📝 用戶設定:', { hairstyle, background, range, customRequest });
-      
-      // 模擬處理時間
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      try {
-        // 創建模擬的試穿效果圖
-        const mockTryonResult = await createMockTryonImage(personImageUrl, garmentImageUrl, hairstyle, background);
-        
-        console.log('🎉 模擬試穿完成，生成合成圖片');
-        return NextResponse.json({ 
-          url: mockTryonResult,
-          backend: 'mock',
-          message: `模擬試穿完成 - 髮型:${hairstyle}, 背景:${background}, 範圍:${range}`
-        });
-      } catch (error) {
-        console.log('⚠️ Mock 圖片生成失敗，使用用戶照片作為備用');
-        return NextResponse.json({ 
-          url: personImageUrl, // 備用方案：返回用戶照片
-          backend: 'mock',
-          message: `模擬試穿完成（簡化模式） - 髮型:${hairstyle}, 背景:${background}, 範圍:${range}`
-        });
-      }
     }
     
     return NextResponse.json({ 
@@ -114,7 +81,7 @@ export async function POST(req: Request) {
 }
 
 /** Google Gemini API 虛擬試穿 */
-async function tryonViaGemini(personUrl: string, clothUrl: string, customRequest: string = '', keepOtherItems: boolean = true, hairstyle: string = 'short', background: string = 'studio', range: string = 'full'): Promise<string> {
+async function tryonViaGemini(personUrl: string, clothUrl: string, customRequest: string = '', keepOtherItems: boolean = true): Promise<string> {
   const geminiApiKey = process.env.GEMINI_API_KEY;
   
   if (!geminiApiKey || geminiApiKey === 'your-gemini-api-key-here') {
@@ -128,8 +95,8 @@ async function tryonViaGemini(personUrl: string, clothUrl: string, customRequest
     const personImageData = await prepareImageForGemini(personUrl);
     const garmentImageData = await prepareImageForGemini(clothUrl);
     
-    // 根據 U CHIC AI 選擇生成精準提示詞
-    const prompt = generateUChicAIPrompt(customRequest, keepOtherItems, hairstyle, background, range);
+    // 根據用戶需求生成智能提示詞
+    const prompt = generateSmartPrompt(customRequest, keepOtherItems);
 
     const requestBody = {
       contents: [
@@ -152,17 +119,17 @@ async function tryonViaGemini(personUrl: string, clothUrl: string, customRequest
         }
       ],
       generationConfig: {
-        temperature: 0.05,  // 更低的隨機性
-        topK: 8,           // 更集中的選擇
-        topP: 0.6,         // 更保守的採樣
+        temperature: 0.1,
+        topK: 16,
+        topP: 0.8,
         maxOutputTokens: 8192
       }
     };
 
     console.log('📤 發送請求到 Gemini API...');
     
-    // 使用 Gemini 2.5 Flash 進行圖像編輯和生成
-    const model = 'gemini-2.5-flash';
+    // 使用帶重試機制的單一模型請求，提高穩定性
+    const model = 'gemini-2.5-flash-image-preview';
     const maxRetries = 3;
     const baseDelay = 1000; // 1秒基礎延遲
     
@@ -286,11 +253,6 @@ async function tryonViaGemini(personUrl: string, clothUrl: string, customRequest
         for (let i = 0; i < content.parts.length; i++) {
           const part = content.parts[i];
           console.log(`🔍 部分 ${i}: ${Object.keys(part).join(', ')}`);
-          
-          // 如果是文字部分，先看看內容
-          if (part.text) {
-            console.log(`📝 文字內容預覽: ${part.text.substring(0, 200)}...`);
-          }
           
           // 使用統一的圖片提取函數
           const imageData = extractImageFromPart(part);
@@ -564,68 +526,7 @@ async function createCanvasFallback(personUrl: string, clothUrl: string): Promis
   }
 }
 
-/** 根據 U CHIC AI 選擇生成精準提示詞 */
-function generateUChicAIPrompt(customRequest: string, keepOtherItems: boolean, hairstyle: string, background: string, range: string): string {
-  // 髮型映射
-  const hairstyleMap = {
-    'short': '短髮造型，清爽俐落',
-    'bun': '包頭髮型，優雅知性',
-    'curls': '公主長捲髮，浪漫甜美'
-  }
-  
-  // 背景映射
-  const backgroundMap = {
-    'studio': '專業攝影棚環境，完美打光，純淨背景',
-    'street': '現代都市街景背景，自然光線，時尚街頭氛圍',
-    'luxury': '奢華精品店環境，高端質感，典雅裝潢'
-  }
-  
-  // 替換範圍映射
-  const rangeMap = {
-    'full': '完整服裝替換，包含上衣和下身',
-    'top': '僅替換上半身服裝，保留原有下身和配件',
-    'bottom': '僅替換下半身服裝，保留原有上衣和配件'
-  }
-  
-  const selectedHairstyle = hairstyleMap[hairstyle] || hairstyleMap['short']
-  const selectedBackground = backgroundMap[background] || backgroundMap['studio']  
-  const selectedRange = rangeMap[range] || rangeMap['full']
-  
-  const basePrompt = `你是專業的虛擬試穿 AI。請根據以下 U CHIC AI 設定生成高品質試穿效果：
-
-🎯 核心任務：虛擬服裝試穿
-- 第一張圖片：需要試穿的人物
-- 第二張圖片：要穿著的服裝商品
-- 輸出：人物穿著指定服裝的效果圖
-
-💇‍♀️ 髮型設定：${selectedHairstyle}
-🌄 背景環境：${selectedBackground}
-👕 替換範圍：${selectedRange}
-
-🎨 品質要求：
-- 保持人物原有姿勢、臉部特徵和身形比例
-- 確保服裝貼合度自然真實
-- 光線與背景環境協調一致
-- 呈現專業攝影品質
-- 服裝細節清晰可見
-
-⚠️ 重要限制：
-- 絕對不可更改人物的臉部、身形和基本姿勢
-- 髮型調整要自然，符合頭型
-- 背景要與整體風格協調
-- ${range !== 'full' ? '保留未指定替換的原有服裝部分' : ''}
-
-請生成符合以上要求的高品質虛擬試穿圖片。`
-
-  // 如果有自訂需求，附加到提示詞
-  if (customRequest && customRequest.trim()) {
-    return `${basePrompt}\n\n📝 額外要求：${customRequest.trim()}`
-  }
-  
-  return basePrompt
-}
-
-/** 根據用戶需求生成智能提示詞 (舊版本，保留兼容性) */
+/** 根據用戶需求生成智能提示詞 */
 function generateSmartPrompt(customRequest: string, keepOtherItems: boolean): string {
   const basePrompt = `You are a professional virtual try-on AI. Your task is to realistically apply clothing from the second image to the person in the first image.
 
@@ -691,155 +592,15 @@ EXECUTION:
   // 預設：完整替換
   return `${basePrompt}
 
-CRITICAL TASK: VIRTUAL CLOTHING TRY-ON
-You are a specialized virtual try-on AI. Your ONLY job is CLOTHING REPLACEMENT.
-
-MANDATORY REQUIREMENTS:
-- First image = person who needs new clothes
-- Second image = clothing items to put on the person
-- Output = person wearing the clothing from second image
-
-YOU MUST NOT:
-- Just change backgrounds or lighting
-- Leave original clothing visible
-- Create artistic interpretations
-- Generate text or explanations
-
-YOU MUST DO:
-- Complete clothing replacement only
-- Generate realistic try-on result
-
 DEFAULT INSTRUCTIONS:
-- IDENTIFY the clothing items in the second image (garment/product image)
-- COMPLETELY REMOVE the person's current clothing in the first image
-- REALISTICALLY DRESS the person with the clothing from the second image
-- The person should appear to be ACTUALLY WEARING the new clothing items
-- This is CLOTHING SUBSTITUTION - the person changes clothes, not just background
+- REMOVE the person's existing clothing completely  
+- REPLACE it with ALL clothing items from the second image
+- This is complete clothing replacement, not layering
+- The result should show the person wearing the complete outfit from the garment image
 
-SPECIFIC REQUIREMENTS:
-- If second image shows a dress → Person should wear that exact dress
-- If second image shows a top → Replace person's top with that garment  
-- If second image shows a complete outfit → Replace person's entire outfit
-- Maintain realistic fabric draping, shadows, and fit on the person's body
-- Keep the person's body shape, face, hair, and pose exactly the same
-
-CRITICAL REMOVAL INSTRUCTIONS:
-- COMPLETELY ERASE all existing clothing from the person's body first
-- Do not leave any traces of original clothing (sleeves, collars, fabric edges)
-- Ensure NO layering - the new clothing should be the ONLY clothing visible
-- Remove all conflicting garments before applying new ones
-
-CRITICAL: Generate an image showing the person WEARING ONLY the clothing from the second image, with all original clothing completely removed. This is complete clothing replacement.
-
-EXECUTION AND OUTPUT:
-- Analyze clothing in the garment image carefully
-- Apply those exact clothing items to the person realistically  
-- Ensure professional photography quality with proper lighting and shadows
-
-SIMPLE TASK: Edit this person's photo to:
-1. Change their hairstyle to: ${hairstyle === 'short' ? '短髮' : hairstyle === 'bun' ? '包頭髮型' : '長捲髮'}
-2. Replace their clothing with the clothing from the second image
-
-Please return the edited image showing these changes.`;
-}
-
-// Mock 試穿圖像生成函數
-async function createMockTryonImage(
-  personImageUrl: string, 
-  garmentImageUrl: string, 
-  hairstyle: string, 
-  background: string
-): Promise<string> {
-  
-  // 創建一個簡單的合成效果示意圖
-  // 在真實環境中，這裡會使用 Canvas 或圖像處理庫
-  // 為了簡化 Mock 實現，我們使用文字提示來創建一個 data URI
-  
-  const canvas = {
-    width: 512,
-    height: 768,
-    hairstyleEmoji: hairstyle === 'short' ? '💇‍♀️' : hairstyle === 'bun' ? '👸' : '🎀',
-    backgroundEmoji: background === 'studio' ? '📸' : background === 'street' ? '🏙️' : '✨'
-  };
-  
-  // 創建一個更真實的 Mock 試穿效果圖
-  const backgroundColors = {
-    studio: '#f8fafc',
-    street: '#64748b', 
-    luxury: '#fbbf24'
-  };
-  
-  const mockSvg = `
-    <svg width="${canvas.width}" height="${canvas.height}" xmlns="http://www.w3.org/2000/svg">
-      <!-- 背景 -->
-      <defs>
-        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:${backgroundColors[background] || '#f3f4f6'};stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
-        </linearGradient>
-        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="2" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.3)"/>
-        </filter>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#bg)"/>
-      
-      <!-- 人物剪影 (更真實的比例) -->
-      <g filter="url(#shadow)">
-        <!-- 頭部 -->
-        <ellipse cx="256" cy="120" rx="45" ry="60" fill="#fbbf24" stroke="#f59e0b" stroke-width="1"/>
-        
-        <!-- 身體 -->
-        <rect x="220" y="180" width="72" height="120" rx="36" fill="#fbbf24" opacity="0.8"/>
-        
-        <!-- 試穿服裝 (佔據身體區域) -->
-        <rect x="210" y="190" width="92" height="140" rx="15" fill="#6366f1" stroke="#4f46e5" stroke-width="2"/>
-        
-        <!-- 手臂 -->
-        <ellipse cx="185" cy="220" rx="15" ry="45" fill="#fbbf24" opacity="0.7"/>
-        <ellipse cx="327" cy="220" rx="15" ry="45" fill="#fbbf24" opacity="0.7"/>
-        
-        <!-- 腿部 -->
-        <rect x="235" y="330" width="18" height="80" rx="9" fill="#fbbf24" opacity="0.8"/>
-        <rect x="259" y="330" width="18" height="80" rx="9" fill="#fbbf24" opacity="0.8"/>
-      </g>
-      
-      <!-- 髮型標誌 -->
-      <text x="256" y="80" text-anchor="middle" font-size="20" fill="#374151">
-        ${canvas.hairstyleEmoji}
-      </text>
-      
-      <!-- 服裝圖示 -->
-      <text x="256" y="255" text-anchor="middle" font-size="32" fill="#ffffff">
-        ✨
-      </text>
-      
-      <!-- 資訊標籤 -->
-      <rect x="40" y="450" width="432" height="80" rx="12" fill="rgba(255,255,255,0.9)" stroke="#d1d5db"/>
-      <text x="256" y="475" text-anchor="middle" font-size="16" font-weight="bold" fill="#1f2937">
-        🎮 U CHIC AI 試穿預覽
-      </text>
-      <text x="256" y="495" text-anchor="middle" font-size="12" fill="#6b7280">
-        髮型: ${hairstyle === 'short' ? '短髮' : hairstyle === 'bun' ? '包頭' : '長捲髮'} | 
-        背景: ${background === 'studio' ? '攝影棚' : background === 'street' ? '街景' : '奢華展廳'}
-      </text>
-      <text x="256" y="510" text-anchor="middle" font-size="11" fill="#9ca3af">
-        這是模擬預覽，實際效果會更加真實
-      </text>
-      
-      <!-- 背景裝飾 -->
-      <text x="60" y="60" font-size="24" fill="#d1d5db" opacity="0.6">
-        ${canvas.backgroundEmoji}
-      </text>
-      <text x="452" y="60" font-size="24" fill="#d1d5db" opacity="0.6">
-        ${canvas.backgroundEmoji}
-      </text>
-    </svg>
-  `;
-  
-  // 將 SVG 轉換為 data URI
-  const mockImageDataUri = `data:image/svg+xml;base64,${Buffer.from(mockSvg).toString('base64')}`;
-  
-  console.log('🎨 生成 Mock 試穿效果圖完成');
-  return mockImageDataUri;
+EXECUTION:
+- Apply all clothing items from the garment image
+- Ensure natural fit and realistic appearance
+- Maintain professional photography quality`;
 }
 
