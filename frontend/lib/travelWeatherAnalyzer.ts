@@ -311,22 +311,22 @@ export class TravelWeatherAnalyzer {
     let advice = []
     let products = []
     
-    // 🎯 動態隨機商品池 - 從資料庫獲取實際產品名稱
+    // 🎯 動態隨機商品池 - 使用實際產品數據庫的數字 ID
     const getRandomizedProducts = (temperature: number, dayIndex: number = 0): string[] => {
-      // 使用真實的產品ID (基於products.ts)
+      // 使用真實的產品ID (基於products.ts實際數字ID)
       const hotWeatherProducts = [
-        'dress_sweet_pink_midi',        // 粉色洋裝，適合炎熱天氣
-        'dress_minimalist_white_maxi',  // 白色長洋裝，涼爽
-        'top_basic_white_tee',          // 基本白T，透氣
-        'top_casual_striped',           // 條紋上衣，休閒
-        'shorts_high_waisted_denim'     // 高腰牛仔短褲
+        '22',        // Pink Summer Dress - 粉色洋裝，適合炎熱天氣
+        '2',         // White Asymmetric Lace Dress - 白色蕾絲洋裝，涼爽
+        '78',        // 短袖釦扣上衣 - 基本上衣，透氣
+        '25',        // Casual Striped 上衣 - 條紋上衣，休閒
+        '53'         // Summer Set - 夏季套裝
       ]
       
       const coldWeatherProducts = [
-        'dress_elegant_floral',         // 優雅花卉洋裝，適合較冷天氣
-        'dress_french_elegant',         // 法式優雅洋裝，保暖
-        'top_puff_sleeve',              // 泡泡袖上衣，較保暖  
-        'top_french_romantic'           // 法式浪漫上衣，長袖
+        '19',        // Elegant Floral Long Dress - 優雅花卉洋裝，適合較冷天氣
+        '15',        // French Chic Ruffle Dress - 法式優雅洋裝，保暖
+        '34',        // Puff Sleeve 上衣 - 泡泡袖上衣，較保暖  
+        '26'         // Elegant Blouse 上衣 - 優雅上衣，長袖
       ]
       
       const allAvailableProductIds = [...hotWeatherProducts, ...coldWeatherProducts]

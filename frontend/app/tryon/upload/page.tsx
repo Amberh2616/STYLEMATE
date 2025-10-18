@@ -316,24 +316,6 @@ export default function TryOnUploadPage() {
           </div>
         </div>
 
-        {/* 新設計預覽按鈕 */}
-        <div className="text-center mt-6">
-          <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-6 mb-8">
-            <div className="text-center text-white mb-4">
-              <SparklesIcon className="w-8 h-8 mx-auto mb-2" />
-              <h3 className="text-xl font-bold">🎮 全新試穿遊戲場體驗！</h3>
-              <p className="text-purple-100 mt-2">體驗兩種全新設計的試穿介面</p>
-            </div>
-            <Link 
-              href="/tryon/design-preview" 
-              className="inline-flex items-center space-x-2 bg-white text-purple-600 px-6 py-3 rounded-lg font-bold hover:bg-purple-50 transition-all shadow-lg"
-            >
-              <SparklesIcon className="w-5 h-5" />
-              <span>查看新設計方案</span>
-              <SparklesIcon className="w-5 h-5" />
-            </Link>
-          </div>
-        </div>
 
         {/* 底部導航 */}
         <div className="text-center mt-8">

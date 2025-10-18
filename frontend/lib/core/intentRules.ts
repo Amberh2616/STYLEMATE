@@ -17,6 +17,12 @@ export const MODE_KEYWORDS = {
   ],
   rerank: [
     /重排|rerank|這幾件|幫我排序|top\s*\d+/i
+  ],
+  outfit_planning: [
+    /\d+套|幾套|一週?穿搭|一周穿搭|搭配|組合|[1-9]\s*套/i,
+    /星期一|星期二|星期三|星期四|星期五|星期六|星期日|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/i,
+    /週一|週二|週三|週四|週五|週六|週日|工作日|假日/i,
+    /搭配建議|穿搭規劃|造型設計|一週搭配|每日穿搭/i
   ]
 };
 

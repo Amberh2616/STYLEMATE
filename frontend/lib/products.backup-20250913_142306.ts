@@ -2307,6 +2307,44 @@ export const products: Product[] = [
     "source": "precision_analysis"
   },
   {
+    "id": 74,
+    "name": "Black Relaxed Top with Beige Bottom 黑色休閒上衣配米色下裝",
+    "price": 2580,
+    "image": "/images/products/top/LINE_ALBUM__250808_79.jpg",
+    "category": "two-piece",
+    "tags": [
+      "休閒套裝",
+      "簡約",
+      "舒適"
+    ],
+    "colors": [
+      "黑色",
+      "米色"
+    ],
+    "style": "casual",
+    "occasion": [
+      "daily",
+      "casual",
+      "comfortable"
+    ],
+    "season": [
+      "spring",
+      "summer"
+    ],
+    "material": "棉質",
+    "sleeve": "短袖",
+    "length": "套裝",
+    "neckline": "方領",
+    "fit": "寬鬆版型",
+    "color_temperature": "中性色調",
+    "saturation": "低彩度",
+    "design_details": [
+      "簡約設計",
+      "色彩對比"
+    ],
+    "source": "precision_analysis"
+  },
+  {
     "id": 75,
     "name": "白色休閒上衣配深藍長褲套裝",
     "price": 2380,
@@ -2343,6 +2381,46 @@ export const products: Product[] = [
     "design_details": [
       "字母印花",
       "簡約設計"
+    ],
+    "source": "precision_analysis"
+  },
+  {
+    "id": 77,
+    "name": "Black Loose Top with Beige Bottom Set 黑色上衣配米色下裝套裝",
+    "price": 2680,
+    "image": "/images/products/top/LINE_ALBUM__250808_79.jpg",
+    "category": "two-piece",
+    "tags": [
+      "套裝",
+      "簡約",
+      "寬鬆",
+      "舒適"
+    ],
+    "colors": [
+      "黑色",
+      "米色",
+      "卡其色"
+    ],
+    "style": "minimalist",
+    "occasion": [
+      "daily",
+      "casual",
+      "comfortable"
+    ],
+    "season": [
+      "spring",
+      "summer"
+    ],
+    "material": "棉質",
+    "sleeve": "短袖",
+    "length": "中長套裝",
+    "neckline": "方領",
+    "fit": "寬鬆版型",
+    "color_temperature": "中性色調",
+    "saturation": "低彩度",
+    "design_details": [
+      "簡約設計",
+      "舒適剪裁"
     ],
     "source": "precision_analysis"
   },

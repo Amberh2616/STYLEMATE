@@ -4,7 +4,7 @@ import { MODE_KEYWORDS, OCCASION_HINTS, NEEDS_RAG_HINTS, CITY_WHITELIST, COUNTRY
 export type Occasion = "通勤"|"正式"|"休閒"|"約會"|"旅遊"|"商務簡報"|"派對";
 
 export type IntentSummary = {
-  mode: "analyze_and_recommend" | "trend_summary" | "travel_plan" | "rerank";
+  mode: "analyze_and_recommend" | "trend_summary" | "travel_plan" | "rerank" | "outfit_planning";
   text_query?: string;
   has_image?: boolean;
   needs_weather?: boolean;
@@ -12,6 +12,7 @@ export type IntentSummary = {
   destinations?: string[];
   date_range?: { start: string; end: string };
   occasions?: Occasion[];
+  outfit_count?: number;
 };
 
 type Input = {
@@ -26,13 +27,16 @@ const hasAny = (text: string, patterns: (RegExp)[]) => patterns.some(rx => rx.te
 function detectMode(text: string): IntentSummary["mode"] {
   // 1. 優先檢查明確的功能詞彙
   if (hasAny(text, MODE_KEYWORDS.rerank)) return "rerank";
-  
-  // 2. 檢查時裝週/趨勢 - 最高優先級，因為這些是專業術語
+
+  // 2. 檢查穿搭規劃需求
+  if (hasAny(text, MODE_KEYWORDS.outfit_planning)) return "outfit_planning";
+
+  // 3. 檢查時裝週/趨勢 - 最高優先級，因為這些是專業術語
   if (hasAny(text, MODE_KEYWORDS.trend_summary)) return "trend_summary";
-  
-  // 3. 檢查旅行規劃 - 但需要更嚴格的上下文判斷
+
+  // 4. 檢查旅行規劃 - 但需要更嚴格的上下文判斷
   if (isActualTravelQuery(text)) return "travel_plan";
-  
+
   return "analyze_and_recommend";
 }
 
@@ -112,6 +116,24 @@ export function analyzeIntent(input: Input): IntentSummary {
   const destinations = extractDestination(text, input.preset?.destinations);
   const date_range = extractDateRange(text, input.preset?.date_range);
 
+  // 提取穿搭套數
+  let outfit_count: number | undefined;
+  if (mode === "outfit_planning") {
+    const countMatch = text.match(/(\d+)\s*套|([一二三四五六七八九十])\s*套/);
+    if (countMatch) {
+      if (countMatch[1]) {
+        outfit_count = parseInt(countMatch[1]);
+      } else if (countMatch[2]) {
+        const chineseNumbers: { [key: string]: number } = {
+          '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10
+        };
+        outfit_count = chineseNumbers[countMatch[2]] || 5;
+      }
+    } else {
+      outfit_count = 5; // 默認5套
+    }
+  }
+
   const needs_weather =
     mode === "travel_plan" ||
     /天氣|下雨|UV|紫外線|風大|冷|熱|查天氣|天氣預報/i.test(text) ||
@@ -126,6 +148,7 @@ export function analyzeIntent(input: Input): IntentSummary {
     needs_rag,
     destinations,
     date_range,
-    occasions: occasions.length ? occasions : undefined
+    occasions: occasions.length ? occasions : undefined,
+    outfit_count
   };
 }

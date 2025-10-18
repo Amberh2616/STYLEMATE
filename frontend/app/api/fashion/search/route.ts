@@ -1,154 +1,117 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Pool } from 'pg'
-
-// 資料庫連接池
-const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'stylemate_fashion',
-  user: 'postgres',
-  password: '2616',
-  max: 10,
-  idleTimeoutMillis: 30000,
-})
+import { products } from '@/lib/products'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
+    const limitParam = searchParams.get('limit')
     const category = searchParams.get('category')
     const color = searchParams.get('color')
-    const priceRange = searchParams.get('priceRange')
     const style = searchParams.get('style')
-    const occasion = searchParams.get('occasion')
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const offset = parseInt(searchParams.get('offset') || '0')
-
-    let query = `
-      SELECT 
-        id, image_path, filename, name_zh, name_en, 
-        category_zh, category_en, colors_zh, colors_en,
-        style_tags_zh, style_tags_en, occasion_zh, occasion_en,
-        price_twd, discount_price_twd, description_zh, description_en,
-        material_guess, price_tier, ai_confidence
-      FROM fashion_items 
-      WHERE 1=1
-    `
+    const query = searchParams.get('query')
+    // 🚀 新增：混合式搜尋模式
+    const mode = searchParams.get('mode') || 'strict' // 'strict' | 'expanded'
     
-    const queryParams: any[] = []
-    let paramCount = 0
+    // 設定限制數量（支持 "all" 參數移除限制）
+    const limit = limitParam === "all" ? Number.POSITIVE_INFINITY : Number(limitParam || "1000")
 
-    // 分類篩選
+    // 載入完整產品目錄（統一 ProductInfo 格式）+ 只保留有圖片的商品
+    let filteredProducts = products.filter(p => p.image)
+    console.log(`📦 載入商品總數（僅有圖片）: ${filteredProducts.length}`)
+
+    // 🚀 混合式搜尋：應用篩選條件
+    if (query) {
+      const lowerQuery = query.toLowerCase()
+      
+      // 分詞搜尋：支持多關鍵詞搜尋
+      const keywords = lowerQuery.split(/\s+/).filter(word => word.length > 0)
+      
+      filteredProducts = filteredProducts.filter(p => {
+        // 對每個關鍵詞，檢查是否在任何欄位中找到
+        return keywords.every(keyword => {
+          // 🚀 顏色搜尋的混合式邏輯
+          if (isColorKeyword(keyword)) {
+            return applyColorFilter(p, keyword, mode)
+          }
+          
+          // 其他關鍵詞的一般搜尋（適配Product格式）
+          return p.name.toLowerCase().includes(keyword) ||
+                 p.tags.some(tag => tag.toLowerCase().includes(keyword)) ||
+                 p.colors.some(color => color.toLowerCase().includes(keyword)) ||
+                 p.category?.toLowerCase().includes(keyword) ||
+                 p.style?.toLowerCase().includes(keyword)
+        })
+      })
+      console.log(`🔍 ${mode}模式文字篩選後: ${filteredProducts.length}`)
+    }
+
     if (category) {
-      paramCount++
-      query += ` AND (category_zh = $${paramCount} OR category_en = $${paramCount})`
-      queryParams.push(category)
+      filteredProducts = filteredProducts.filter(p => p.category === category)
+      console.log(`📂 類別篩選後: ${filteredProducts.length}`)
     }
 
-    // 顏色篩選
     if (color) {
-      paramCount++
-      query += ` AND (colors_zh::text LIKE $${paramCount} OR colors_en::text LIKE $${paramCount})`
-      queryParams.push(`%${color}%`)
+      filteredProducts = filteredProducts.filter(p => p.colors && p.colors.some(c => c.toLowerCase().includes(color.toLowerCase())))
+      console.log(`🎨 顏色篩選後: ${filteredProducts.length}`)
     }
 
-    // 風格篩選
     if (style) {
-      paramCount++
-      query += ` AND (style_tags_zh::text LIKE $${paramCount} OR style_tags_en::text LIKE $${paramCount})`
-      queryParams.push(`%${style}%`)
+      const lowerStyle = style.toLowerCase()
+      filteredProducts = filteredProducts.filter(p =>
+        p.tags.some(tag => tag.toLowerCase().includes(lowerStyle)) ||
+        p.style?.toLowerCase().includes(lowerStyle)
+      )
+      console.log(`✨ 風格篩選後: ${filteredProducts.length}`)
     }
 
-    // 場合篩選
-    if (occasion) {
-      paramCount++
-      query += ` AND (occasion_zh::text LIKE $${paramCount} OR occasion_en::text LIKE $${paramCount})`
-      queryParams.push(`%${occasion}%`)
-    }
-
-    // 價格範圍篩選
-    if (priceRange) {
-      const [minPrice, maxPrice] = priceRange.split('-').map(Number)
-      if (minPrice && maxPrice) {
-        paramCount++
-        query += ` AND price_twd BETWEEN $${paramCount} AND $${paramCount + 1}`
-        queryParams.push(minPrice, maxPrice)
-        paramCount++
-      }
-    }
-
-    // 排序和分頁
-    query += ` ORDER BY created_at DESC LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`
-    queryParams.push(limit, offset)
-
-    const client = await pool.connect()
-    const result = await client.query(query, queryParams)
-    
-    // 獲取總數（用於分頁）
-    const countQuery = query.replace(/SELECT.*FROM/, 'SELECT COUNT(*) FROM').replace(/ORDER BY.*/, '')
-    const countResult = await client.query(countQuery, queryParams.slice(0, -2))
-    const totalCount = parseInt(countResult.rows[0].count)
-    
-    client.release()
-
-    // 格式化結果
-    const fashionItems = result.rows.map((row: any) => ({
-      id: row.id,
-      imagePath: row.image_path,
-      filename: row.filename,
-      name: {
-        zh: row.name_zh,
-        en: row.name_en
-      },
-      category: {
-        zh: row.category_zh,
-        en: row.category_en
-      },
-      colors: {
-        zh: row.colors_zh || [],
-        en: row.colors_en || []
-      },
-      styleTags: {
-        zh: row.style_tags_zh || [],
-        en: row.style_tags_en || []
-      },
-      occasion: {
-        zh: row.occasion_zh || [],
-        en: row.occasion_en || []
-      },
-      price: {
-        twd: row.price_twd,
-        discount: row.discount_price_twd
-      },
-      description: {
-        zh: row.description_zh,
-        en: row.description_en
-      },
-      material: row.material_guess,
-      priceTier: row.price_tier,
-      confidence: row.ai_confidence
-    }))
+    // 應用數量限制
+    const sliced = Number.isFinite(limit) ? filteredProducts.slice(0, limit) : filteredProducts
 
     return NextResponse.json({
-      success: true,
-      data: fashionItems,
-      pagination: {
-        total: totalCount,
-        limit,
-        offset,
-        hasMore: offset + limit < totalCount
-      }
+      ok: true,
+      source: "filteredProducts.ts→adapter",
+      count: sliced.length,
+      total: filteredProducts.length,
+      items: sliced
     })
 
   } catch (error) {
     console.error('Fashion search error:', error)
     return NextResponse.json(
       { 
-        success: false, 
+        ok: false, 
         error: 'Search failed',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
+        items: []
       },
       { status: 500 }
     )
+  }
+}
+
+// 🚀 顏色關鍵詞判斷
+function isColorKeyword(keyword: string): boolean {
+  const colorKeywords = [
+    '白', '白色', 'white', '黑', '黑色', 'black', '灰', '灰色', 'gray',
+    '藍', '藍色', 'blue', '紅', '紅色', 'red', '綠', '綠色', 'green',
+    '黃', '黃色', 'yellow', '粉', '粉色', 'pink', '棕', '棕色', 'brown',
+    '紫', '紫色', 'purple', '橘', '橘色', 'orange', '金', '金色', 'gold'
+  ]
+  return colorKeywords.includes(keyword.toLowerCase())
+}
+
+// 🚀 混合式顏色篩選（適配Product格式）
+function applyColorFilter(product: any, colorKeyword: string, mode: string): boolean {
+  const keyword = colorKeyword.toLowerCase()
+  const hasColor = product.colors.some((c: string) => c.toLowerCase().includes(keyword)) ||
+                   product.name.toLowerCase().includes(keyword)
+  
+  if (mode === 'strict') {
+    // 嚴格模式：只匹配主色調或素色商品
+    return hasColor
+  } else {
+    // 展開模式：包含該顏色的所有商品
+    return hasColor
   }
 }
 
@@ -157,97 +120,95 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { query, filters } = body
 
-    // 文字搜尋功能
-    let searchQuery = `
-      SELECT 
-        id, image_path, filename, name_zh, name_en, 
-        category_zh, category_en, colors_zh, colors_en,
-        style_tags_zh, style_tags_en, occasion_zh, occasion_en,
-        price_twd, discount_price_twd, description_zh, description_en,
-        material_guess, price_tier, ai_confidence
-      FROM fashion_items 
-      WHERE (
-        name_zh ILIKE $1 OR name_en ILIKE $1 OR 
-        description_zh ILIKE $1 OR description_en ILIKE $1 OR
-        style_tags_zh::text ILIKE $1 OR style_tags_en::text ILIKE $1
-      )
-    `
-    
-    const queryParams = [`%${query}%`]
-    let paramCount = 1
+    // 載入完整產品目錄 + 只保留有圖片的商品
+    let filteredProducts = products.filter(p => p.image)
+
+    // 文字搜尋 (分詞搜尋)
+    if (query) {
+      const lowerQuery = query.toLowerCase()
+      
+      // 分詞搜尋：支持多關鍵詞搜尋
+      const keywords = lowerQuery.split(/\s+/).filter(word => word.length > 0)
+      
+      filteredProducts = filteredProducts.filter(p => {
+        // 對每個關鍵詞，檢查是否在任何欄位中找到（適配Product格式）
+        return keywords.every(keyword => 
+          p.name.toLowerCase().includes(keyword) ||
+          p.tags.some(tag => tag.toLowerCase().includes(keyword)) ||
+          p.colors.some(color => color.toLowerCase().includes(keyword)) ||
+          p.category?.toLowerCase().includes(keyword) ||
+          p.style?.toLowerCase().includes(keyword)
+        )
+      })
+    }
 
     // 應用篩選條件
     if (filters?.category) {
-      paramCount++
-      searchQuery += ` AND (category_zh = $${paramCount} OR category_en = $${paramCount})`
-      queryParams.push(filters.category)
+      filteredProducts = filteredProducts.filter(p => p.category === filters.category)
     }
 
-    if (filters?.priceRange) {
+    if (filters?.color) {
+      filteredProducts = filteredProducts.filter(p => p.colors && p.colors.some(c => c.toLowerCase().includes(filters.color.toLowerCase())))
+    }
+
+    if (filters?.priceRange && Array.isArray(filters.priceRange)) {
       const [minPrice, maxPrice] = filters.priceRange
-      paramCount++
-      searchQuery += ` AND price_twd BETWEEN $${paramCount} AND $${paramCount + 1}`
-      queryParams.push(minPrice, maxPrice)
-      paramCount++
+      if (minPrice && maxPrice) {
+        filteredProducts = filteredProducts.filter(p => {
+          if (!p.price_cents) return false
+          const priceInTwd = p.price_cents / 100
+          return priceInTwd >= minPrice && priceInTwd <= maxPrice
+        })
+      }
     }
 
-    searchQuery += ` ORDER BY created_at DESC LIMIT 20`
+    // 🚀 智能排序：優先顯示純色，再顯示圖案
+    const queryLower = query?.toLowerCase() || ''
+    const hasColorQuery = query && ['白', '黑', '灰', '藍', '紅', '綠', '黃', '粉', '棕', '紫', '橘', 'white', 'black', 'gray', 'blue', 'red', 'green', 'yellow', 'pink', 'brown', 'purple', 'orange'].some(color => queryLower.includes(color))
+    
+    if (hasColorQuery) {
+      filteredProducts.sort((a, b) => {
+        // 素色優先
+        if (a.pattern === 'solid' && b.pattern !== 'solid') return -1
+        if (a.pattern !== 'solid' && b.pattern === 'solid') return 1
+        
+        // 主色調匹配優先
+        const aHasDominant = a.dominant_colors?.some(c => queryLower.includes(c)) || false
+        const bHasDominant = b.dominant_colors?.some(c => queryLower.includes(c)) || false
+        if (aHasDominant && !bHasDominant) return -1
+        if (!aHasDominant && bHasDominant) return 1
+        
+        return 0
+      })
+      console.log(`🎯 智能排序完成，優先顯示素色商品`)
+    }
 
-    const client = await pool.connect()
-    const result = await client.query(searchQuery, queryParams)
-    client.release()
-
-    const fashionItems = result.rows.map((row: any) => ({
-      id: row.id,
-      imagePath: row.image_path,
-      filename: row.filename,
-      name: {
-        zh: row.name_zh,
-        en: row.name_en
-      },
-      category: {
-        zh: row.category_zh,
-        en: row.category_en
-      },
-      colors: {
-        zh: row.colors_zh || [],
-        en: row.colors_en || []
-      },
-      styleTags: {
-        zh: row.style_tags_zh || [],
-        en: row.style_tags_en || []
-      },
-      occasion: {
-        zh: row.occasion_zh || [],
-        en: row.occasion_en || []
-      },
-      price: {
-        twd: row.price_twd,
-        discount: row.discount_price_twd
-      },
-      description: {
-        zh: row.description_zh,
-        en: row.description_en
-      },
-      material: row.material_guess,
-      priceTier: row.price_tier,
-      confidence: row.ai_confidence
-    }))
+    // 限制返回數量
+    const result = filteredProducts.slice(0, 50)
 
     return NextResponse.json({
-      success: true,
+      ok: true,
+      source: "filteredProducts.ts→adapter",
       query,
-      data: fashionItems,
-      count: fashionItems.length
+      count: result.length,
+      total: filteredProducts.length,
+      items: result,
+      // 🚀 返回排序資訊
+      sort_info: hasColorQuery ? {
+        sorted_by_color: true,
+        solid_count: result.filter(p => p.pattern === 'solid').length,
+        patterned_count: result.filter(p => p.pattern !== 'solid').length
+      } : undefined
     })
 
   } catch (error) {
     console.error('Fashion text search error:', error)
     return NextResponse.json(
       { 
-        success: false, 
+        ok: false, 
         error: 'Text search failed',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
+        items: []
       },
       { status: 500 }
     )

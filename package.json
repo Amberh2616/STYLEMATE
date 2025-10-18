@@ -10,7 +10,14 @@
     "test": "jest",
     "test:prompts": "jest backend/prompts/__tests__",
     "build": "tsc",
-    "start": "node dist/backend/server.js"
+    "start": "node dist/backend/server.js",
+    "images:manifest": "tsx scripts/build-image-manifest.ts",
+    "images:dups": "tsx scripts/report-duplicate-images.ts",
+    "images:audit": "tsx scripts/audit-missing-images.ts",
+    "images:fix": "tsx scripts/apply-products-image-mapping.ts",
+    "test:reco": "tsx scripts/probe-reco.ts",
+    "test:reco:quick": "TEST_ITERATIONS=10 tsx scripts/probe-reco.ts",
+    "prebuild": "npm run images:audit && npm run images:manifest && npm run images:dups"
   },
   "keywords": [
     "fashion-search",

@@ -12,13 +12,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { analyzeIntent } from '@/lib/core/intentParser'
 import { products, Product } from '@/lib/products'
-import {
-  useOutfitStore,
-  getLookTotalPrice,
-  isLookDress,
-  getLookTop,
-  getLookBottom
-} from '@/store/outfitStore'
+import { useOutfitStore, getFullLook } from '@/store/outfitStore'
 import { parseOutfitCommand, executeOutfitCommand } from '@/lib/core/outfitCommandParser'
 
 interface ChatSession {
@@ -33,11 +27,11 @@ export default function ChatPage() {
   const {
     currentMode,
     setMode,
-    selectedProducts: storeSelectedProducts,
+    selectedTops,
+    selectedBottoms,
     looks,
     visibleLookCount,
-    setSelectedProducts: setStoreSelectedProducts,
-    setLooks,
+    setSelectedItems,
     setVisibleLookCount,
     selectedLookForTryon,
     selectLookForTryon
@@ -50,9 +44,8 @@ export default function ChatPage() {
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([])
   const [currentSessionId, setCurrentSessionId] = useState<string>('default')
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([])
-  const [showRecommendations, setShowRecommendations] = useState(false) // 初始不顯示商品
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]) // 用戶選擇的商品（local chat mode）
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false) // 側邊欄折疊狀態
+  const [showRecommendations, setShowRecommendations] = useState(true)
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]) // 用戶選擇的商品
 
   // === 初始化 ===
   useEffect(() => {
@@ -181,16 +174,14 @@ export default function ChatPage() {
             : JSON.stringify(result.response) || '回應格式錯誤'
         setMessages((prev) => [...prev, { type: 'ai', content: safeContent }])
 
-        // 顯示推薦商品 - 使用 API 回傳的真實推薦（已修改為簡單格式）
-        if (currentMode === 'chat' && result.items && result.items.length > 0) {
+        // 顯示推薦商品
+        if (currentMode === 'chat') {
           setShowRecommendations(true)
-          setRecommendedProducts(result.items) // API 現在回傳簡單格式，直接使用
-          console.log('✅ 顯示 API 推薦的商品:', result.items.length, '件')
-        } else if (currentMode === 'chat') {
-          // 如果 API 沒有回傳商品，隱藏推薦區
-          setShowRecommendations(false)
-          setRecommendedProducts([])
-          console.log('⚠️ API 未回傳商品推薦')
+          const newRecommendations = products.slice(
+            Math.floor(Math.random() * 10),
+            Math.floor(Math.random() * 10) + 9
+          )
+          setRecommendedProducts(newRecommendations)
         }
       } else {
         setMessages((prev) => [
@@ -223,69 +214,30 @@ export default function ChatPage() {
   }
 
   // === 🎯 BE 27 核心功能：進入穿搭工作室 ===
-  const startOutfitSelection = async () => {
+  const startOutfitSelection = () => {
     // 驗證選擇的商品數量
-    if (selectedProducts.length < 1 || selectedProducts.length > 12) {
-      alert('請選擇 1-12 件商品！')
+    const tops = selectedProducts.filter(
+      (p) => p.category === 'top' || p.category === 'dress'
+    )
+    const bottoms = selectedProducts.filter((p) => p.category === 'bottom')
+
+    if (tops.length !== 3 || bottoms.length !== 3) {
+      alert('請選擇 3 件上衣和 3 件下身！')
       return
     }
 
-    setIsLoading(true)
+    setSelectedItems(tops, bottoms)
+    setMode('outfit')
 
-    // 顯示載入訊息
+    // AI 提示訊息
     setMessages((prev) => [
       ...prev,
       {
         type: 'ai',
-        content: '✨ 正在為您生成 6 套專屬穿搭組合，請稍候...'
+        content:
+          '✨ 太棒了！我已經為您準備好 6 套穿搭組合。\n\n您可以：\n• 拖拽商品來調整搭配\n• 使用指令交換商品（例如："交換 LOOK 1 和 LOOK 3 的褲子"）\n• 調整顯示數量（"只顯示前 3 套"）\n• 選擇一套進行虛擬試穿\n\n試試看吧！'
       }
     ])
-
-    try {
-      // 調用 AI 穿搭生成 API
-      const response = await fetch('/api/outfit/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          products: selectedProducts
-        })
-      })
-
-      const result = await response.json()
-
-      if (!result.success || !result.looks) {
-        throw new Error(result.error || '生成穿搭失敗')
-      }
-
-      console.log('✅ 收到 AI 生成的穿搭:', result.looks)
-
-      // 更新 Zustand store
-      setStoreSelectedProducts(selectedProducts)
-      setLooks(result.looks)
-      setMode('outfit')
-
-      // AI 成功訊息
-      setMessages((prev) => [
-        ...prev.slice(0, -1), // 移除載入訊息
-        {
-          type: 'ai',
-          content: `✨ 太棒了！我已經為您生成 ${result.looks.length} 套精選穿搭組合。\n\n您可以：\n• 查看不同風格的搭配方案\n• 使用指令調整穿搭（例如："交換 LOOK 1 和 LOOK 3 的上衣"）\n• 調整顯示數量（"只顯示前 3 套"）\n• 選擇一套進行虛擬試穿\n\n開始探索吧！`
-        }
-      ])
-    } catch (error: any) {
-      console.error('❌ 生成穿搭失敗:', error)
-      setMessages((prev) => [
-        ...prev.slice(0, -1), // 移除載入訊息
-        {
-          type: 'ai',
-          content: `❌ 抱歉，生成穿搭時遇到問題：${error.message || '未知錯誤'}\n\n請重新嘗試。`
-        }
-      ])
-    } finally {
-      setIsLoading(false)
-    }
   }
 
   // === 商品選擇邏輯 ===
@@ -294,8 +246,8 @@ export default function ChatPage() {
     if (isSelected) {
       setSelectedProducts((prev) => prev.filter((p) => p.id !== product.id))
     } else {
-      if (selectedProducts.length >= 12) {
-        alert('最多只能選擇 12 件商品')
+      if (selectedProducts.length >= 6) {
+        alert('最多只能選擇 6 件商品（3 上衣 + 3 下身）')
         return
       }
       setSelectedProducts((prev) => [...prev, product])
@@ -307,32 +259,19 @@ export default function ChatPage() {
     return (
       <div className="h-screen bg-white flex">
         {/* 左側邊欄 - 對話記錄 */}
-        <div className={`bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-300 ${
-          isSidebarCollapsed ? 'w-16' : 'w-1/4'
-        }`}>
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-            {!isSidebarCollapsed && (
-              <button
-                onClick={createNewChat}
-                className="flex-1 flex items-center gap-3 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <PlusIcon className="w-4 h-4" />
-                新對話
-              </button>
-            )}
+        <div className="w-1/4 bg-gray-50 border-r border-gray-200 flex flex-col">
+          <div className="p-4 border-b border-gray-200">
             <button
-              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className={`p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors ${
-                isSidebarCollapsed ? 'w-full' : 'ml-2'
-              }`}
-              title={isSidebarCollapsed ? '展開側邊欄' : '折疊側邊欄'}
+              onClick={createNewChat}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              {isSidebarCollapsed ? '»' : '«'}
+              <PlusIcon className="w-4 h-4" />
+              新對話
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-2">
-            {!isSidebarCollapsed && chatSessions.map((session) => (
+            {chatSessions.map((session) => (
               <button
                 key={session.id}
                 onClick={() => switchChat(session.id)}
@@ -356,31 +295,11 @@ export default function ChatPage() {
                 </div>
               </button>
             ))}
-            {isSidebarCollapsed && (
-              <div className="flex flex-col gap-2 items-center mt-4">
-                {chatSessions.slice(0, 5).map((session) => (
-                  <button
-                    key={session.id}
-                    onClick={() => switchChat(session.id)}
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                      currentSessionId === session.id
-                        ? 'bg-gray-200 text-gray-900'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                    title={session.title}
-                  >
-                    <ChatBubbleLeftIcon className="w-5 h-5" />
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
-          {!isSidebarCollapsed && (
-            <div className="p-4 border-t border-gray-200">
-              <div className="text-xs text-gray-500 text-center">BE 27 AI 助理</div>
-            </div>
-          )}
+          <div className="p-4 border-t border-gray-200">
+            <div className="text-xs text-gray-500 text-center">BE 27 AI 助理</div>
+          </div>
         </div>
 
         {/* 右側主要聊天區域 */}
@@ -412,28 +331,25 @@ export default function ChatPage() {
                         <span className="text-xs text-gray-500">BE 27</span>
                       </div>
                     )}
-                    <div
-                      className="text-sm leading-relaxed prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: message.content }}
-                    />
+                    <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {message.content}
+                    </div>
                   </div>
                 </div>
               ))}
 
-              {/* 推薦商品區塊 - 整合在對話流中 */}
+              {/* 推薦商品區塊 */}
               {showRecommendations && recommendedProducts.length > 0 && (
-                <div className="flex justify-start">
-                  <div className="max-w-[95%] bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
-                        <span className="text-purple-600 text-xs">AI</span>
-                      </div>
-                      <span className="text-xs text-gray-500">BE 27</span>
-                      <ShoppingBagIcon className="w-4 h-4 text-purple-600 ml-2" />
-                      <span className="text-xs font-medium text-purple-600">
-                        已選擇 {selectedProducts.length}/12 件
-                      </span>
+                <div className="mt-8 border-t border-gray-200 pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <ShoppingBagIcon className="w-5 h-5 text-purple-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">為您推薦</h3>
                     </div>
+                    <div className="text-sm text-gray-500">
+                      已選擇 {selectedProducts.length}/6 件
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {recommendedProducts.map((product) => {
                       const isSelected = selectedProducts.some((p) => p.id === product.id)
@@ -478,26 +394,20 @@ export default function ChatPage() {
                       )
                     })}
                   </div>
-                    <div className="text-center mt-6">
-                      <button
-                        onClick={startOutfitSelection}
-                        disabled={selectedProducts.length < 1 || selectedProducts.length > 12}
-                        className="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
-                      >
-                        <SparklesIcon className="w-5 h-5" />
-                        開始挑選穿搭（生成 6 套）
-                      </button>
-                      {selectedProducts.length === 0 && (
-                        <p className="text-sm text-gray-500 mt-2">
-                          請至少選擇 1 件商品開始搭配
-                        </p>
-                      )}
-                      {selectedProducts.length > 0 && selectedProducts.length <= 12 && (
-                        <p className="text-sm text-purple-600 mt-2">
-                          已選擇 {selectedProducts.length} 件，系統將為您生成 6 套穿搭組合
-                        </p>
-                      )}
-                    </div>
+                  <div className="text-center mt-6">
+                    <button
+                      onClick={startOutfitSelection}
+                      disabled={selectedProducts.length !== 6}
+                      className="px-8 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                    >
+                      <SparklesIcon className="w-5 h-5" />
+                      開始挑選穿搭
+                    </button>
+                    {selectedProducts.length !== 6 && (
+                      <p className="text-sm text-gray-500 mt-2">
+                        請選擇 3 件上衣和 3 件下身（目前：{selectedProducts.length}/6）
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -675,27 +585,16 @@ export default function ChatPage() {
             {/* LOOK 卡片網格 */}
             <div className="grid grid-cols-3 gap-6">
               {visibleLooks.map((look) => {
-                const isDress = isLookDress(look)
-                const top = getLookTop(look)
-                const bottom = getLookBottom(look)
-                const totalPrice = getLookTotalPrice(look)
+                const fullLook = getFullLook(look, selectedTops, selectedBottoms)
+                if (!fullLook) return null
 
                 return (
                   <div
                     key={look.id}
                     className="bg-white rounded-lg shadow-md p-6 border-2 border-gray-200 hover:border-purple-400 transition-all"
                   >
-                    {/* Header */}
                     <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">LOOK {look.id}</h3>
-                        {look.style && (
-                          <p className="text-xs text-gray-500 mt-1">{look.style}</p>
-                        )}
-                        {look.occasion && (
-                          <p className="text-xs text-purple-600 mt-0.5">📍 {look.occasion}</p>
-                        )}
-                      </div>
+                      <h3 className="text-lg font-bold text-gray-900">LOOK {look.id}</h3>
                       <button
                         onClick={() => {
                           selectLookForTryon(look.id)
@@ -703,89 +602,50 @@ export default function ChatPage() {
                         }}
                         className="px-3 py-1 text-xs bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors"
                       >
-                        試穿
+                        試穿這套
                       </button>
                     </div>
 
-                    {/* 洋裝單件顯示 */}
-                    {isDress && look.items[0] && (
-                      <div className="mb-4">
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
-                          <img
-                            src={look.items[0].image}
-                            alt={look.items[0].name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = '/images/placeholder.jpg'
-                            }}
-                          />
-                        </div>
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {look.items[0].name}
-                        </p>
-                        <p className="text-xs text-gray-500">{look.items[0].category}</p>
-                        <p className="text-xs text-purple-600 mt-1">
-                          NT$ {look.items[0].price.toLocaleString()}
-                        </p>
+                    {/* 上衣 */}
+                    <div className="mb-4">
+                      <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
+                        <img
+                          src={fullLook.top.image}
+                          alt={fullLook.top.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                    )}
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {fullLook.top.name}
+                      </p>
+                      <p className="text-xs text-purple-600">
+                        NT$ {fullLook.top.price.toLocaleString()}
+                      </p>
+                    </div>
 
-                    {/* 上下身組合顯示 */}
-                    {!isDress && top && bottom && (
-                      <>
-                        {/* 上衣 */}
-                        <div className="mb-3">
-                          <p className="text-xs text-gray-500 mb-1">上衣</p>
-                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
-                            <img
-                              src={top.image}
-                              alt={top.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.src = '/images/placeholder.jpg'
-                              }}
-                            />
-                          </div>
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {top.name}
-                          </p>
-                          <p className="text-xs text-purple-600">
-                            NT$ {top.price.toLocaleString()}
-                          </p>
-                        </div>
-
-                        {/* 下身 */}
-                        <div className="mb-3">
-                          <p className="text-xs text-gray-500 mb-1">下身</p>
-                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
-                            <img
-                              src={bottom.image}
-                              alt={bottom.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.src = '/images/placeholder.jpg'
-                              }}
-                            />
-                          </div>
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {bottom.name}
-                          </p>
-                          <p className="text-xs text-purple-600">
-                            NT$ {bottom.price.toLocaleString()}
-                          </p>
-                        </div>
-                      </>
-                    )}
+                    {/* 下身 */}
+                    <div className="mb-4">
+                      <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
+                        <img
+                          src={fullLook.bottom.image}
+                          alt={fullLook.bottom.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {fullLook.bottom.name}
+                      </p>
+                      <p className="text-xs text-purple-600">
+                        NT$ {fullLook.bottom.price.toLocaleString()}
+                      </p>
+                    </div>
 
                     {/* 總價 */}
                     <div className="pt-4 border-t border-gray-200">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">總價</span>
                         <span className="text-lg font-bold text-purple-600">
-                          NT$ {totalPrice.toLocaleString()}
+                          NT$ {fullLook.totalPrice.toLocaleString()}
                         </span>
                       </div>
                     </div>
@@ -814,7 +674,9 @@ export default function ChatPage() {
   // === 🎯 Render Stage 3: Try-On Mode ===
   if (currentMode === 'tryon') {
     const selectedLook = looks.find((l) => l.id === selectedLookForTryon)
-    const isDress = selectedLook ? isLookDress(selectedLook) : false
+    const fullLook = selectedLook
+      ? getFullLook(selectedLook, selectedTops, selectedBottoms)
+      : null
 
     return (
       <div className="h-screen bg-white flex items-center justify-center">
@@ -831,49 +693,18 @@ export default function ChatPage() {
             虛擬試穿 - LOOK {selectedLookForTryon}
           </h1>
 
-          {selectedLook && (
+          {fullLook && (
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
               <h3 className="text-lg font-semibold mb-4">您選擇的穿搭：</h3>
-              {selectedLook.style && (
-                <p className="text-sm text-purple-600 mb-2">風格：{selectedLook.style}</p>
-              )}
-              {selectedLook.occasion && (
-                <p className="text-sm text-gray-600 mb-4">場合：{selectedLook.occasion}</p>
-              )}
               <div className="grid grid-cols-2 gap-4">
-                {isDress ? (
-                  <div className="col-span-2">
-                    <p className="text-sm text-gray-600">洋裝</p>
-                    <p className="font-medium">{selectedLook.items[0].name}</p>
-                    <p className="text-sm text-purple-600 mt-1">
-                      NT$ {selectedLook.items[0].price.toLocaleString()}
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div>
-                      <p className="text-sm text-gray-600">上衣</p>
-                      <p className="font-medium">{selectedLook.items[0].name}</p>
-                      <p className="text-sm text-purple-600 mt-1">
-                        NT$ {selectedLook.items[0].price.toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">下身</p>
-                      <p className="font-medium">{selectedLook.items[1].name}</p>
-                      <p className="text-sm text-purple-600 mt-1">
-                        NT$ {selectedLook.items[1].price.toLocaleString()}
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
-                  總價：<span className="text-lg font-bold text-purple-600">
-                    NT$ {getLookTotalPrice(selectedLook).toLocaleString()}
-                  </span>
-                </p>
+                <div>
+                  <p className="text-sm text-gray-600">上衣</p>
+                  <p className="font-medium">{fullLook.top.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">下身</p>
+                  <p className="font-medium">{fullLook.bottom.name}</p>
+                </div>
               </div>
             </div>
           )}
