@@ -728,7 +728,7 @@ export default function StudioPage() {
     reader.readAsDataURL(file)
   }, [])
 
-  // 執行試穿（使用 Nano Banana / Gemini API）
+  // 執行試穿（支援多件商品 - 兩步試穿）
   const executeTryOn = useCallback(async () => {
     if (!userPhoto || !tryOnLook || tryOnLook.items.length === 0) return
 
@@ -736,34 +736,88 @@ export default function StudioPage() {
     setTryOnError(null)
 
     try {
-      // 取得第一件商品的圖片（簡化版：一次試穿一件）
-      const garmentItem = tryOnLook.items[0]
-      const garmentUrl = getImageUrl(garmentItem.product.image_nobg || garmentItem.product.image)
+      const items = tryOnLook.items
 
-      console.log('🔄 開始試穿...', { garmentUrl })
+      if (items.length === 1) {
+        // === 單件試穿 ===
+        const garmentUrl = getImageUrl(items[0].product.image_nobg || items[0].product.image)
+        console.log('👗 單件試穿:', items[0].product.name)
 
-      // 使用正確的 API 參數格式
-      const response = await fetch('/api/tryon', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          personImageUrl: userPhoto, // 完整的 base64 URL (data:image/...;base64,...)
-          garmentImageUrl: garmentUrl,
-          customRequest: '', // 可選：自訂試穿需求
-          keepOtherItems: true, // 保留其他衣物
-        }),
-      })
+        const response = await fetch('/api/tryon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            personImageUrl: userPhoto,
+            garmentImageUrl: garmentUrl,
+            customRequest: '',
+            keepOtherItems: true,
+          }),
+        })
 
-      const data = await response.json()
-
-      // API 回傳 url 欄位
-      if (data.url) {
-        setTryOnResult(data.url)
-        console.log('✅ 試穿成功，使用後端:', data.backend)
-      } else if (data.success === false) {
-        throw new Error(data.error || data.message || '試穿失敗')
+        const data = await response.json()
+        if (data.url) {
+          setTryOnResult(data.url)
+          console.log('✅ 單件試穿成功')
+        } else {
+          throw new Error(data.error || data.message || '試穿失敗')
+        }
       } else {
-        throw new Error('未知的 API 回應格式')
+        // === 多件試穿（兩步：上衣 → 下身）===
+        console.log(`👕👖 開始兩步試穿 (${items.length} 件商品)...`)
+
+        // 找出上衣和下身
+        const topItem = items.find(i => ['top', 'jacket', 'two-piece'].includes(i.product.category)) || items[0]
+        const bottomItem = items.find(i => i.product.category === 'bottom') || items.find(i => i !== topItem)
+
+        // Step 1: 試穿上衣
+        const topUrl = getImageUrl(topItem.product.image_nobg || topItem.product.image)
+        console.log(`👕 Step 1: 試穿上衣 (${topItem.product.name})`)
+
+        const topResponse = await fetch('/api/tryon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            personImageUrl: userPhoto,
+            garmentImageUrl: topUrl,
+            customRequest: 'only top',
+            keepOtherItems: true,
+          }),
+        })
+        const topResult = await topResponse.json()
+
+        if (!topResult.url) {
+          throw new Error(topResult.error || '上衣試穿失敗')
+        }
+        console.log('✅ Step 1 完成')
+
+        // Step 2: 用上衣結果再試穿下身
+        if (bottomItem && bottomItem !== topItem) {
+          const bottomUrl = getImageUrl(bottomItem.product.image_nobg || bottomItem.product.image)
+          console.log(`👖 Step 2: 試穿下身 (${bottomItem.product.name})`)
+
+          const bottomResponse = await fetch('/api/tryon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              personImageUrl: topResult.url,  // 用上一步的結果圖
+              garmentImageUrl: bottomUrl,
+              customRequest: 'only bottom',
+              keepOtherItems: true,
+            }),
+          })
+          const bottomResult = await bottomResponse.json()
+
+          if (bottomResult.url) {
+            setTryOnResult(bottomResult.url)
+            console.log('✅ 兩步試穿完成！')
+          } else {
+            setTryOnResult(topResult.url)
+            console.log('⚠️ 下身試穿失敗，顯示上衣結果')
+          }
+        } else {
+          setTryOnResult(topResult.url)
+          console.log('✅ 只有上衣，試穿完成')
+        }
       }
     } catch (error: any) {
       console.error('❌ 試穿錯誤:', error)

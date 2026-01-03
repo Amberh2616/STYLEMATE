@@ -114,6 +114,9 @@ export function getImageUrl(imagePath: string | null): string {
   // 如果已經是完整 URL，直接返回
   if (imagePath.startsWith('http')) return imagePath
 
+  // 如果是 base64 格式（試穿結果），直接返回
+  if (imagePath.startsWith('data:image/')) return imagePath
+
   // 組合 Django media URL
   const baseUrl = process.env.NEXT_PUBLIC_DJANGO_MEDIA_URL || 'http://localhost:8000/media/'
   return `${baseUrl}${imagePath}`
@@ -142,6 +145,36 @@ export async function fetchProductStats(): Promise<{
 
   if (!response.ok) {
     throw new Error(`Failed to fetch stats: ${response.status}`)
+  }
+
+  return response.json()
+}
+
+/**
+ * AI 推薦搜尋 - 根據關鍵字搜尋商品
+ */
+export interface AISearchResponse {
+  count: number
+  query: string
+  keywords: string[]
+  results: DjangoProduct[]
+}
+
+export async function aiSearchProducts(
+  query: string,
+  limit: number = 10
+): Promise<AISearchResponse> {
+  const params = new URLSearchParams({
+    q: query,
+    limit: String(limit),
+  })
+
+  const response = await fetch(`${DJANGO_API_URL}/products/ai_search/?${params}`, {
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    throw new Error(`AI search failed: ${response.status}`)
   }
 
   return response.json()
