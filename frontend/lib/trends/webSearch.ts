@@ -117,7 +117,9 @@ export async function fetchTrendDocs(
         const id = hash(`${lp.source}:${title}`);
         out.push({ id, title, url, source: lp.source, region_hint: lp.region || guessRegion(title, lp.source), type: guessType(title) });
       });
-    } catch {}
+    } catch {
+      // Silently ignore individual source failures
+    }
   }
 
   return dedupe(out);

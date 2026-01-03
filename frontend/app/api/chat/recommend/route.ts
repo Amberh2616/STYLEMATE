@@ -3,7 +3,11 @@ import { Pool } from 'pg'
 import OpenAI from 'openai'
 import { analyzeIntent } from '@/lib/core/intentParser'
 import { TravelWeatherAnalyzer } from '@/lib/travelWeatherAnalyzer'
-import { products } from '@/lib/products'
+import { products as localProducts } from '@/lib/products'
+import { applySemanticFiltering, validateCategoryConstraints } from '@/lib/semanticFiltering'
+
+// Django API URL
+const DJANGO_API_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1'
 
 // 回到可靠的 OpenAI 方案
 const openai = new OpenAI({
@@ -235,74 +239,79 @@ export async function POST(request: NextRequest) {
       console.log('✅ 使用 Fashion-CLIP 語義搜尋結果')
       fashionItems = fashionClipResults
     } else {
-      // ✨ 統一架構：使用 ProductInfo 適配器
-      console.log('🔄 使用 ProductInfo 統一架構作為備用方案')
-      
-      // 🚀 A) 載入完整商品目錄 + 只保留有圖片的商品
-      const catalog = products.filter(p => p.image)
-      console.log(`📦 總商品數量: ${catalog.length}`)
-      
-      // 🔍 检测白上衣查询，应用严格过滤
-      const WANT = 6;
-      const isWhiteTop = false; // 簡化處理
-      
-      
-      let strictCandidates = catalog;
-      let expandedCandidates = catalog;
-      
-      if (isWhiteTop) {
-        console.log('🎯 检测到白上衣查询，应用严格过滤');
-        // 1) 推断图案
-        const catalogWithPatterns = catalog;
-        
-        // 2) 严格集合：纯白色纯色上衣
-        strictCandidates = [];
-        
-        // 3) 宽松集合：包含白色的上衣（备用）
-        expandedCandidates = catalogWithPatterns;
-        
-        console.log(`📊 严格白上衣候选: ${strictCandidates.length}个`);
-        console.log(`📊 宽松白上衣候选: ${expandedCandidates.length}个`);
-        
-        // 4) 如果严格候选过少，用宽松集合补充
-        if (strictCandidates.length < WANT) {
-          const additional = expandedCandidates
-            .filter(p => !strictCandidates.some(s => s.id === p.id))
-            .slice(0, Math.max(0, WANT - strictCandidates.length));
-          strictCandidates = [...strictCandidates, ...additional];
+      // ✨ 智能語義篩選系統 - 優先使用 Django API
+      console.log('🔄 嘗試從 Django API 載入商品...')
+
+      let catalog: any[] = []
+
+      try {
+        // 🚀 優先從 Django API 獲取商品
+        const djangoResponse = await fetch(`${DJANGO_API_URL}/products/?page_size=100`, {
+          cache: 'no-store',
+        })
+
+        if (djangoResponse.ok) {
+          const djangoData = await djangoResponse.json()
+          catalog = (djangoData.results || []).map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: parseInt(p.price) || 0,
+            image: p.image, // Django 完整 URL
+            image_nobg: p.image_nobg, // 去背圖 URL
+            category: p.category,
+            tags: p.tags || [],
+            colors: p.colors || [],
+            style: p.style || '',
+            occasion: p.occasion || [],
+            season: p.season || [],
+            material: p.material || '',
+            sleeve: p.sleeve || '',
+            length: p.length || '',
+          }))
+          console.log(`✅ Django API 載入 ${catalog.length} 件商品`)
+        } else {
+          throw new Error(`Django API 錯誤: ${djangoResponse.status}`)
         }
-        
-        fashionItems = strictCandidates;
-        
-        // 設置debug變量 (白上衣分支)
-        prefilterStage = 'white_top_strict';
-        stagesSummary = [`strict=${strictCandidates.length}`, `expanded=${expandedCandidates.length}`];
-      } else {
-        // 🚀 簡化預篩選：直接使用所有商品
-        const candidates = catalog;
-        console.log(`🔍 候選數量: ${candidates.length}`);
-        
-        // 確保只回傳有圖片的商品
-        const validCandidates = candidates.filter(p => p.image);
-        console.log(`📷 過濾後有圖商品: ${validCandidates.length}`);
-        
-        // 簡化檢查
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✅ 候選商品檢查通過');
-        }
-        
-        // 簡化設置debug變量
-        prefilterStage = 'simplified';
-        stagesSummary = [`candidates=${candidates.length}`];
-        
-        fashionItems = validCandidates;
+      } catch (djangoError: any) {
+        console.log('⚠️ Django API 失敗，使用本地商品:', djangoError.message)
+        catalog = localProducts.filter(p => p.image)
       }
+
+      console.log(`📦 總商品數量: ${catalog.length}`)
+
+      // 🎯 Step 1: 應用語義篩選（顏色、風格、場合、季節）
+      let filteredProducts = applySemanticFiltering(catalog, message, intentAnalysis)
+      console.log(`🔍 語義篩選後: ${filteredProducts.length} 件商品`)
+
+      // 🛡️ Step 2: 應用類型約束校驗（確保符合用戶指定的類型要求）
+      filteredProducts = validateCategoryConstraints(filteredProducts, message)
+      console.log(`🛡️ 類型約束校驗後: ${filteredProducts.length} 件商品`)
+
+      fashionItems = filteredProducts
+
+      // 設置debug變量
+      prefilterStage = 'semantic_filtering';
+      stagesSummary = [`original=${catalog.length}`, `filtered=${filteredProducts.length}`];
     }
+    
     
 
     // ✨ B) 使用 ProductInfo 精簡格式給 AI  
-    const productSlims = (fashionItems || []).slice(0, 100).map(p => ({ id: p.id, name: p.name, image: p.image, colors: p.colors, category: p.category, price: p.price })) // 提高限制，預篩選已經縮小範圍
-    console.log(`🤖 傳送給 OpenAI 的商品數量: ${productSlims.length}`)
+    const productSlims = (fashionItems || []).slice(0, 100).map(p => ({
+      id: p.id,
+      name: p.name,
+      image: p.image,
+      colors: p.colors || [],
+      category: p.category,
+      price: p.price,
+      tags: p.tags || [],
+      style: p.style || '',
+      occasion: p.occasion || [],
+      season: p.season || [],
+      material: p.material || '',
+      sleeve: p.sleeve || '',
+      length: p.length || ''
+    }))
     
     // 驗證數據完整性
     const errors = productSlims.filter(p => !p.id || !p.name)
@@ -485,11 +494,39 @@ ${weatherContext.replace(/\n/g, '<br/>')}
 
     console.log('🔍 最終推薦商品ID列表 (解析後):', recommendedProductIds)
     
-    // 如果沒有找到推薦的 ID，就返回前面已过滤的商品ID
+    // 🔄 智能備用邏輯：如果AI沒有推薦商品，使用已篩選的商品池
     if (recommendedProductIds.length === 0 && fashionItems && fashionItems.length > 0) {
-      const fallbackItems = fashionItems.slice(0, 6);
-      recommendedProductIds.push(...fallbackItems.map(item => item.id.toString()))
+      console.log('⚠️ AI未返回推薦ID，使用智能備用邏輯')
+
+      // 根據用戶查詢再次篩選最相關的商品
+      let smartFallback = fashionItems
+
+      // 優先推薦多樣性：確保包含不同類型的商品
+      const categories = ['dress', 'top', 'pants', 'skirt', 'jacket']
+      const diverseItems: any[] = []
+
+      for (const cat of categories) {
+        const catItems = smartFallback.filter((p: any) =>
+          (p.category || '').toLowerCase().includes(cat)
+        )
+        if (catItems.length > 0) {
+          diverseItems.push(catItems[0]) // 每個類別取1件
+        }
+        if (diverseItems.length >= 9) break
+      }
+
+      // 如果還不足9件，補充其他商品
+      if (diverseItems.length < 9) {
+        const remaining = smartFallback
+          .filter((p: any) => !diverseItems.some((d: any) => d.id === p.id))
+          .slice(0, 9 - diverseItems.length)
+        diverseItems.push(...remaining)
+      }
+
+      recommendedProductIds.push(...diverseItems.map((item: any) => item.id.toString()))
+      console.log(`✅ 智能備用推薦: ${recommendedProductIds.length} 件商品`)
     }
+    
     
     // 🚀 C) 修復：只回傳AI推薦的商品，不是所有商品
     console.log('🔍 推薦商品ID列表:', recommendedProductIds)
@@ -503,12 +540,13 @@ ${weatherContext.replace(/\n/g, '<br/>')}
     const chosen = recommendedItems.length > 0 ? recommendedItems : fashionItems.slice(0, 6)
     console.log(`✅ 最終篩選結果: ${chosen.length} 個商品 (從 ${fashionItems.length} 個候選中篩選)`)
 
-    // 🎯 構建最終輸出格式 - 使用簡單格式（舊版 STYLEMATE 兼容）
+    // 🎯 構建最終輸出格式 - 包含 Django 圖片 URL
     let items = chosen.map(item => ({
       id: item.id,
       name: item.name || `商品${item.id}`,
       price: item.price || (item.price_cents ? Math.round(item.price_cents / 100) : 2800),
       image: item.image || `/images/products/default.jpg`,
+      image_nobg: item.image_nobg || item.image || `/images/products/default.jpg`, // 去背圖 URL
       category: item.category || '服飾',
       style: item.style || 'elegant',
       colors: item.colors || [],

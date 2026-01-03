@@ -981,6 +981,533 @@ const { swapLookItems } = useOutfitStore()
 
 ---
 
-**文檔版本**: v1.0.0
-**最後更新**: 2025-10-18
-**維護者**: Amber
+---
+
+## 🔄 最新開發進度（2025-10-19）
+
+### ✅ 已完成功能
+
+#### 1. **Chat 模式整合** (完成度: 95%)
+- ✅ ChatGPT 風格對話介面
+- ✅ 左側對話記錄管理
+- ✅ 右側商品推薦展示
+- ✅ OpenAI GPT-4o Mini 智能推薦
+- ✅ 商品多選功能（checkbox）
+- ✅ 「前往穿搭工作室」按鈕
+
+**檔案位置**: `/frontend/app/chat/page.tsx`
+
+#### 2. **Outfit 模式（AI 自動生成 LOOK）** (完成度: 90%)
+- ✅ 從選中商品自動生成 6 套 LOOK
+- ✅ 支援洋裝（1件）或上下身組合（2件）
+- ✅ AI 智能搭配算法（OpenAI API）
+- ✅ LOOK 卡片展示（2行×3列）
+- ✅ 價格計算與顯示
+- ✅ React DnD 拖拽交換功能
+- ✅ 「前往試穿」按鈕
+
+**核心檔案**:
+- API: `/frontend/app/api/outfit/generate/route.ts`
+- Store: `/frontend/store/outfitStore.ts`
+- Types: `Look` interface 支援洋裝與上下身
+
+**AI 生成邏輯**:
+```typescript
+// 商品池：1-12 件（可混合洋裝、上衣、下身）
+// 輸出：6 套 LOOK
+// 每套 LOOK = 1 件洋裝 OR (1 件上衣 + 1 件下身)
+
+interface Look {
+  id: number
+  items: Product[]      // 洋裝=[1件], 上下身=[上衣, 下身]
+  style?: string       // AI 生成的風格描述
+  occasion?: string    // AI 生成的場合描述
+}
+```
+
+#### 3. **Try-On 模式（虛擬試穿）** (完成度: 70%)
+- ✅ 多 LOOK 複選功能（checkbox）
+- ✅ PhotoUpload 組件整合
+- ✅ 批次試穿 API 調用
+- ✅ 試穿結果展示（卡片式佈局）
+- ✅ 下載試穿圖按鈕
+- ✅ 加入購物車按鈕（整套 LOOK）
+- ✅ 圖片 URL 轉換修復（相對路徑→絕對路徑）
+- ⚠️ **兩步試穿優化（待修復）**
+
+**已實現功能**:
+```typescript
+// 洋裝試穿（單步）
+{
+  personImageUrl: userPhotoBase64,
+  garmentImageUrl: toAbsoluteUrl(look.items[0].image),
+  customRequest: 'Complete outfit'
+}
+
+// 上下身試穿（兩步法）
+// Step 1: 試穿上衣
+{
+  customRequest: 'only top',
+  keepOtherItems: true
+}
+// Step 2: 試穿下身（基於 Step 1 結果）
+{
+  personImageUrl: topResult.url,  // 使用上一步圖片
+  customRequest: 'only bottom'
+}
+```
+
+**已知問題**:
+- ⚠️ 兩步試穿可能有準確度問題
+- ⚠️ AI 模型對 `only top/bottom` 指令的理解度有限
+
+**檔案位置**:
+- 前端邏輯: `/frontend/app/chat/page.tsx:330-445`
+- API 路由: `/frontend/app/api/tryon/route.ts`
+- PhotoUpload: `/frontend/components/forms/PhotoUpload.tsx`
+
+#### 4. **購物車系統** (完成度: 80%)
+- ✅ Zustand Store 建立
+- ✅ 支援單品與整套 LOOK
+- ✅ 試穿照片關聯
+- ✅ 套裝折扣機制（95折）
+- ✅ 購物車狀態管理
+- ❌ 購物車頁面 UI（待實現）
+- ❌ 結帳流程（待實現）
+
+**檔案位置**: `/frontend/store/cartStore.ts`
+
+**資料結構**:
+```typescript
+interface CartItem {
+  id: string
+  type: 'single' | 'outfit'      // 單品 or 整套
+  product?: Product              // 單品模式
+  quantity?: number
+  look?: Look                    // 整套模式
+  products?: Product[]
+  discountRate?: number          // 套裝折扣
+  tryonImage?: string            // 試穿照片 URL
+  addedFrom: 'chat' | 'outfit' | 'tryon'
+  addedAt: string
+}
+```
+
+---
+
+### 🚧 待完成功能
+
+#### 高優先級
+1. **修復虛擬試穿功能** ⚠️
+   - 問題：兩步試穿準確度不足
+   - 可能方案：
+     - 改進 Prompt 工程
+     - 使用更專業的試穿 API（Replicate/Hugging Face Space）
+     - 考慮單步試穿 + 後處理
+
+2. **實現購物車頁面** 📋
+   - 購物車列表顯示
+   - 單品/整套分組展示
+   - 試穿照片預覽
+   - 數量調整與刪除
+   - 總價計算
+
+3. **實現結帳流程** 📋
+   - 收件資訊填寫
+   - 付款方式選擇
+   - 訂單確認頁面
+   - 訂單成功頁面
+
+#### 中優先級
+4. **Outfit 指令解析器** 📋
+   - 自然語言交換指令
+   - 「把 LOOK 1 的上衣換成 LOOK 3 的上衣」
+   - 「重新組合全部搭配」
+   - 整合到 Chat 模式
+
+5. **藝術照功能** 🎨
+   - 背景替換
+   - 濾鏡效果
+   - 照片編輯工具
+
+---
+
+### 📊 技術債務
+
+#### 代碼品質
+- ⚠️ `/frontend/app/chat/page.tsx` 檔案過大（800+ 行）
+  - 建議拆分為：`ChatMode.tsx`, `OutfitMode.tsx`, `TryOnMode.tsx`
+- ⚠️ 缺少 TypeScript 嚴格類型檢查
+- ⚠️ 部分組件缺少錯誤邊界（Error Boundary）
+
+#### 性能優化
+- 📉 大量商品渲染時可能卡頓
+  - 建議：使用 `react-window` 虛擬列表
+- 📉 試穿 API 調用無並發控制
+  - 建議：限制同時最多 2 個請求
+
+#### 測試覆蓋
+- ❌ 缺少單元測試
+- ❌ 缺少 E2E 測試
+- ❌ 缺少 API 測試
+
+---
+
+### 🗂️ 檔案結構總覽
+
+```
+STYLEMATE/
+├── frontend/
+│   ├── app/
+│   │   ├── chat/
+│   │   │   └── page.tsx           # 主聊天頁面（3階段整合）
+│   │   ├── api/
+│   │   │   ├── chat/
+│   │   │   │   └── recommend/route.ts   # 商品推薦 API
+│   │   │   ├── outfit/
+│   │   │   │   └── generate/route.ts    # AI 生成 LOOK API
+│   │   │   └── tryon/
+│   │   │       └── route.ts             # 虛擬試穿 API
+│   │   └── cart/
+│   │       └── page.tsx           # 購物車頁面（待實現）
+│   ├── components/
+│   │   ├── forms/
+│   │   │   └── PhotoUpload.tsx    # 照片上傳組件
+│   │   └── canvas/
+│   │       └── AlignableCanvasTryOn.tsx  # 試穿畫布
+│   ├── store/
+│   │   ├── outfitStore.ts         # 穿搭狀態管理
+│   │   └── cartStore.ts           # 購物車狀態管理
+│   ├── lib/
+│   │   ├── products.ts            # 商品資料
+│   │   ├── core/
+│   │   │   ├── intentParser.ts    # 意圖識別
+│   │   │   └── outfitCommandParser.ts  # 穿搭指令解析（待整合）
+│   │   └── travelWeatherAnalyzer.ts
+│   └── public/
+│       └── images/products/       # 商品圖片
+└── docs/
+    └── BE27_DEVELOPER_DOCUMENTATION.md  # 本文檔
+```
+
+---
+
+### 🎯 當前 TODO 清單
+
+| 優先級 | 任務 | 狀態 | 負責人 |
+|--------|------|------|--------|
+| 🔴 P0 | 修復虛擬試穿功能問題 | ⏸️ Pending | - |
+| 🟠 P1 | 實現購物車頁面 UI | ⏸️ Pending | - |
+| 🟠 P1 | 實現完整結帳流程 | ⏸️ Pending | - |
+| 🟡 P2 | 整合 Outfit 指令解析器 | ⏸️ Pending | - |
+| 🟡 P2 | 試穿結果展示優化 | ⏸️ Pending | - |
+| 🟢 P3 | 預留藝術照功能擴展接口 | ⏸️ Pending | - |
+| 🟢 P3 | 代碼重構與拆分 | ⏸️ Pending | - |
+
+---
+
+### 📝 開發筆記
+
+#### 2025-10-19 虛擬試穿功能開發
+- ✅ 完成多 LOOK 複選功能
+- ✅ 完成批次試穿 API 調用
+- ✅ 修復圖片 URL 轉換問題（`toAbsoluteUrl` helper）
+- ⚠️ 兩步試穿準確度不佳，待優化
+- 📝 發現問題：AI 對 `only top/bottom` 的理解有限
+
+#### 關鍵技術決策
+1. **為何使用兩步試穿？**
+   - 原因：AI 難以同時精確替換上下身
+   - 方案：先試穿上衣 → 再基於結果試穿下身
+   - 風險：API 調用次數翻倍，成本增加
+
+2. **為何選擇 Gemini 而非 Replicate？**
+   - 優勢：Gemini 2.5 Flash 速度快、成本低
+   - 劣勢：試穿專業度不如專用模型
+   - 備援：設置了 HF Space fallback
+
+3. **為何使用 Zustand 而非 Redux？**
+   - 理由：代碼量更少、學習曲線平緩
+   - 適用場景：中小型專案、快速迭代
+
+---
+
+**文檔版本**: v2.1.0
+**最後更新**: 2026-01-03
+**維護者**: Amber & Claude Code
+
+---
+
+## 🚀 BE27 v2.1 重構計畫（2026-01）
+
+### 📋 重構目標
+
+1. **全新白板介面** - 去背衣服自由拖拽 + 圈選組合
+2. **後端遷移 Django** - 商品管理 + 雙圖片系統（原圖 + 去背）
+3. **優化試穿流程** - 圈選後直接顯示價格和試穿
+
+---
+
+### 🎯 核心設計：穿搭白板 (Outfit Canvas)
+
+#### 完整介面佈局
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│   BE 27 穿搭工作室                           📸[照片] [✋移動] [⭕圈選]     │
+│                                                                             │
+├────────────────────┬──────────────────────────────────┬─────────────────────┤
+│                    │                                  │                     │
+│   💬 BE 27 助理    │        ✨ 搭配白板               │  📋 已圈選組合      │
+│   [收起 ←]         │                                  │  （圈選後出現）     │
+│                    │  ┌─────┐                        │                     │
+│   ┌──────────────┐ │  │上衣A│  ┌─────┐  ┌───────┐   │  ┌───────────────┐  │
+│   │ AI: 這些衣服 │ │  └─────┘  │上衣B│  │ 洋裝C │   │  │   組合 1      │  │
+│   │ 適合約會穿！ │ │           └─────┘  └───────┘   │  │  上衣A+褲子1  │  │
+│   └──────────────┘ │  ┌─────┐                        │  │  NT$ 3,200    │  │
+│                    │  │褲子1│      ┌─────┐          │  │  [🎨試穿]     │  │
+│   ┌──────────────┐ │  └─────┘      │裙子2│          │  └───────────────┘  │
+│   │ 你: 有藍色   │ │               └─────┘          │                     │
+│   │ 的上衣嗎？   │ │       ┌─────┐                  │  ┌───────────────┐  │
+│   └──────────────┘ │       │褲子3│                  │  │   組合 2      │  │
+│                    │       └─────┘                  │  │  洋裝C        │  │
+│   ┌──────────────┐ │                                  │  │  NT$ 4,500    │  │
+│   │ AI: 這件如何 │ │    ↑ 去背圖片，自由拖拽         │  │  [🎨試穿]     │  │
+│   │ ┌────┐       │ │                                  │  └───────────────┘  │
+│   │ │藍衣│[加入] │ │                                  │                     │
+│   │ └────┘       │ │                                  │  [試穿全部]         │
+│   └──────────────┘ │                                  │                     │
+│                    │                                  │                     │
+│   [輸入訊息...]    │                                  │                     │
+│   [發送]           │                                  │                     │
+│                    │                                  │                     │
+└────────────────────┴──────────────────────────────────┴─────────────────────┘
+```
+
+#### 三欄式設計
+
+| 區域 | 功能 | 可收起 |
+|------|------|--------|
+| 左側：💬 AI 對話 | 隨時問 AI 推薦新衣服，按「加入」放到白板 | ✅ 可收起 |
+| 中間：✨ 白板 | 去背衣服自由拖拽，用圈選工具框選組合 | ❌ 固定 |
+| 右側：📋 組合 | 圈選後顯示組合、價格、試穿按鈕 | 圈選後出現 |
+
+---
+
+### 🎯 用戶流程
+
+```
+Step 1: Chat 推薦
+    │   用戶輸入需求 → AI 推薦衣服（有背景的美圖）
+    │   用戶選擇想要的 → 進入白板
+    ▼
+Step 2: 白板自由移動
+    │   去背衣服在白板上自由拖拽
+    │   左側對話框可隨時問 AI 推薦更多
+    │   AI 推薦的新衣服可「加入」白板
+    ▼
+Step 3: 圈選組合
+    │   切換「圈選工具」
+    │   框選想要的衣服組合
+    │   右側顯示：組合內容 + 價格 + 試穿按鈕
+    ▼
+Step 4: 試穿 & 購買
+    │   按試穿 → 生成試穿圖
+    │   下載 / 加入購物車
+    ▼
+    完成
+```
+
+---
+
+### 🎯 雙圖片系統
+
+商品需要兩套圖片：
+
+| 圖片類型 | 用途 | 格式 | 欄位名 |
+|----------|------|------|--------|
+| 原始圖 | Chat 推薦展示（有背景較美） | JPG | `image` |
+| 去背圖 | 白板拖拽搭配（透明背景） | PNG | `image_nobg` |
+
+#### Django Model
+
+```python
+class Product(models.Model):
+    name = models.CharField(max_length=200)
+    price = models.DecimalField(max_digits=10, decimal_places=0)
+    category = models.CharField(max_length=50)
+
+    # 兩套圖片
+    image = models.ImageField(upload_to='products/original/')      # 有背景
+    image_nobg = models.ImageField(upload_to='products/nobg/')     # 去背
+```
+
+#### 檔案結構
+
+```
+media/
+└── products/
+    ├── original/              # 原始圖（有背景）
+    │   ├── dress_01.jpg       ← Chat 推薦時顯示
+    │   └── ...
+    └── nobg/                  # 去背圖（透明）
+        ├── dress_01.png       ← 白板上拖拽用
+        └── ...
+```
+
+#### 去背方案：rembg (Python)
+
+```python
+from rembg import remove
+from PIL import Image
+
+# 自動去背
+input_image = Image.open("衣服.jpg")
+output_image = remove(input_image)
+output_image.save("衣服_nobg.png")
+```
+
+處理速度（CPU）：每張 3-5 秒，79 張約 4-7 分鐘
+
+---
+
+### 🎯 Q2：後端遷移 Django
+
+#### 遷移架構
+
+```
+現有 Express.js                    Django 新架構
+────────────────────────────────────────────────────────────
+backend/server.ts          →    be27_api/views/search.py
+backend/services/search/   →    be27_api/services/websearch/
+backend/services/weather/  →    be27_api/services/weather/
+frontend/lib/products.ts   →    products/models.py + Admin 後台
+```
+
+#### Django 專案結構
+
+```
+be27_backend/
+├── manage.py
+├── requirements.txt
+├── be27/                          # 主專案設定
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+│
+├── products/                      # 商品 App
+│   ├── models.py                  # Product Model
+│   ├── serializers.py             # DRF 序列化
+│   ├── views.py                   # ViewSet
+│   ├── admin.py                   # ← 後台管理介面
+│   └── fixtures/
+│       └── initial_products.json  # ← 79 個商品
+│
+├── search/                        # WebSearch App
+│   ├── services/
+│   │   ├── crawler.py             # 時尚媒體爬取
+│   │   └── orchestrator.py
+│   └── views.py
+│
+├── weather/                       # 天氣 App
+│   └── services/openweather.py
+│
+└── media/products/                # 商品圖片
+```
+
+#### Django 優勢
+
+| 功能 | 現在 (Express) | Django |
+|------|----------------|--------|
+| 改商品價格 | 改程式碼 + 部署 | Admin 後台點擊 |
+| 新增商品 | 改 products.ts | 表單上傳 |
+| 批次修改 | 寫腳本 | 勾選 + 執行 |
+| 用戶權限 | 自己寫 | 內建 |
+| AI 整合 | Node.js 套件少 | Python 原生 |
+
+#### API 端點對照
+
+| 現有 Express | Django REST | 說明 |
+|--------------|-------------|------|
+| GET /search?q= | GET /api/v1/search/ | 時尚趨勢搜尋 |
+| - | GET /api/v1/products/ | 商品列表 |
+| - | GET /api/v1/products/{id}/ | 商品詳情 |
+| - | POST /api/v1/recommend/ | AI 推薦 |
+
+---
+
+### 📅 開發時程
+
+#### Phase 1：Django 後端建設
+- [ ] 建立 Django 專案骨架
+- [ ] 實作 Product Model（雙圖片欄位）
+- [ ] rembg 去背服務整合
+- [ ] 批量去背 79 張圖片
+- [ ] REST API 端點實作
+
+#### Phase 2：前端白板介面
+- [ ] 白板畫布組件（自由拖拽）
+- [ ] 圈選工具功能實作
+- [ ] 左側對話框（可收起）
+- [ ] 右側組合面板（價格+試穿）
+
+#### Phase 3：功能整合
+- [ ] 試穿功能整合到白板
+- [ ] 前端串接 Django API
+- [ ] WebSearch 服務遷移
+
+#### Phase 4：整合測試與優化
+- [ ] 端對端流程測試
+- [ ] 效能優化
+- [ ] 部署準備
+
+---
+
+### 📋 TODO 清單（優先級排序）
+
+| 優先級 | 任務 | 狀態 | 分類 |
+|--------|------|------|------|
+| 🔴 P0 | Django：建立專案骨架 | ⏸️ Pending | 後端 |
+| 🔴 P0 | Django：Product Model（雙圖片欄位） | ⏸️ Pending | 後端 |
+| 🔴 P0 | Django：rembg 去背服務整合 | ⏸️ Pending | 後端 |
+| 🔴 P0 | Django：批量去背 79 張圖片 | ⏸️ Pending | 後端 |
+| 🔴 P0 | Django：REST API 端點 | ⏸️ Pending | 後端 |
+| 🟠 P1 | 前端：白板畫布組件（自由拖拽） | ⏸️ Pending | 前端 |
+| 🟠 P1 | 前端：圈選工具功能 | ⏸️ Pending | 前端 |
+| 🟠 P1 | 前端：左側對話框（可收起） | ⏸️ Pending | 前端 |
+| 🟠 P1 | 前端：右側組合面板（價格+試穿） | ⏸️ Pending | 前端 |
+| 🟡 P2 | 前端：試穿功能整合 | ⏸️ Pending | 前端 |
+| 🟡 P2 | 整合：Next.js 串接 Django API | ⏸️ Pending | 整合 |
+| 🟢 P3 | 購物車頁面 UI | ⏸️ Pending | 前端 |
+| 🟢 P3 | 完整結帳流程 | ⏸️ Pending | 前端 |
+
+---
+
+### 🔧 技術決策記錄
+
+#### 2026-01-03：穿搭白板介面設計
+- **問題**：現有三階段流程（Chat → Outfit → TryOn）需要多次重複選擇
+- **方案選擇**：白板式自由拖拽 + 圈選組合
+- **設計重點**：
+  - **三欄佈局**：左側 AI 對話（可收起）| 中間白板 | 右側組合面板（圈選後出現）
+  - **去背衣服**：透明 PNG 可在白板上自由拖拽
+  - **圈選工具**：框選衣服組合後顯示價格和試穿按鈕
+  - **左側對話框**：隨時問 AI 推薦更多衣服，按「加入」放到白板
+
+#### 2026-01-03：雙圖片系統決策
+- **問題**：有背景圖片較美觀，但白板需要去背圖片
+- **方案選擇**：兩套圖片（原圖 + 去背圖）
+- **實作**：
+  - `image`：有背景的 JPG，用於 Chat 推薦展示
+  - `image_nobg`：去背的透明 PNG，用於白板拖拽
+  - 使用 rembg (Python) 批量去背，CPU 每張 3-5 秒
+
+#### 2026-01-03：後端遷移 Django 決策
+- **問題**：商品管理需要改程式碼，維護成本高
+- **方案選擇**：完全遷移至 Django
+- **理由**：
+  - Django Admin 內建後台管理
+  - Python 生態系對 AI/ML 支援更好（rembg 整合）
+  - ORM + Migration 管理資料庫更方便
+  - REST Framework 快速建立 API

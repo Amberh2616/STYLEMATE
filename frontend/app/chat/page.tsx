@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   PaperAirplaneIcon,
   PlusIcon,
@@ -8,8 +9,12 @@ import {
   ShoppingBagIcon,
   ArrowLeftIcon,
   SparklesIcon,
-  XMarkIcon
+  XMarkIcon,
+  PaintBrushIcon
 } from '@heroicons/react/24/outline'
+import { useRecommendStore } from '@/store/recommendStore'
+import { DndProvider, useDrag, useDrop } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { analyzeIntent } from '@/lib/core/intentParser'
 import { products, Product } from '@/lib/products'
 import {
@@ -20,6 +25,8 @@ import {
   getLookBottom
 } from '@/store/outfitStore'
 import { parseOutfitCommand, executeOutfitCommand } from '@/lib/core/outfitCommandParser'
+import PhotoUpload from '@/components/forms/PhotoUpload'
+import { useCartStore } from '@/store/cartStore'
 
 interface ChatSession {
   id: string
@@ -28,7 +35,69 @@ interface ChatSession {
   timestamp: Date
 }
 
-export default function ChatPage() {
+// 拖拽類型定義
+const ItemTypes = {
+  TOP: 'top',
+  BOTTOM: 'bottom'
+}
+
+// 可拖拽的商品圖片組件
+function DraggableProductImage({
+  product,
+  lookId,
+  type,
+  onDrop
+}: {
+  product: Product
+  lookId: number
+  type: 'top' | 'bottom'
+  onDrop: (fromLookId: number, toLookId: number, itemType: 'top' | 'bottom') => void
+}) {
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: type === 'top' ? ItemTypes.TOP : ItemTypes.BOTTOM,
+    item: { lookId, type },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging()
+    })
+  }))
+
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: type === 'top' ? ItemTypes.TOP : ItemTypes.BOTTOM,
+    drop: (item: { lookId: number; type: 'top' | 'bottom' }) => {
+      if (item.lookId !== lookId) {
+        onDrop(item.lookId, lookId, type)
+      }
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver()
+    })
+  }))
+
+  return (
+    <div
+      ref={(node) => drag(drop(node))}
+      className={`cursor-move transition-all ${
+        isDragging ? 'opacity-50 scale-95' : 'opacity-100'
+      } ${isOver ? 'ring-2 ring-purple-500 ring-offset-2' : ''}`}
+    >
+      <img
+        src={product.image}
+        alt={product.name}
+        className="w-full object-contain"
+        style={{ maxHeight: '300px' }}
+        onError={(e) => {
+          const target = e.target as HTMLImageElement
+          target.src = '/images/placeholder.jpg'
+        }}
+      />
+    </div>
+  )
+}
+
+function ChatPageContent() {
+  // === Router ===
+  const router = useRouter()
+
   // === Zustand Store ===
   const {
     currentMode,
@@ -40,8 +109,18 @@ export default function ChatPage() {
     setLooks,
     setVisibleLookCount,
     selectedLookForTryon,
-    selectLookForTryon
+    selectLookForTryon,
+    swapItems
   } = useOutfitStore()
+
+  // === Recommend Store (for Studio navigation) ===
+  const { setRecommendedProducts: setStoreRecommendedProducts, setSourcePrompt } = useRecommendStore()
+
+  // === 拖拽交換處理 ===
+  const handleDragDrop = (fromLookId: number, toLookId: number, itemType: 'top' | 'bottom') => {
+    console.log(`🔄 拖拽交換: LOOK ${fromLookId} 和 LOOK ${toLookId} 的${itemType === 'top' ? '上衣' : '下身'}`)
+    swapItems(fromLookId, toLookId, itemType)
+  }
 
   // === Local State ===
   const [messages, setMessages] = useState<Array<{ type: 'user' | 'ai'; content: string }>>([])
@@ -53,6 +132,19 @@ export default function ChatPage() {
   const [showRecommendations, setShowRecommendations] = useState(false) // 初始不顯示商品
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]) // 用戶選擇的商品（local chat mode）
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false) // 側邊欄折疊狀態
+
+  // === 試穿模式專用狀態 ===
+  const [selectedLooksForTryon, setSelectedLooksForTryon] = useState<number[]>([]) // 多選 LOOK IDs
+  const [userPhoto, setUserPhoto] = useState<File | null>(null) // 用戶照片
+  const [isTryonProcessing, setIsTryonProcessing] = useState(false) // 試穿處理中
+  const [tryonResults, setTryonResults] = useState<Array<{
+    lookId: number
+    resultImage: string
+    products: Product[]
+  }>>([]) // 試穿結果
+
+  // === 購物車 Store ===
+  const { addSingleProduct, addOutfit, getTotalItems } = useCartStore()
 
   // === 初始化 ===
   useEffect(() => {
@@ -155,6 +247,12 @@ export default function ChatPage() {
           ])
           setIsLoading(false)
           return
+        } else {
+          // 🔄 如果不是穿搭指令，切換回聊天模式
+          console.log('🔄 用戶在穿搭模式下發送一般請求，切換回聊天模式')
+          setMode('chat')
+          setShowRecommendations(false)
+          setRecommendedProducts([])
         }
       }
 
@@ -181,12 +279,12 @@ export default function ChatPage() {
             : JSON.stringify(result.response) || '回應格式錯誤'
         setMessages((prev) => [...prev, { type: 'ai', content: safeContent }])
 
-        // 顯示推薦商品 - 使用 API 回傳的真實推薦（已修改為簡單格式）
-        if (currentMode === 'chat' && result.items && result.items.length > 0) {
+        // 顯示推薦商品 - 使用 API 回傳的真實推薦
+        if (result.items && result.items.length > 0) {
           setShowRecommendations(true)
-          setRecommendedProducts(result.items) // API 現在回傳簡單格式，直接使用
+          setRecommendedProducts(result.items)
           console.log('✅ 顯示 API 推薦的商品:', result.items.length, '件')
-        } else if (currentMode === 'chat') {
+        } else {
           // 如果 API 沒有回傳商品，隱藏推薦區
           setShowRecommendations(false)
           setRecommendedProducts([])
@@ -220,6 +318,176 @@ export default function ChatPage() {
       e.preventDefault()
       sendMessage()
     }
+  }
+
+  // === 🎯 試穿功能處理 ===
+
+  // 切換 LOOK 選擇
+  const toggleLookSelection = (lookId: number) => {
+    setSelectedLooksForTryon(prev =>
+      prev.includes(lookId)
+        ? prev.filter(id => id !== lookId)
+        : [...prev, lookId]
+    )
+  }
+
+  // 處理照片上傳
+  const handlePhotoUpload = (file: File) => {
+    setUserPhoto(file)
+  }
+
+  // 批次試穿
+  const handleBatchTryon = async () => {
+    if (selectedLooksForTryon.length === 0) {
+      alert('請至少選擇一套 LOOK')
+      return
+    }
+    if (!userPhoto) {
+      alert('請上傳您的照片')
+      return
+    }
+
+    setIsTryonProcessing(true)
+    const results: Array<{ lookId: number; resultImage: string; products: Product[] }> = []
+
+    try {
+      // 將用戶照片轉為 base64
+      const userPhotoBase64 = await fileToBase64(userPhoto)
+
+      // Helper: 將相對路徑轉為完整 URL
+      const toAbsoluteUrl = (path: string) => {
+        if (path.startsWith('http')) return path
+        const origin = window.location.origin
+        return `${origin}${path.startsWith('/') ? path : '/' + path}`
+      }
+
+      // 逐一處理每個選中的 LOOK
+      for (const lookId of selectedLooksForTryon) {
+        const look = looks.find(l => l.id === lookId)
+        if (!look) continue
+
+        console.log(`🎨 開始試穿 LOOK ${lookId}...`)
+
+        // 調用試穿 API（這裡需要根據實際 API 調整）
+        // 目前的試穿 API 只支援單件商品，需要處理上下身組合
+        const isDress = isLookDress(look)
+
+        if (isDress) {
+          // 洋裝：單件試穿
+          const response = await fetch('/api/tryon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              personImageUrl: userPhotoBase64,
+              garmentImageUrl: toAbsoluteUrl(look.items[0].image),
+              customRequest: 'Complete outfit',
+              keepOtherItems: true
+            })
+          })
+          const result = await response.json()
+          console.log(`🔍 LOOK ${lookId} API 回應:`, result)
+
+          // API 成功時返回 { url, backend, message }，失敗時返回 { success: false, error }
+          if (result.url && result.success !== false) {
+            results.push({
+              lookId,
+              resultImage: result.url,
+              products: look.items
+            })
+            console.log(`✅ LOOK ${lookId} 試穿成功`)
+          } else {
+            console.error(`❌ LOOK ${lookId} 試穿失敗:`, result.error || result.message)
+          }
+        } else {
+          // 上下身組合：分兩步試穿
+          console.log(`📦 LOOK ${lookId} 是上下身組合，開始兩步試穿...`)
+
+          try {
+            // Step 1: 試穿上衣
+            console.log(`👕 Step 1: 試穿上衣 (${look.items[0].name})`)
+            const topResponse = await fetch('/api/tryon', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                personImageUrl: userPhotoBase64,
+                garmentImageUrl: toAbsoluteUrl(look.items[0].image),
+                customRequest: 'only top',  // 只替換上衣
+                keepOtherItems: true
+              })
+            })
+            const topResult = await topResponse.json()
+            console.log(`🔍 上衣試穿結果:`, topResult)
+
+            if (!topResult.url || topResult.success === false) {
+              console.error(`❌ 上衣試穿失敗:`, topResult.error || topResult.message)
+              continue
+            }
+
+            // Step 2: 在上衣試穿結果基礎上試穿下身
+            console.log(`👖 Step 2: 試穿下身 (${look.items[1].name})`)
+            const bottomResponse = await fetch('/api/tryon', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                personImageUrl: topResult.url,  // 使用上一步的結果圖片
+                garmentImageUrl: toAbsoluteUrl(look.items[1].image),
+                customRequest: 'only bottom',  // 只替換下身
+                keepOtherItems: true
+              })
+            })
+            const bottomResult = await bottomResponse.json()
+            console.log(`🔍 下身試穿結果:`, bottomResult)
+
+            if (bottomResult.url && bottomResult.success !== false) {
+              results.push({
+                lookId,
+                resultImage: bottomResult.url,  // 最終結果是兩步合成的圖片
+                products: look.items
+              })
+              console.log(`✅ LOOK ${lookId} 試穿成功（上衣+下身兩步完成）`)
+            } else {
+              console.error(`❌ LOOK ${lookId} 下身試穿失敗:`, bottomResult.error || bottomResult.message)
+            }
+          } catch (stepError) {
+            console.error(`❌ LOOK ${lookId} 分步試穿失敗:`, stepError)
+          }
+        }
+      }
+
+      setTryonResults(results)
+      console.log(`✅ 完成 ${results.length} 套試穿`)
+
+    } catch (error) {
+      console.error('❌ 批次試穿錯誤:', error)
+      alert('試穿處理失敗，請稍後再試')
+    } finally {
+      setIsTryonProcessing(false)
+    }
+  }
+
+  // File to Base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
+  // 加入購物車（整套）
+  const handleAddOutfitToCart = (lookId: number, tryonImage?: string) => {
+    const look = looks.find(l => l.id === lookId)
+    if (look) {
+      addOutfit(look, tryonImage, 'tryon')
+      alert('已加入購物車！')
+    }
+  }
+
+  // 加入購物車（單品）
+  const handleAddProductToCart = (product: Product) => {
+    addSingleProduct(product, 1, 'tryon')
+    alert(`已將 ${product.name} 加入購物車！`)
   }
 
   // === 🎯 BE 27 核心功能：進入穿搭工作室 ===
@@ -300,6 +568,27 @@ export default function ChatPage() {
       }
       setSelectedProducts((prev) => [...prev, product])
     }
+  }
+
+  // === 🎨 前往穿搭工作室 ===
+  const goToStudio = () => {
+    // 將推薦商品存入 recommendStore（使用 API 回傳的完整 URL）
+    const productsForStudio = recommendedProducts.map(p => ({
+      id: p.id,
+      name: p.name,
+      price: String(p.price),
+      category: p.category,
+      style: p.style || '',
+      image: p.image, // Django 原圖 URL
+      image_nobg: (p as any).image_nobg || p.image, // Django 去背圖 URL
+      tags: p.tags || [],
+      colors: p.colors || []
+    }))
+    console.log('🎨 前往工作室，帶入商品:', productsForStudio.length, '件')
+    console.log('🔍 商品範例:', productsForStudio[0])
+    setStoreRecommendedProducts(productsForStudio)
+    setSourcePrompt(messages[messages.length - 2]?.content || '') // 記錄用戶的原始 prompt
+    router.push('/studio')
   }
 
   // === 🎯 Render Stage 1: Chat Mode ===
@@ -423,7 +712,7 @@ export default function ChatPage() {
               {/* 推薦商品區塊 - 整合在對話流中 */}
               {showRecommendations && recommendedProducts.length > 0 && (
                 <div className="flex justify-start">
-                  <div className="max-w-[95%] bg-gray-50 rounded-lg p-4">
+                  <div className="max-w-[95%] p-0">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
                         <span className="text-purple-600 text-xs">AI</span>
@@ -434,17 +723,17 @@ export default function ChatPage() {
                         已選擇 {selectedProducts.length}/12 件
                       </span>
                     </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     {recommendedProducts.map((product) => {
                       const isSelected = selectedProducts.some((p) => p.id === product.id)
                       return (
                         <div
                           key={product.id}
                           onClick={() => toggleProductSelection(product)}
-                          className={`bg-white border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                          className={`bg-white rounded-xl p-4 cursor-pointer transition-all ${
                             isSelected
-                              ? 'border-purple-500 shadow-lg'
-                              : 'border-gray-200 hover:border-purple-300 hover:shadow-md'
+                              ? 'shadow-lg ring-1 ring-purple-500'
+                              : 'shadow-sm hover:shadow-md'
                           }`}
                         >
                           {isSelected && (
@@ -479,22 +768,32 @@ export default function ChatPage() {
                     })}
                   </div>
                     <div className="text-center mt-6">
-                      <button
-                        onClick={startOutfitSelection}
-                        disabled={selectedProducts.length < 1 || selectedProducts.length > 12}
-                        className="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
-                      >
-                        <SparklesIcon className="w-5 h-5" />
-                        開始挑選穿搭（生成 6 套）
-                      </button>
+                      <div className="flex gap-3 justify-center flex-wrap">
+                        <button
+                          onClick={startOutfitSelection}
+                          disabled={selectedProducts.length < 1 || selectedProducts.length > 12}
+                          className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          <SparklesIcon className="w-5 h-5" />
+                          生成 6 套穿搭
+                        </button>
+                        <button
+                          onClick={goToStudio}
+                          disabled={recommendedProducts.length === 0}
+                          className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          <PaintBrushIcon className="w-5 h-5" />
+                          前往穿搭工作室
+                        </button>
+                      </div>
                       {selectedProducts.length === 0 && (
                         <p className="text-sm text-gray-500 mt-2">
-                          請至少選擇 1 件商品開始搭配
+                          選擇商品後可生成穿搭，或直接前往工作室自由搭配
                         </p>
                       )}
                       {selectedProducts.length > 0 && selectedProducts.length <= 12 && (
                         <p className="text-sm text-purple-600 mt-2">
-                          已選擇 {selectedProducts.length} 件，系統將為您生成 6 套穿搭組合
+                          已選擇 {selectedProducts.length} 件，可生成 6 套穿搭組合
                         </p>
                       )}
                     </div>
@@ -642,7 +941,7 @@ export default function ChatPage() {
         </div>
 
         {/* 右側 LOOK 展示區域（4/5 寬度） */}
-        <div className="flex-1 bg-gray-50 p-6 overflow-y-auto">
+        <div className="flex-1 bg-white p-8 overflow-y-auto">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold text-gray-900">
@@ -673,7 +972,7 @@ export default function ChatPage() {
             </div>
 
             {/* LOOK 卡片網格 */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-3 gap-8">
               {visibleLooks.map((look) => {
                 const isDress = isLookDress(look)
                 const top = getLookTop(look)
@@ -683,7 +982,7 @@ export default function ChatPage() {
                 return (
                   <div
                     key={look.id}
-                    className="bg-white rounded-lg shadow-md p-6 border-2 border-gray-200 hover:border-purple-400 transition-all"
+                    className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-lg transition-all"
                   >
                     {/* Header */}
                     <div className="flex items-center justify-between mb-4">
@@ -710,17 +1009,16 @@ export default function ChatPage() {
                     {/* 洋裝單件顯示 */}
                     {isDress && look.items[0] && (
                       <div className="mb-4">
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
-                          <img
-                            src={look.items[0].image}
-                            alt={look.items[0].name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = '/images/placeholder.jpg'
-                            }}
-                          />
-                        </div>
+                        <img
+                          src={look.items[0].image}
+                          alt={look.items[0].name}
+                          className="w-full object-contain mb-3"
+                          style={{ maxHeight: '400px' }}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = '/images/placeholder.jpg'
+                          }}
+                        />
                         <p className="text-sm font-medium text-gray-900 truncate">
                           {look.items[0].name}
                         </p>
@@ -731,53 +1029,49 @@ export default function ChatPage() {
                       </div>
                     )}
 
-                    {/* 上下身組合顯示 */}
+                    {/* 上下身組合顯示 - 可拖拽交換 */}
                     {!isDress && top && bottom && (
-                      <>
-                        {/* 上衣 */}
-                        <div className="mb-3">
-                          <p className="text-xs text-gray-500 mb-1">上衣</p>
-                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
-                            <img
-                              src={top.image}
-                              alt={top.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.src = '/images/placeholder.jpg'
-                              }}
+                      <div className="mb-4">
+                        {/* 上下疊加的穿搭效果 */}
+                        <div className="relative mb-3">
+                          {/* 上衣 - 可拖拽 */}
+                          <div className="mb-2 relative group">
+                            <DraggableProductImage
+                              product={top}
+                              lookId={look.id}
+                              type="top"
+                              onDrop={handleDragDrop}
                             />
+                            <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                              拖動交換上衣
+                            </div>
                           </div>
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {top.name}
-                          </p>
-                          <p className="text-xs text-purple-600">
-                            NT$ {top.price.toLocaleString()}
-                          </p>
+                          {/* 下身 - 可拖拽 */}
+                          <div className="relative group">
+                            <DraggableProductImage
+                              product={bottom}
+                              lookId={look.id}
+                              type="bottom"
+                              onDrop={handleDragDrop}
+                            />
+                            <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                              拖動交換下身
+                            </div>
+                          </div>
                         </div>
 
-                        {/* 下身 */}
-                        <div className="mb-3">
-                          <p className="text-xs text-gray-500 mb-1">下身</p>
-                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
-                            <img
-                              src={bottom.image}
-                              alt={bottom.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.src = '/images/placeholder.jpg'
-                              }}
-                            />
+                        {/* 商品資訊 */}
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">上衣</span>
+                            <span className="font-medium text-gray-900 truncate ml-2">{top.name}</span>
                           </div>
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {bottom.name}
-                          </p>
-                          <p className="text-xs text-purple-600">
-                            NT$ {bottom.price.toLocaleString()}
-                          </p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">下身</span>
+                            <span className="font-medium text-gray-900 truncate ml-2">{bottom.name}</span>
+                          </div>
                         </div>
-                      </>
+                      </div>
                     )}
 
                     {/* 總價 */}
@@ -813,84 +1107,283 @@ export default function ChatPage() {
 
   // === 🎯 Render Stage 3: Try-On Mode ===
   if (currentMode === 'tryon') {
-    const selectedLook = looks.find((l) => l.id === selectedLookForTryon)
-    const isDress = selectedLook ? isLookDress(selectedLook) : false
-
     return (
-      <div className="h-screen bg-white flex items-center justify-center">
-        <div className="max-w-4xl w-full p-6">
-          <button
-            onClick={() => setMode('outfit')}
-            className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-            返回穿搭工作室
-          </button>
+      <div className="h-screen bg-white overflow-y-auto">
+        <div className="max-w-6xl mx-auto p-6">
+          {/* 頂部導航 */}
+          <div className="flex items-center justify-between mb-6">
+            <button
+              onClick={() => {
+                setMode('outfit')
+                // 重置試穿狀態
+                setSelectedLooksForTryon([])
+                setUserPhoto(null)
+                setTryonResults([])
+              }}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+              返回穿搭工作室
+            </button>
 
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">
-            虛擬試穿 - LOOK {selectedLookForTryon}
-          </h1>
-
-          {selectedLook && (
-            <div className="bg-gray-50 rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-semibold mb-4">您選擇的穿搭：</h3>
-              {selectedLook.style && (
-                <p className="text-sm text-purple-600 mb-2">風格：{selectedLook.style}</p>
-              )}
-              {selectedLook.occasion && (
-                <p className="text-sm text-gray-600 mb-4">場合：{selectedLook.occasion}</p>
-              )}
-              <div className="grid grid-cols-2 gap-4">
-                {isDress ? (
-                  <div className="col-span-2">
-                    <p className="text-sm text-gray-600">洋裝</p>
-                    <p className="font-medium">{selectedLook.items[0].name}</p>
-                    <p className="text-sm text-purple-600 mt-1">
-                      NT$ {selectedLook.items[0].price.toLocaleString()}
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div>
-                      <p className="text-sm text-gray-600">上衣</p>
-                      <p className="font-medium">{selectedLook.items[0].name}</p>
-                      <p className="text-sm text-purple-600 mt-1">
-                        NT$ {selectedLook.items[0].price.toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">下身</p>
-                      <p className="font-medium">{selectedLook.items[1].name}</p>
-                      <p className="text-sm text-purple-600 mt-1">
-                        NT$ {selectedLook.items[1].price.toLocaleString()}
-                      </p>
-                    </div>
-                  </>
-                )}
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-gray-600">
+                購物車 ({getTotalItems()})
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
-                  總價：<span className="text-lg font-bold text-purple-600">
-                    NT$ {getLookTotalPrice(selectedLook).toLocaleString()}
-                  </span>
-                </p>
+            </div>
+          </div>
+
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            ✨ AI 虛擬試穿體驗
+          </h1>
+          <p className="text-gray-600 mb-8">選擇 LOOK，上傳照片，立即查看穿搭效果</p>
+
+          {/* Step 1: 選擇 LOOK（可複選） */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Step 1: 選擇要試穿的 LOOK
+              </h2>
+              <span className="text-sm text-purple-600 font-medium">
+                已選 {selectedLooksForTryon.length}/{looks.length} 套
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+              {looks.map((look) => {
+                const isSelected = selectedLooksForTryon.includes(look.id)
+                const isDress = isLookDress(look)
+                const top = isDress ? null : getLookTop(look)
+                const bottom = isDress ? null : getLookBottom(look)
+
+                return (
+                  <div
+                    key={look.id}
+                    onClick={() => toggleLookSelection(look.id)}
+                    className={`
+                      relative rounded-xl p-4 cursor-pointer transition-all
+                      ${isSelected
+                        ? 'bg-purple-50 shadow-lg ring-1 ring-purple-500'
+                        : 'bg-white shadow-sm hover:shadow-md'
+                      }
+                    `}
+                  >
+                    {/* 勾選標記 */}
+                    {isSelected && (
+                      <div className="absolute top-2 right-2 bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                        ✓
+                      </div>
+                    )}
+
+                    {/* LOOK 標題 */}
+                    <div className="mb-2">
+                      <span className="text-sm font-semibold text-gray-900">LOOK {look.id}</span>
+                      {look.style && (
+                        <span className="ml-2 text-xs text-purple-600">{look.style}</span>
+                      )}
+                    </div>
+
+                    {/* 商品預覽圖 */}
+                    <div className="mb-3">
+                      {isDress && look.items[0] ? (
+                        <img
+                          src={look.items[0].image}
+                          alt={look.items[0].name}
+                          className="w-full h-32 object-contain"
+                        />
+                      ) : (
+                        <div className="space-y-1">
+                          {top && (
+                            <img
+                              src={top.image}
+                              alt={top.name}
+                              className="w-full h-16 object-contain"
+                            />
+                          )}
+                          {bottom && (
+                            <img
+                              src={bottom.image}
+                              alt={bottom.name}
+                              className="w-full h-16 object-contain"
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 價格 */}
+                    <div className="text-sm font-medium text-purple-600">
+                      NT$ {getLookTotalPrice(look).toLocaleString()}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Step 2: 上傳照片 */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Step 2: 上傳您的照片
+            </h2>
+            <PhotoUpload
+              onUpload={handlePhotoUpload}
+              currentFile={userPhoto}
+              maxSize={10}
+            />
+          </div>
+
+          {/* 生成按鈕 */}
+          <div className="mb-8 text-center">
+            <button
+              onClick={handleBatchTryon}
+              disabled={selectedLooksForTryon.length === 0 || !userPhoto || isTryonProcessing}
+              className={`
+                px-8 py-4 rounded-lg text-lg font-semibold transition-all
+                ${selectedLooksForTryon.length === 0 || !userPhoto || isTryonProcessing
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-lg'
+                }
+              `}
+            >
+              {isTryonProcessing ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>AI 生成試穿效果中...</span>
+                </div>
+              ) : (
+                `🎨 開始生成試穿效果 (${selectedLooksForTryon.length} 套)`
+              )}
+            </button>
+          </div>
+
+          {/* Step 3: 試穿結果展示 */}
+          {tryonResults.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                ✅ 試穿結果
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {tryonResults.map((result) => {
+                  const look = looks.find(l => l.id === result.lookId)
+                  if (!look) return null
+
+                  return (
+                    <div key={result.lookId} className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-lg transition-all">
+                      {/* 試穿照片 */}
+                      <div className="mb-4">
+                        <img
+                          src={result.resultImage}
+                          alt={`LOOK ${result.lookId} 試穿效果`}
+                          className="w-full h-96 object-contain bg-white rounded-xl"
+                        />
+                      </div>
+
+                      {/* LOOK 資訊 */}
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-lg font-semibold text-gray-900">
+                            LOOK {result.lookId}
+                          </span>
+                          <span className="text-lg font-bold text-purple-600">
+                            NT$ {getLookTotalPrice(look).toLocaleString()}
+                          </span>
+                        </div>
+                        {look.style && (
+                          <p className="text-sm text-gray-600 mb-1">{look.style}</p>
+                        )}
+                        {look.occasion && (
+                          <p className="text-xs text-gray-500">{look.occasion}</p>
+                        )}
+                      </div>
+
+                      {/* 商品列表 */}
+                      <div className="mb-4 space-y-2">
+                        {result.products.map((product, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-sm">
+                            <span className="text-gray-700">{product.name}</span>
+                            <button
+                              onClick={() => handleAddProductToCart(product)}
+                              className="text-purple-600 hover:text-purple-700 text-xs"
+                            >
+                              單獨加入
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* 操作按鈕 */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            const link = document.createElement('a')
+                            link.href = result.resultImage
+                            link.download = `tryon_look_${result.lookId}.jpg`
+                            link.click()
+                          }}
+                          className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                        >
+                          💾 下載照片
+                        </button>
+                        <button
+                          onClick={() => handleAddOutfitToCart(result.lookId, result.resultImage)}
+                          className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium"
+                        >
+                          🛒 整套加入購物車
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* 底部按鈕 */}
+              <div className="mt-6 flex gap-4 justify-center">
+                <button
+                  onClick={() => setMode('outfit')}
+                  className="px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  🔙 繼續挑選其他穿搭
+                </button>
+                <button
+                  onClick={() => {
+                    // TODO: 導航到購物車頁面
+                    alert('購物車功能開發中...')
+                  }}
+                  className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors font-medium"
+                >
+                  📋 查看購物車 ({getTotalItems()})
+                </button>
               </div>
             </div>
           )}
 
-          <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-            <p className="text-gray-500 mb-4">上傳您的照片以查看試穿效果</p>
-            <button className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
-              上傳照片
-            </button>
-            <p className="text-xs text-gray-400 mt-4">
-              此功能將整合 Nano Banana API
-            </p>
-          </div>
+          {/* 提示訊息 */}
+          {tryonResults.length === 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+              <p className="font-medium mb-2">💡 使用提示</p>
+              <ul className="space-y-1 text-xs">
+                <li>• 可以同時選擇多套 LOOK 進行試穿</li>
+                <li>• 照片建議：正面全身照或半身照，光線充足，背景簡單</li>
+                <li>• 試穿結果可以下載保存或直接加入購物車</li>
+                <li>• 支援整套購買（享有套裝優惠）或單品加入購物車</li>
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     )
   }
 
   return null
+}
+
+// 導出包裝了 DndProvider 的組件
+export default function ChatPage() {
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <ChatPageContent />
+    </DndProvider>
+  )
 }
