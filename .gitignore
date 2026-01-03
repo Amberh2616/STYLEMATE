@@ -8,3 +8,4 @@ test-*.mjs
 uploads/
 knowledge/
 fashion_dataset/
+node_modules
