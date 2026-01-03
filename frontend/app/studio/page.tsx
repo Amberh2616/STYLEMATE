@@ -20,8 +20,13 @@ import {
   CameraIcon,
   PencilIcon,
   TrashIcon,
+  PaperAirplaneIcon,
+  PhotoIcon,
+  ArrowLeftIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline'
 import { DjangoProduct, fetchProducts, getImageUrl } from '@/lib/api/django'
+import { useRecommendStore, RecommendedProduct } from '@/store/recommendStore'
 
 // 工具模式
 type ToolMode = 'select' | 'marquee'
@@ -319,11 +324,27 @@ function DraggableItem({
 }
 
 export default function StudioPage() {
-  // 商品列表
+  // === 從 Chat 頁面帶過來的推薦商品 ===
+  const {
+    recommendedProducts: storeProducts,
+    sourcePrompt,
+    clearRecommendedProducts
+  } = useRecommendStore()
+
+  // AI 對話狀態
+  const [promptInput, setPromptInput] = useState('')
+  const [aiMessage, setAiMessage] = useState('')
+  const [recommendedProducts, setRecommendedProducts] = useState<DjangoProduct[]>([])
+  const [isAiLoading, setIsAiLoading] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
+  const [fromChatPage, setFromChatPage] = useState(false)
+
+  // 商品列表（備用：全部商品）
   const [products, setProducts] = useState<DjangoProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [showAllProducts, setShowAllProducts] = useState(false)
 
   // 白板項目
   const [canvasItems, setCanvasItems] = useState<CanvasItem[]>([])
@@ -345,6 +366,15 @@ export default function StudioPage() {
   const [rightPanelOpen, setRightPanelOpen] = useState(true)
   const [detailProduct, setDetailProduct] = useState<DjangoProduct | null>(null)
 
+  // 試穿彈窗狀態
+  const [tryOnModalOpen, setTryOnModalOpen] = useState(false)
+  const [tryOnLook, setTryOnLook] = useState<Look | null>(null)
+  const [userPhoto, setUserPhoto] = useState<string | null>(null)
+  const [tryOnResult, setTryOnResult] = useState<string | null>(null)
+  const [isTryOnLoading, setIsTryOnLoading] = useState(false)
+  const [tryOnError, setTryOnError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   // 分類列表
   const categories = [
     { value: '', label: '全部' },
@@ -354,6 +384,46 @@ export default function StudioPage() {
     { value: 'two-piece', label: '套裝' },
     { value: 'jacket', label: '外套' },
   ]
+
+  // === 從 Chat 頁面載入推薦商品 ===
+  useEffect(() => {
+    if (storeProducts && storeProducts.length > 0) {
+      // 將 store 商品轉換為 DjangoProduct 格式
+      const convertedProducts: DjangoProduct[] = storeProducts.map((p: RecommendedProduct) => ({
+        id: p.id,
+        name: p.name,
+        sku: null,
+        price: p.price,
+        original_price: null,
+        category: p.category,
+        description: '',
+        composition: '',
+        care_instructions: '',
+        size_info: '',
+        stock: 1,
+        is_active: true,
+        image: p.image,
+        image_nobg: p.image_nobg,
+        tags: p.tags,
+        colors: p.colors,
+        occasion: [],
+        season: [],
+        style: p.style,
+        material: '',
+        sleeve: '',
+        length: '',
+        neckline: '',
+        fit: '',
+        color_temperature: '',
+        created_at: '',
+        updated_at: ''
+      }))
+      setRecommendedProducts(convertedProducts)
+      setFromChatPage(true)
+      setAiMessage(`✨ 從 BE 27 對話帶入 ${convertedProducts.length} 件推薦商品\n\n點擊商品即可加入白板搭配！`)
+      console.log('📦 從 Chat 頁面載入推薦商品:', convertedProducts.length, '件')
+    }
+  }, [storeProducts])
 
   // 載入商品
   useEffect(() => {
@@ -625,6 +695,144 @@ export default function StudioPage() {
     }
   }, [])
 
+  // ===== 試穿彈窗功能 =====
+
+  // 開啟試穿彈窗
+  const openTryOnModal = useCallback((look: Look) => {
+    setTryOnLook(look)
+    setTryOnModalOpen(true)
+    setUserPhoto(null)
+    setTryOnResult(null)
+    setTryOnError(null)
+  }, [])
+
+  // 關閉試穿彈窗
+  const closeTryOnModal = useCallback(() => {
+    setTryOnModalOpen(false)
+    setTryOnLook(null)
+    setUserPhoto(null)
+    setTryOnResult(null)
+    setTryOnError(null)
+  }, [])
+
+  // 處理照片上傳
+  const handlePhotoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string
+      setUserPhoto(base64)
+    }
+    reader.readAsDataURL(file)
+  }, [])
+
+  // 執行試穿（使用 Nano Banana / Gemini API）
+  const executeTryOn = useCallback(async () => {
+    if (!userPhoto || !tryOnLook || tryOnLook.items.length === 0) return
+
+    setIsTryOnLoading(true)
+    setTryOnError(null)
+
+    try {
+      // 取得第一件商品的圖片（簡化版：一次試穿一件）
+      const garmentItem = tryOnLook.items[0]
+      const garmentUrl = getImageUrl(garmentItem.product.image_nobg || garmentItem.product.image)
+
+      console.log('🔄 開始試穿...', { garmentUrl })
+
+      // 使用正確的 API 參數格式
+      const response = await fetch('/api/tryon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          personImageUrl: userPhoto, // 完整的 base64 URL (data:image/...;base64,...)
+          garmentImageUrl: garmentUrl,
+          customRequest: '', // 可選：自訂試穿需求
+          keepOtherItems: true, // 保留其他衣物
+        }),
+      })
+
+      const data = await response.json()
+
+      // API 回傳 url 欄位
+      if (data.url) {
+        setTryOnResult(data.url)
+        console.log('✅ 試穿成功，使用後端:', data.backend)
+      } else if (data.success === false) {
+        throw new Error(data.error || data.message || '試穿失敗')
+      } else {
+        throw new Error('未知的 API 回應格式')
+      }
+    } catch (error: any) {
+      console.error('❌ 試穿錯誤:', error)
+      setTryOnError(error.message || '試穿服務暫時不可用')
+    } finally {
+      setIsTryOnLoading(false)
+    }
+  }, [userPhoto, tryOnLook])
+
+  // 下載試穿結果
+  const downloadTryOnResult = useCallback(() => {
+    if (!tryOnResult) return
+
+    const link = document.createElement('a')
+    link.download = `tryon-${Date.now()}.png`
+    link.href = tryOnResult
+    link.click()
+  }, [tryOnResult])
+
+  // 將試穿結果加入白板
+  const addTryOnResultToCanvas = useCallback(() => {
+    if (!tryOnResult || !tryOnLook) return
+
+    // 建立一個虛擬商品來放試穿結果圖（使用負數 ID 避免與真實商品衝突）
+    const tryOnProduct: DjangoProduct = {
+      id: -Date.now(),
+      name: `${tryOnLook.name} 試穿效果`,
+      sku: null,
+      price: '0',
+      original_price: null,
+      category: 'tryon-result',
+      description: '',
+      composition: '',
+      care_instructions: '',
+      size_info: '',
+      stock: 1,
+      is_active: true,
+      image: tryOnResult,
+      image_nobg: tryOnResult,
+      tags: ['試穿結果'],
+      colors: [],
+      occasion: [],
+      season: [],
+      style: '',
+      material: '',
+      sleeve: '',
+      length: '',
+      neckline: '',
+      fit: '',
+      color_temperature: '',
+      created_at: '',
+      updated_at: ''
+    }
+
+    const newItem: CanvasItem = {
+      id: `tryon-${Date.now()}`,
+      product: tryOnProduct,
+      x: 300 + Math.random() * 100,
+      y: 100 + Math.random() * 100,
+      scale: 0.8,
+      zIndex: nextZIndex,
+      selected: false,
+    }
+
+    setCanvasItems((prev) => [...prev, newItem])
+    setNextZIndex((prev) => prev + 1)
+    closeTryOnModal()
+  }, [tryOnResult, tryOnLook, nextZIndex, closeTryOnModal])
+
   // 計算總價
   const totalPrice = canvasItems.reduce(
     (sum, item) => sum + parseInt(item.product.price),
@@ -636,6 +844,51 @@ export default function StudioPage() {
     setCanvasItems([])
     setSelectedItemIds([])
   }
+
+  // AI 推薦搜尋
+  const handleAiSearch = async () => {
+    if (!promptInput.trim() || isAiLoading) return
+
+    setIsAiLoading(true)
+    setAiMessage('')
+    setHasSearched(true)
+
+    try {
+      const response = await fetch('/api/studio/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: promptInput }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setAiMessage(data.message || '')
+        setRecommendedProducts(data.products || [])
+        console.log(`✅ AI 推薦 ${data.count} 件商品`)
+      } else {
+        setAiMessage(data.error || '搜尋失敗，請重試')
+        setRecommendedProducts([])
+      }
+    } catch (error) {
+      console.error('AI 搜尋錯誤:', error)
+      setAiMessage('網路錯誤，請檢查連線')
+      setRecommendedProducts([])
+    } finally {
+      setIsAiLoading(false)
+    }
+  }
+
+  // 處理 Enter 鍵
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleAiSearch()
+    }
+  }
+
+  // 顯示的商品列表
+  const displayProducts = showAllProducts ? filteredProducts : recommendedProducts
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
@@ -661,7 +914,7 @@ export default function StudioPage() {
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* 左側面板 - 商品列表 */}
+        {/* 左側面板 - AI 對話 + 推薦商品 */}
         <div
           className={`bg-white border-r transition-all duration-300 flex flex-col ${
             leftPanelOpen ? 'w-80' : 'w-0'
@@ -669,44 +922,107 @@ export default function StudioPage() {
         >
           {leftPanelOpen && (
             <>
-              {/* 搜尋與篩選 */}
+              {/* AI 對話輸入區 */}
               <div className="p-4 border-b space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <SparklesIcon className="w-5 h-5 text-pink-500" />
+                  <span className="font-medium text-gray-700">AI 穿搭推薦</span>
+                </div>
                 <div className="relative">
-                  <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="搜尋商品..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                    placeholder="例：約會穿搭、甜美洋裝..."
+                    value={promptInput}
+                    onChange={(e) => setPromptInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    disabled={isAiLoading}
+                    className="w-full pl-4 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 disabled:bg-gray-100"
                   />
+                  <button
+                    onClick={handleAiSearch}
+                    disabled={isAiLoading || !promptInput.trim()}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isAiLoading ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <PaperAirplaneIcon className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.value}
-                      onClick={() => setSelectedCategory(cat.value)}
-                      className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                        selectedCategory === cat.value
-                          ? 'bg-pink-500 text-white'
-                          : 'bg-gray-100 hover:bg-gray-200'
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
+
+                {/* AI 回覆 */}
+                {aiMessage && (
+                  <div className="bg-pink-50 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap">
+                    {aiMessage}
+                  </div>
+                )}
+
+                {/* 切換顯示模式 */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowAllProducts(false)}
+                    className={`flex-1 py-2 text-sm rounded-lg transition-colors ${
+                      !showAllProducts
+                        ? 'bg-pink-500 text-white'
+                        : 'bg-gray-100 hover:bg-gray-200'
+                    }`}
+                  >
+                    AI 推薦 ({recommendedProducts.length})
+                  </button>
+                  <button
+                    onClick={() => setShowAllProducts(true)}
+                    className={`flex-1 py-2 text-sm rounded-lg transition-colors ${
+                      showAllProducts
+                        ? 'bg-pink-500 text-white'
+                        : 'bg-gray-100 hover:bg-gray-200'
+                    }`}
+                  >
+                    全部商品
+                  </button>
                 </div>
+
+                {/* 分類篩選（僅全部商品模式） */}
+                {showAllProducts && (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.value}
+                        onClick={() => setSelectedCategory(cat.value)}
+                        className={`px-3 py-1 rounded-full text-xs transition-colors ${
+                          selectedCategory === cat.value
+                            ? 'bg-pink-500 text-white'
+                            : 'bg-gray-100 hover:bg-gray-200'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* 商品列表 */}
               <div className="flex-1 overflow-y-auto p-4">
-                {loading ? (
-                  <div className="text-center py-8 text-gray-500">載入中...</div>
-                ) : filteredProducts.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">沒有商品</div>
+                {(showAllProducts ? loading : isAiLoading) ? (
+                  <div className="text-center py-8 text-gray-500">
+                    {isAiLoading ? '🔍 AI 搜尋中...' : '載入中...'}
+                  </div>
+                ) : displayProducts.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    {!hasSearched && !showAllProducts ? (
+                      <>
+                        <SparklesIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                        <p>輸入穿搭需求</p>
+                        <p className="text-xs mt-1">AI 會為你推薦商品</p>
+                      </>
+                    ) : (
+                      <p>沒有找到商品</p>
+                    )}
+                  </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-3">
-                    {filteredProducts.map((product) => (
+                    {displayProducts.map((product) => (
                       <ProductCard
                         key={product.id}
                         product={product}
@@ -742,8 +1058,7 @@ export default function StudioPage() {
             toolMode === 'marquee' ? 'cursor-crosshair' : ''
           }`}
           style={{
-            backgroundImage:
-              'radial-gradient(circle, #ddd 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(circle, #ddd 1px, transparent 1px)',
             backgroundSize: '20px 20px',
           }}
           onClick={() => {
@@ -754,7 +1069,7 @@ export default function StudioPage() {
           onMouseUp={handleMarqueeEnd}
           onMouseLeave={handleMarqueeEnd}
         >
-          {/* 工具欄 - 始終顯示 */}
+          {/* 工具欄 */}
           <div
             className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-white rounded-xl shadow-lg p-2 flex gap-1 flex-wrap justify-center"
             onMouseDown={(e) => e.stopPropagation()}
@@ -1041,7 +1356,10 @@ export default function StudioPage() {
                                 NT${lookTotal.toLocaleString()}
                               </span>
                             </div>
-                            <button className="w-full py-2 bg-pink-500 text-white rounded-lg text-sm font-medium hover:bg-pink-600 flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => openTryOnModal(look)}
+                              className="w-full py-2 bg-pink-500 text-white rounded-lg text-sm font-medium hover:bg-pink-600 flex items-center justify-center gap-1"
+                            >
                               <SparklesIcon className="w-4 h-4" />
                               試穿這套
                             </button>
@@ -1105,6 +1423,170 @@ export default function StudioPage() {
           product={detailProduct}
           onClose={() => setDetailProduct(null)}
         />
+      )}
+
+      {/* 隱藏的檔案輸入（放在最外層避免事件干擾） */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handlePhotoUpload}
+        className="hidden"
+      />
+
+      {/* 試穿彈窗 Modal */}
+      {tryOnModalOpen && tryOnLook && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            {/* 標題列 */}
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <SparklesIcon className="w-6 h-6 text-pink-500" />
+                試穿 {tryOnLook.name}
+              </h2>
+              <button
+                onClick={closeTryOnModal}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* 內容區 */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* LOOK 商品預覽 */}
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-600 mb-3">搭配商品</h3>
+                <div className="flex gap-3 flex-wrap">
+                  {tryOnLook.items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
+                      <img
+                        src={getImageUrl(item.product.image_nobg || item.product.image)}
+                        alt={item.product.name}
+                        className="w-12 h-12 object-contain bg-white rounded"
+                      />
+                      <div className="text-xs">
+                        <p className="font-medium truncate max-w-[100px]">{item.product.name}</p>
+                        <p className="text-pink-600">${parseInt(item.product.price).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 雙欄：上傳照片 + 試穿結果 */}
+              <div className="grid grid-cols-2 gap-6">
+                {/* 左側：上傳照片 */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-gray-600">你的照片</h3>
+                  <div
+                    className={`aspect-[3/4] rounded-xl border-2 border-dashed flex items-center justify-center cursor-pointer transition-colors ${
+                      userPhoto
+                        ? 'border-pink-300 bg-pink-50'
+                        : 'border-gray-300 hover:border-pink-400 hover:bg-gray-50'
+                    }`}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {userPhoto ? (
+                      <img
+                        src={userPhoto}
+                        alt="你的照片"
+                        className="w-full h-full object-contain rounded-lg"
+                      />
+                    ) : (
+                      <div className="text-center text-gray-400">
+                        <PhotoIcon className="w-12 h-12 mx-auto mb-2" />
+                        <p className="text-sm">點擊上傳照片</p>
+                      </div>
+                    )}
+                  </div>
+                  {userPhoto && (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full py-2 text-sm text-gray-600 hover:text-gray-800"
+                    >
+                      重新選擇照片
+                    </button>
+                  )}
+                </div>
+
+                {/* 右側：試穿結果 */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-gray-600">試穿效果</h3>
+                  <div className="aspect-[3/4] rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                    {isTryOnLoading ? (
+                      <div className="text-center text-gray-400">
+                        <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                        <p className="text-sm">AI 試穿生成中...</p>
+                        <p className="text-xs text-gray-400 mt-1">約需 10-20 秒</p>
+                      </div>
+                    ) : tryOnResult ? (
+                      <img
+                        src={tryOnResult}
+                        alt="試穿結果"
+                        className="w-full h-full object-contain rounded-lg"
+                      />
+                    ) : tryOnError ? (
+                      <div className="text-center text-red-400 p-4">
+                        <XMarkIcon className="w-10 h-10 mx-auto mb-2" />
+                        <p className="text-sm">{tryOnError}</p>
+                      </div>
+                    ) : (
+                      <div className="text-center text-gray-400">
+                        <SparklesIcon className="w-12 h-12 mx-auto mb-2" />
+                        <p className="text-sm">上傳照片後</p>
+                        <p className="text-sm">點擊「開始試穿」</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 底部操作列 */}
+            <div className="px-6 py-4 border-t bg-gray-50 flex gap-3">
+              {!tryOnResult ? (
+                <>
+                  <button
+                    onClick={closeTryOnModal}
+                    className="flex-1 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={executeTryOn}
+                    disabled={!userPhoto || isTryOnLoading}
+                    className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${
+                      userPhoto && !isTryOnLoading
+                        ? 'bg-pink-500 text-white hover:bg-pink-600'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <SparklesIcon className="w-5 h-5" />
+                    開始試穿
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={downloadTryOnResult}
+                    className="flex-1 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 flex items-center justify-center gap-2"
+                  >
+                    <ArrowDownTrayIcon className="w-5 h-5" />
+                    下載圖片
+                  </button>
+                  <button
+                    onClick={addTryOnResultToCanvas}
+                    className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-xl font-medium hover:from-pink-600 hover:to-purple-600 flex items-center justify-center gap-2"
+                  >
+                    <PlusIcon className="w-5 h-5" />
+                    加入白板
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
